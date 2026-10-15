@@ -14,8 +14,9 @@ SECRET=$(pbpaste | tr -d '[:space:]')
 echo "        Got a secret ${#SECRET} characters long."
 
 echo ""
-echo "STEP 2  Generate Code tab: scope ZohoCRM.modules.leads.CREATE,ZohoCRM.modules.leads.UPDATE,"
-echo "        time 10 minutes, Create, then COPY the code."
+echo "STEP 2  Generate Code tab: paste this scope (one line):"
+echo "        ZohoCRM.modules.leads.CREATE,ZohoCRM.modules.leads.UPDATE,ZohoCRM.modules.leads.READ,ZohoCRM.modules.contacts.READ,ZohoCRM.modules.deals.READ,ZohoCRM.coql.READ"
+echo "        Time 10 minutes, Create, then COPY the code."
 printf "        Then press Enter here... "
 read -r _
 CODE=$(pbpaste | tr -d '[:space:]')

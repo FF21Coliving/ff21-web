@@ -12,10 +12,11 @@ import { getProperty } from "./properties";
 //   - It writes only the fields listed in toZoho() below. Nothing else in Zoho
 //     (fields, picklists, workflows, other records) is read or changed.
 //   - Picklist values are sent exactly as they exist in Zoho (checked 16 Oct 2026).
-// The API token needs only ZohoCRM.modules.leads.CREATE and .UPDATE.
+// The API token needs ZohoCRM.modules.leads.CREATE and .UPDATE; the daily
+// outcome check (lead-outcomes.ts) also reads leads, contacts and deals.
 
 const accountsUrl = () => process.env.ZOHO_ACCOUNTS_URL ?? "https://accounts.zoho.in";
-const apiUrl = () => process.env.ZOHO_API_URL ?? "https://www.zohoapis.in";
+export const apiUrl = () => process.env.ZOHO_API_URL ?? "https://www.zohoapis.in";
 
 export const zohoApiEnabled = () =>
   process.env.LEADS_MODE === "zoho-api" && Boolean(process.env.ZOHO_CLIENT_ID && process.env.ZOHO_CLIENT_SECRET && process.env.ZOHO_REFRESH_TOKEN);
@@ -100,7 +101,7 @@ export function toZoho(i: ZohoLeadInput): Record<string, string> {
 
 let token: { value: string; until: number } | undefined;
 
-async function accessToken() {
+export async function accessToken() {
   if (token && token.until > Date.now() + 60_000) return token.value;
   const q = new URLSearchParams({
     refresh_token: process.env.ZOHO_REFRESH_TOKEN!,
