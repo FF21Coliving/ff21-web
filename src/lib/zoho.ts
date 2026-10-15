@@ -2,6 +2,7 @@ import "server-only";
 import { leadSummary, utmOf, type Lead } from "./lead";
 import { getProperty } from "./properties";
 import { createZohoLead, readRef, updateZohoLead, zohoApiEnabled, type ZohoLeadInput } from "./zoho-api";
+import { scoreLead, scoreFields } from "./lead-score";
 
 // Leads go to Zoho CRM through the same Web-to-Lead form ff21.co.in uses.
 // LEADS_MODE=test (the default) logs the payload and sends nothing.
@@ -47,6 +48,7 @@ export const zohoInput = (lead: Lead): ZohoLeadInput => ({
   stay: lead.stay,
   room: lead.room,
   summary: leadSummary(lead),
+  ...scoreFields(scoreLead({ ...lead, finished: true })),
   page: lead.page,
   utm: utmOf(lead.attribution),
 });

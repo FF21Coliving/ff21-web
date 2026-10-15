@@ -1,5 +1,6 @@
 import { validateLead } from "@/lib/lead";
 import { saveLead } from "@/lib/lead-store";
+import { scoreLead } from "@/lib/lead-score";
 import { backupLead, deliverToZoho } from "@/lib/zoho";
 
 const MIN_FILL_MS = 2500;
@@ -28,7 +29,10 @@ export async function POST(request: Request) {
   const delivery = await deliverToZoho(lead, body.zohoRef);
   await backupLead(lead, delivery);
   if (lead.id) {
+    const score = scoreLead({ ...lead, finished: true });
     await saveLead({
+      score: score.score,
+      qualification: score.qualification,
       id: lead.id,
       status: delivery.ok ? "submitted" : "started",
       last_step: "submitted",

@@ -1,5 +1,6 @@
 import { genders, isLeadId, sources, stays, summarize, utmOf, validateContact, type Attribution, type Stay } from "@/lib/lead";
 import { saveLead, type LeadRow } from "@/lib/lead-store";
+import { scoreFields, scoreLead } from "@/lib/lead-score";
 import { properties } from "@/lib/properties";
 import { createZohoLead, makeRef, readRef, updateZohoLead, zohoApiEnabled } from "@/lib/zoho-api";
 
@@ -59,10 +60,17 @@ export async function POST(request: Request) {
   };
   for (const [k, v] of Object.entries(answers)) if (v !== undefined) Object.assign(row, { [k]: v });
 
+  // Every save carries all answers so far, so the score is always current.
+  // "heard" is the last step: saving it means the visitor is sending the form.
+  const score = scoreLead({ moveIn: row.move_in, stay: row.stay, budget: row.budget, property: row.property, source: row.source, referralCode: row.referral_code, finished: step === "heard" });
+  row.score = score.score;
+  row.qualification = score.qualification;
+
   // Zoho: create the lead at the contact step, then update only that lead.
   let zohoRef: string | undefined;
   if (zohoApiEnabled()) {
     const zohoAnswers = {
+      ...scoreFields(score),
       property: row.property,
       gender: row.gender,
       stay: row.stay,

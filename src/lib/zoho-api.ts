@@ -53,6 +53,9 @@ export type ZohoLeadInput = {
   stay?: string;
   room?: string;
   summary?: string;
+  // The website's first guess (lib/lead-score.ts): Hot, Warm or Cold, and why.
+  qualification?: string;
+  scoreNote?: string;
   page?: string;
   utm?: { source?: string; medium?: string; campaign?: string; term?: string; content?: string; gclid?: string };
 };
@@ -81,7 +84,8 @@ export function toZoho(i: ZohoLeadInput): Record<string, string> {
     Gender: i.gender,
     Minimum_Stay: i.stay ? stayValues[i.stay] : undefined,
     Room_Type_Requirement: i.room,
-    Description: i.summary,
+    Lead_Qualification: i.qualification,
+    Description: [i.scoreNote, i.summary].filter(Boolean).join(" | ") || undefined,
     Campaign_Source1: i.utm?.source,
     Campaign_Medium: i.utm?.medium,
     Campaign_Name: i.utm?.campaign,

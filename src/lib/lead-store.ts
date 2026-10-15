@@ -29,6 +29,8 @@ export type LeadRow = {
   page?: string;
   zoho_status?: string;
   zoho_detail?: string;
+  score?: number;
+  qualification?: string;
 };
 
 export async function saveLead(row: LeadRow): Promise<{ ok: boolean; skipped?: boolean }> {
