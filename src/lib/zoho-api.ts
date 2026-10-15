@@ -18,18 +18,20 @@ const accountsUrl = () => process.env.ZOHO_ACCOUNTS_URL ?? "https://accounts.zoh
 const apiUrl = () => process.env.ZOHO_API_URL ?? "https://www.zohoapis.in";
 
 export const zohoApiEnabled = () =>
-  process.env.LEADS_MODE === "zoho-api" &&
-  Boolean(process.env.ZOHO_CLIENT_ID && process.env.ZOHO_CLIENT_SECRET && process.env.ZOHO_REFRESH_TOKEN && process.env.ZOHO_REF_SECRET);
+  process.env.LEADS_MODE === "zoho-api" && Boolean(process.env.ZOHO_CLIENT_ID && process.env.ZOHO_CLIENT_SECRET && process.env.ZOHO_REFRESH_TOKEN);
 
 // --- the signed reference -------------------------------------------------
 
-const sign = (id: string) => createHmac("sha256", process.env.ZOHO_REF_SECRET ?? "").update(`ff21-lead:${id}`).digest("base64url");
+// Signed with ZOHO_REF_SECRET if set, otherwise with a key derived from the
+// client secret, so no extra secret is needed.
+const refKey = () => process.env.ZOHO_REF_SECRET || (process.env.ZOHO_CLIENT_SECRET ? createHmac("sha256", process.env.ZOHO_CLIENT_SECRET).update("ff21-lead-ref").digest("hex") : "");
+const sign = (id: string) => createHmac("sha256", refKey()).update(`ff21-lead:${id}`).digest("base64url");
 
 export const makeRef = (id: string) => `${id}.${sign(id)}`;
 
 // The Zoho record id inside a reference, only if the site signed it.
 export function readRef(ref: unknown): string | undefined {
-  if (typeof ref !== "string" || !process.env.ZOHO_REF_SECRET) return undefined;
+  if (typeof ref !== "string" || !refKey()) return undefined;
   const [id, sig] = ref.split(".");
   if (!id || !sig || !/^\d{6,25}$/.test(id)) return undefined;
   const want = Buffer.from(sign(id));
