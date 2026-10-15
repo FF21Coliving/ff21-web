@@ -19,7 +19,7 @@ export function SiteFooter() {
     <footer className="relative overflow-hidden bg-mist">
       <span aria-hidden className="pebble absolute -right-32 -top-24 h-[420px] w-[460px] bg-blue-50" />
       <Splash className="absolute right-[30%] top-20 hidden h-20 w-20 rotate-12 lg:block" />
-      <div className={`${container} relative pb-32 pt-20 md:pb-12 md:pt-28`}>
+      <div className={`${container} relative pb-28 pt-16 md:pb-12 md:pt-28`}>
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <Image src="/brand/ff21-logo-192.png" alt="FF21" width={64} height={64} className="h-16 w-16" />
@@ -27,9 +27,9 @@ export function SiteFooter() {
               Welcome home, <Accent>FFer</Accent>.
             </p>
             <p className="mt-6 max-w-lg text-[17px] leading-[28px] text-ink-2">
-              Coliving homes for young professionals and students in Bangalore, since {site.founded}. One rent covers it all:
+              Coliving homes for young professionals and students in Bangalore, since {site.founded}. One rent covers your room, meals, WiFi, housekeeping and laundry.
             </p>
-            <ul className="mt-4 flex max-w-xl flex-wrap gap-2" aria-label="Included in the rent">
+            <ul className="mt-4 hidden max-w-xl flex-wrap gap-2 md:flex" aria-label="Included in the rent">
               {included.slice(0, 6).map((i) => (
                 <li key={i.label}>
                   <Tag icon={i.icon} size="sm">
@@ -39,7 +39,7 @@ export function SiteFooter() {
               ))}
             </ul>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="hidden flex-wrap gap-3 md:flex">
             <Link href="/find-my-home" className={`${button.primary} group`}>
               Find my home <ArrowRight aria-hidden className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
             </Link>
@@ -50,8 +50,8 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-16 grid gap-10 rounded-2xl bg-surface p-8 sm:grid-cols-2 md:p-10 lg:grid-cols-[2fr_1fr_1fr_1.4fr]">
-          <div>
+        <div className="mt-12 grid grid-cols-2 gap-x-6 gap-y-9 rounded-2xl bg-surface p-6 md:mt-16 md:gap-10 md:p-10 lg:grid-cols-[2fr_1fr_1fr_1.4fr]">
+          <div className="col-span-2 lg:col-span-1">
             <h2 className={heading}>Homes in Bangalore</h2>
             <ul className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3">
               {properties.map((p) => (
@@ -82,7 +82,7 @@ export function SiteFooter() {
               <li><a href={site.facebook} target="_blank" rel="noopener noreferrer" className={item}>Facebook</a></li>
             </ul>
           </div>
-          <div>
+          <div className="col-span-2 sm:col-span-1">
             <h2 className={heading}>Talk to us</h2>
             <ul className="mt-5 space-y-3">
               <li>

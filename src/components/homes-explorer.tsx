@@ -11,7 +11,9 @@ import { button, chip, chipOff, chipOn } from "./ui";
 const kinds: RoomKind[] = ["twin", "private", "studio"];
 
 // Area tabs (each with a photo of a home there) and room filters over the grid.
-export function HomesExplorer() {
+// On phones the home page shows the homes as a sideways row (phoneRail), so
+// ten cards don't stack into ten screens.
+export function HomesExplorer({ phoneRail = false }: { phoneRail?: boolean }) {
   const [zone, setZone] = useState<Zone | "all">("all");
   const [room, setRoom] = useState<RoomKind | null>(null);
 
@@ -45,7 +47,7 @@ export function HomesExplorer() {
         })}
       </div>
 
-      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-4 flex flex-col gap-3 sm:mt-6 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div className="flex flex-wrap items-center gap-2" aria-label="Room type">
           {kinds.map((k) => {
             const Icon = roomIcons[k];
@@ -67,9 +69,17 @@ export function HomesExplorer() {
       </div>
 
       {shown.length ? (
-        <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+        <div
+          className={`mt-8 md:mt-10 ${
+            phoneRail
+              ? "no-scrollbar -mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-6 px-6 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-12 sm:overflow-visible sm:px-0 lg:grid-cols-3 2xl:grid-cols-4"
+              : "grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 sm:gap-y-12 lg:grid-cols-3 2xl:grid-cols-4"
+          }`}
+        >
           {shown.map((p, i) => (
-            <HomeCard key={p.slug} property={p} eager={i < 4} sizes="(min-width: 1536px) 22vw, (min-width: 1024px) 30vw, (min-width: 640px) 46vw, 92vw" />
+            <div key={p.slug} className={phoneRail ? "w-[80vw] shrink-0 snap-start sm:w-auto" : undefined}>
+              <HomeCard property={p} eager={i < 4} sizes="(min-width: 1536px) 22vw, (min-width: 1024px) 30vw, (min-width: 640px) 46vw, 80vw" />
+            </div>
           ))}
         </div>
       ) : (

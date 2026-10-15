@@ -114,11 +114,11 @@ async function PropertyContent({ params }: Pick<PageProps<"/properties/[slug]">,
         </nav>
         <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="text-[32px] font-extrabold leading-[36px] tracking-[-0.03em] text-ink md:text-[44px] md:leading-[48px]">
+            <h1 className="text-[30px] font-extrabold leading-[34px] tracking-[-0.03em] text-ink md:text-[44px] md:leading-[48px]">
               FF21 {p.code} · <Accent>{p.area}</Accent>
             </h1>
             <p className="mt-2 text-[17px] text-ink-2">{p.tagline}</p>
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="no-scrollbar -mx-6 mt-4 flex gap-2 overflow-x-auto px-6 md:mx-0 md:flex-wrap md:px-0">
               <Tag icon={highlightIcons[p.slug]} tone="tint">
                 {p.highlight}
               </Tag>

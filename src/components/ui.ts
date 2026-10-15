@@ -18,7 +18,7 @@ export const button = {
 export const container = "mx-auto w-full max-w-[1440px] px-6 md:px-10 xl:px-20";
 
 // Every marketing section breathes the same amount.
-export const sectionY = "py-20 md:py-28";
+export const sectionY = "py-16 md:py-28";
 
 // Page H1s (Homes, About).
 export const pageTitle = "font-display text-[40px] leading-[44px] font-extrabold tracking-[-0.035em] text-ink md:text-[64px] md:leading-[66px]";

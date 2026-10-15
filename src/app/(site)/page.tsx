@@ -68,8 +68,8 @@ export default function Home() {
           lead="Every home comes furnished, with meals, WiFi, housekeeping and laundry in the rent. Pick an area, or let us match you."
           action={<ArrowLink href="/find-my-home">Find my home</ArrowLink>}
         />
-        <div className="mt-12 md:mt-14">
-          <HomesExplorer />
+        <div className="mt-10 md:mt-14">
+          <HomesExplorer phoneRail />
         </div>
       </section>
 

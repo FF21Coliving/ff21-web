@@ -77,7 +77,7 @@ export function SiteHeader() {
         >
           <MessageCircle aria-hidden className="h-[18px] w-[18px]" />
         </TrackedLink>
-        <Link href="/find-my-home" onClick={close} className={`${button.smallPrimary} group hidden sm:inline-flex md:h-11 md:px-5`}>
+        <Link href="/find-my-home" onClick={close} className={`${button.smallPrimary} group max-sm:hidden md:h-11 md:px-5`}>
           Book a visit
           <ArrowRight aria-hidden className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
         </Link>

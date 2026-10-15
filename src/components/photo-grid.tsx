@@ -17,25 +17,48 @@ export function PhotoGrid({ photos, slug, title }: Props) {
   const side = rest.slice(0, 4);
   const layout = side.length >= 4 ? "four" : side.length >= 2 ? "two" : side.length === 1 ? "one" : "none";
   const cell = "group relative block overflow-hidden bg-mist";
+  const shownCount = 1 + (layout === "two" ? Math.min(side.length, 2) : layout === "none" ? 0 : side.length);
+  const [slide, setSlide] = useState(0);
 
   return (
     <>
-      <div className={`relative grid gap-2 overflow-hidden rounded-2xl ${layout === "none" ? "" : "md:grid-cols-2"}`}>
-        <button type="button" onClick={() => setViewing(0)} className={`${cell} aspect-[4/3] w-full md:aspect-auto md:min-h-[520px]`} aria-label={`Open photo 1 of ${photos.length} full screen`}>
-          <ViewTransition name={`home-${slug}`} share="morph" default="none">
-            <span className="absolute inset-0 block">
-              <Image src={lead.id} alt={lead.alt} fill preload fetchPriority="high" sizes="(min-width: 768px) 50vw, 100vw" quality={90} className="object-cover transition-transform duration-[900ms] ease-[var(--ease-standard)] group-hover:scale-[1.03]" />
-            </span>
-          </ViewTransition>
-        </button>
-        {layout !== "none" && (
-          <div className={`hidden gap-2 md:grid ${layout === "four" ? "grid-cols-2 grid-rows-2" : layout === "two" ? "grid-rows-2" : ""}`}>
-            {(layout === "two" ? side.slice(0, 2) : side).map((photo, i) => (
-              <button key={photo.id} type="button" onClick={() => setViewing(i + 1)} className={cell} aria-label={`Open photo ${i + 2} of ${photos.length} full screen`}>
-                <Image src={photo.id} alt={photo.alt} fill sizes="25vw" quality={85} className="object-cover transition-transform duration-[900ms] ease-[var(--ease-standard)] group-hover:scale-[1.04]" />
-              </button>
-            ))}
-          </div>
+      {/* Phones: swipe through the first five photos. Larger screens: the lead
+          photo beside a grid of four. */}
+      <div className="relative">
+        <div
+          onScroll={(e) => {
+            const el = e.currentTarget;
+            setSlide(Math.round(el.scrollLeft / el.clientWidth));
+          }}
+          className={`no-scrollbar flex snap-x snap-mandatory gap-0 overflow-x-auto overflow-y-hidden rounded-2xl md:grid md:gap-2 md:overflow-hidden ${layout === "none" ? "" : "md:grid-cols-2"}`}
+        >
+          <button type="button" onClick={() => setViewing(0)} className={`${cell} aspect-[4/3] w-full shrink-0 snap-center md:aspect-auto md:min-h-[520px]`} aria-label={`Open photo 1 of ${photos.length} full screen`}>
+            <ViewTransition name={`home-${slug}`} share="morph" default="none">
+              <span className="absolute inset-0 block">
+                <Image src={lead.id} alt={lead.alt} fill preload fetchPriority="high" sizes="(min-width: 768px) 50vw, 100vw" quality={90} className="object-cover transition-transform duration-[900ms] ease-[var(--ease-standard)] group-hover:scale-[1.03]" />
+              </span>
+            </ViewTransition>
+          </button>
+          {layout !== "none" && (
+            <div className={`contents gap-2 md:grid ${layout === "four" ? "grid-cols-2 grid-rows-2" : layout === "two" ? "grid-rows-2" : ""}`}>
+              {(layout === "two" ? side.slice(0, 2) : side).map((photo, i) => (
+                <button
+                  key={photo.id}
+                  type="button"
+                  onClick={() => setViewing(i + 1)}
+                  className={`${cell} aspect-[4/3] w-full shrink-0 snap-center md:aspect-auto md:w-auto`}
+                  aria-label={`Open photo ${i + 2} of ${photos.length} full screen`}
+                >
+                  <Image src={photo.id} alt={photo.alt} fill sizes="(min-width: 768px) 25vw, 100vw" quality={85} className="object-cover transition-transform duration-[900ms] ease-[var(--ease-standard)] group-hover:scale-[1.04]" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        {shownCount > 1 && (
+          <span aria-hidden className="pointer-events-none absolute left-4 top-4 rounded-full bg-[rgb(12_24_26/0.6)] px-2.5 py-1 text-[12.5px] font-semibold text-white backdrop-blur md:hidden">
+            {slide + 1} / {shownCount}
+          </span>
         )}
         {photos.length > 1 && (
           <button
@@ -44,7 +67,8 @@ export function PhotoGrid({ photos, slug, title }: Props) {
             className="absolute bottom-4 right-4 inline-flex h-10 items-center gap-2 rounded-full bg-surface px-4 text-[14px] font-semibold text-ink shadow-md transition-shadow hover:shadow-lg"
           >
             <Images aria-hidden className="h-4 w-4" />
-            Show all {photos.length} photos
+            <span className="md:hidden">All {photos.length}</span>
+            <span className="hidden md:inline">Show all {photos.length} photos</span>
           </button>
         )}
       </div>
