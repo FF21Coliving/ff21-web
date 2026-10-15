@@ -111,7 +111,7 @@ async function accessToken() {
   return token.value;
 }
 
-type ZohoResult = { ok: true; id: string } | { ok: false; detail: string };
+type ZohoResult = { ok: true; id: string } | { ok: false; detail: string; duplicateField?: string };
 
 async function call(method: "POST" | "PUT", path: string, record: Record<string, string>, trigger: string[]): Promise<ZohoResult> {
   try {
@@ -121,17 +121,37 @@ async function call(method: "POST" | "PUT", path: string, record: Record<string,
       body: JSON.stringify({ data: [record], trigger }),
       signal: AbortSignal.timeout(10_000),
     });
-    const body = (await res.json().catch(() => ({}))) as { data?: { status?: string; code?: string; message?: string; details?: { id?: string } }[] };
+    const body = (await res.json().catch(() => ({}))) as { data?: { status?: string; code?: string; message?: string; details?: { id?: string; api_name?: string } }[] };
     const row = body.data?.[0];
     if (row?.status === "success" && row.details?.id) return { ok: true, id: row.details.id };
-    return { ok: false, detail: `${res.status} ${row?.code ?? ""} ${row?.message ?? ""}`.trim() };
+    return {
+      ok: false,
+      detail: `${res.status} ${row?.code ?? ""} ${row?.message ?? ""} ${row?.details?.api_name ?? ""}`.trim(),
+      duplicateField: row?.code === "DUPLICATE_DATA" ? row.details?.api_name : undefined,
+    };
   } catch (err) {
     return { ok: false, detail: err instanceof Error ? err.message : String(err) };
   }
 }
 
-// A new lead. Runs the same workflow rules a web-form lead would.
-export const createZohoLead = (input: ZohoLeadInput) => call("POST", "Leads", toZoho(input), ["workflow"]);
+const duplicateLabels: Record<string, string> = { Phone: "phone", Email: "email", Mobile: "mobile" };
+
+// A new lead. Runs the same workflow rules a web-form lead would. If Zoho says
+// a unique field (phone or email) matches an existing lead, that lead is left
+// alone: the new lead is created without that field, and Description says
+// which existing value it matched, so the team can link them.
+export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> {
+  const record = toZoho(input);
+  const notes: string[] = [];
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const result = await call("POST", "Leads", notes.length ? { ...record, Description: [`Returning? ${notes.join("; ")}.`, record.Description].filter(Boolean).join(" | ") } : record, ["workflow"]);
+    const field = !result.ok ? result.duplicateField : undefined;
+    if (result.ok || !field || !record[field] || !duplicateLabels[field]) return result;
+    notes.push(`Same ${duplicateLabels[field]} as an existing lead: ${record[field]}`);
+    delete record[field];
+  }
+  return { ok: false, detail: "duplicate fields" };
+}
 
 // More answers for a lead the site created (id from readRef only). No rules
 // re-run, so the sales team's automations fire once, on creation.
