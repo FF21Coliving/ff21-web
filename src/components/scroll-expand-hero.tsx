@@ -142,7 +142,7 @@ export function ScrollExpandHero({ frames, left, right, homes, from }: Props) {
                 FF21 Coliving · Bangalore
               </p>
               <h1 className="xh-title">
-                Where friends become <em className="accent text-sun">family</em>.
+                Where friends become <em className="accent">family</em>.
               </h1>
             </div>
             <div className="xh-collage" aria-hidden>
@@ -163,7 +163,7 @@ export function ScrollExpandHero({ frames, left, right, homes, from }: Props) {
                 FF21 Coliving · since 2016
               </p>
               <h2 className="mt-3 text-[38px] font-extrabold leading-[40px] tracking-[-0.035em] text-white md:mt-4 md:text-[80px] md:leading-[80px]">
-                Ten homes across <em className="accent text-sun">Bangalore</em>.
+                Ten homes across <em className="accent">Bangalore</em>.
               </h2>
               <p className="mt-3 max-w-xl text-[15px] leading-[23px] text-white/85 md:mt-5 md:text-[19px] md:leading-[30px]">
                 Furnished rooms in {homes} homes, with meals, WiFi and housekeeping in one rent. From {from} a month.

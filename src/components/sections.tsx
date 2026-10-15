@@ -48,10 +48,9 @@ export function Eyebrow({ children, tone = "default" }: { children: React.ReactN
 
 // One word or short phrase per headline, in Instrument Serif italic.
 export function Accent({ children, tone = "default" }: { children: React.ReactNode; tone?: Tone }) {
-  // On photos and dark grounds the accent is the logo's yellow; on white it
-  // stays blue-ink, since yellow on white can't be read.
-  const color = tone === "light" ? "text-sun" : tone === "onBlue" ? "text-ink" : "text-blue-ink";
-  return <em className={`accent ${color}`}>{children}</em>;
+  // The same yellow label on every ground: white, photos and the blue band.
+  void tone;
+  return <em className="accent">{children}</em>;
 }
 
 type HeaderProps = {

@@ -97,7 +97,7 @@ export function TourDialog({ homes, index, onIndex, onClose, onHomePage }: Dialo
               Home tour{many ? ` · ${index! + 1} of ${homes.length}` : ""}
             </p>
             <h2 className="mt-4 text-[48px] font-extrabold leading-none tracking-[-0.03em]">FF21 {home.code}</h2>
-            <p className="accent mt-1 text-[34px] leading-10 text-sun">{home.area}</p>
+            <p className="mt-1 font-serif text-[34px] italic leading-10 text-white/90">{home.area}</p>
             <p className="mt-5 text-[16px] leading-[26px] text-white/75">{home.tagline}.</p>
             <Tag icon={Highlight} tone="glass" className="mt-5">
               {home.highlight}
