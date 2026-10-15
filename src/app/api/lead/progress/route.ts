@@ -1,9 +1,9 @@
-import { genders, isLeadId, stays, validateContact } from "@/lib/lead";
+import { genders, isLeadId, sources, stays, validateContact } from "@/lib/lead";
 import { saveLead, type LeadRow } from "@/lib/lead-store";
 import { properties } from "@/lib/properties";
 
 const MIN_FILL_MS = 2500;
-const STEPS = ["you", "where", "movein", "stay", "budget", "room", "who", "home"];
+const STEPS = ["you", "where", "movein", "stay", "budget", "room", "who", "home", "heard"];
 
 const str = (v: unknown, max = 120) => (typeof v === "string" ? v.trim().slice(0, max) : undefined) || undefined;
 
@@ -41,10 +41,11 @@ export async function POST(request: Request) {
   }
 
   const places = Array.isArray(b.places) ? b.places.map((x) => str(x, 60)).filter((x): x is string => Boolean(x)).slice(0, 8) : undefined;
+  const source = str(b.source);
   const stay = str(b.stay);
   const gender = str(b.gender);
   const property = str(b.property);
-  Object.assign(row, {
+  const answers = {
     places,
     move_in: str(b.moveIn, 60),
     stay: stay && (stays as readonly string[]).includes(stay) ? stay : undefined,
@@ -52,7 +53,10 @@ export async function POST(request: Request) {
     room: str(b.room, 60),
     gender: gender && (genders as readonly string[]).includes(gender) ? gender : undefined,
     property: property && properties.some((p) => p.slug === property) ? property : undefined,
-  });
+    source: source && (sources as readonly string[]).includes(source) ? source : undefined,
+    referral_code: str(b.referralCode, 40),
+  };
+  for (const [k, v] of Object.entries(answers)) if (v !== undefined) Object.assign(row, { [k]: v });
 
   const saved = await saveLead(row);
   return Response.json({ ok: saved.ok });

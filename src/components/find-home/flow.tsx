@@ -1,12 +1,12 @@
 "use client";
 
-import { ArrowLeft, Check, MapPin, Plus, Search, X } from "lucide-react";
+import { ArrowLeft, Building, Building2, Check, CircleAlert, Footprints, MapPin, Plus, Search, Smartphone, Users, X, type LucideIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { readAttribution } from "@/lib/attribution";
-import { genders, inferSource, sources, stays, type Gender, type LeadErrors, type Stay } from "@/lib/lead";
+import { genders, inferSource, normalizePhone, stays, type Gender, type LeadErrors, type Source, type Stay } from "@/lib/lead";
 import { photos, type Photo } from "@/lib/photos";
 import { fromPrice, getProperty, homesNear, places, properties, roomKindLabels, roomKinds, type RoomKind } from "@/lib/properties";
 import { isFullPincode, isPincodeQuery, pincodes } from "@/lib/pincodes";
@@ -17,7 +17,7 @@ import { button } from "../ui";
 
 // Contact details come first, so every answer after them is saved to a lead
 // the team can call, even if the visitor stops halfway.
-const STEPS = ["you", "where", "movein", "stay", "budget", "room", "who", "home"] as const;
+const STEPS = ["you", "where", "movein", "stay", "budget", "room", "who", "home", "heard"] as const;
 type StepId = (typeof STEPS)[number];
 type RoomChoice = RoomKind | "unsure";
 type Budget = { label: string; max: number | null };
@@ -30,7 +30,30 @@ type Answers = {
   room?: RoomChoice;
   property?: string;
   gender?: Gender;
+  source?: Source;
+  referralCode?: string;
 };
+
+// Picklist values Zoho expects, in words people use.
+const sourceChoices: { id: Source; label: string; icon: LucideIcon }[] = [
+  { id: "Google", label: "Google", icon: Search },
+  { id: "Social Media", label: "Instagram or Facebook", icon: Smartphone },
+  { id: "Reference", label: "A friend", icon: Users },
+  { id: "Housing.com", label: "Housing.com", icon: Building2 },
+  { id: "Magicbricks", label: "Magicbricks", icon: Building },
+  { id: "Walk Ins", label: "Walked past a home", icon: Footprints },
+];
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+// The same checks the server makes, so mistakes show before anything is sent.
+function checkField(name: string, value: string): string | undefined {
+  const v = value.trim();
+  if (name === "firstName" && !v) return "Please add your first name.";
+  if (name === "lastName" && !v) return "Please add your last name.";
+  if (name === "phone" && !normalizePhone(v)) return "Enter a 10-digit mobile number, like 98765 43210.";
+  if (name === "email" && !emailPattern.test(v)) return "Enter an email like name@example.com.";
+  return undefined;
+}
 
 const popular = ["ITPL", "EPIP Zone", "Whitefield", "Bagmane Tech Park", "Marathahalli", "Ecospace", "Bellandur", "Embassy Tech Village", "Manyata Tech Park", "Koramangala", "HSR Layout", "Sarjapur Road"];
 const moveIns = ["As soon as possible", "Next month", "In two months", "I'm flexible"];
@@ -56,6 +79,7 @@ const copy: Record<StepId, { title: string; lead: string }> = {
   budget: { title: "What's your monthly budget?", lead: "Per person, with meals, taxes and charges included." },
   room: { title: "What kind of room would you like?", lead: "You can change your mind on the visit." },
   home: { title: "Pick a home to visit", lead: "Ranked by what you told us. You can ask to see more than one." },
+  heard: { title: "Last thing: how did you hear about us?", lead: "It helps us know what's working. Got a referral code from a friend? Add it below." },
   who: { title: "Who's moving in?", lead: "So we can suggest the right room." },
   you: { title: "First, how can we reach you?", lead: "Our team will call or WhatsApp you to set up a visit. Your answers save as you go." },
 };
@@ -104,6 +128,8 @@ function photoFor(step: StepId, answers: Answers): Photo {
       return photos.holi;
     case "you":
       return photos.diningFamily;
+    case "heard":
+      return photos.partyFriends;
   }
 }
 
@@ -120,6 +146,67 @@ const inferredSource = () => inferSource(readAttribution());
 
 // Milliseconds since the visitor opened the flow (a spam check), read in handlers.
 const since = (start: number) => Date.now() - start;
+
+function FieldError({ id, message }: { id?: string; message: string }) {
+  return (
+    <p id={id} className="mt-2 flex items-center gap-1.5 text-[14px] font-medium text-danger">
+      <CircleAlert aria-hidden className="h-4 w-4 shrink-0" />
+      {message}
+    </p>
+  );
+}
+
+type TextFieldProps = Omit<React.ComponentProps<"input">, "prefix"> & {
+  name: string;
+  label: string;
+  hint?: string;
+  prefix?: string;
+  optional?: boolean;
+  error?: string;
+  onCheck?: (name: string, value: string) => void;
+  onValue?: (value: string) => void;
+};
+
+// A labelled field: big enough to tap, clear focus, and its error right under it.
+function TextField({ name, label: text, hint, prefix, optional, error, onCheck, onValue, ...rest }: TextFieldProps) {
+  const described = [hint && `${name}-hint`, error && `${name}-error`].filter(Boolean).join(" ") || undefined;
+  return (
+    <div>
+      <label htmlFor={name} className="text-[14px] font-semibold text-ink">
+        {text}
+        {optional && <span className="font-normal text-ink-3"> (optional)</span>}
+      </label>
+      <div className="relative mt-2">
+        {prefix && (
+          <span aria-hidden className="pointer-events-none absolute inset-y-0 left-0 flex items-center border-r border-line pl-4 pr-3 text-[16px] font-medium text-ink-2">
+            {prefix}
+          </span>
+        )}
+        <input
+          id={name}
+          name={name}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={described}
+          onBlur={(e) => onCheck?.(name, e.target.value)}
+          onChange={(e) => {
+            onValue?.(e.target.value);
+            if (error) onCheck?.(name, e.target.value);
+          }}
+          className={`h-14 w-full rounded-xl border bg-surface text-[16px] text-ink transition-[border-color,box-shadow] placeholder:text-ink-3/70 focus:outline-none focus:ring-4 ${prefix ? "pl-[74px] pr-4" : "px-4"} ${
+            error ? "border-danger focus:border-danger focus:ring-red-100" : "border-line-soft hover:border-ink-3 focus:border-blue-ink focus:ring-blue-100"
+          }`}
+          {...rest}
+        />
+      </div>
+      {hint && !error && (
+        <p id={`${name}-hint`} className="mt-2 text-[13.5px] text-ink-3">
+          {hint}
+        </p>
+      )}
+      {error && <FieldError id={`${name}-error`} message={error} />}
+    </div>
+  );
+}
 
 function Tick({ on }: { on: boolean }) {
   return (
@@ -179,10 +266,19 @@ export function FindMyHome() {
     setAnswers((a) => ({ ...a, ...patch }));
   };
 
+  // Checked as each field is left, once something has been typed.
+  const setFieldError = (name: string, value: string) => {
+    if (!value.trim() && !errors[name as keyof LeadErrors]) return;
+    setErrors((e) => ({ ...e, [name]: checkField(name, value) }));
+  };
+
   const goTo = (s: StepId) => {
     // Entering "home" with nothing picked: pick the best match for them.
     if (s === "home") {
       setAnswers((a) => (a.property ? a : { ...a, property: rank(a)[0].p.slug }));
+    }
+    if (s === "heard" && inferred) {
+      setAnswers((a) => (a.source ? a : { ...a, source: inferred }));
     }
     setStep(s);
     window.scrollTo({ top: 0 });
@@ -211,6 +307,8 @@ export function FindMyHome() {
     room: a.room ? (a.room === "unsure" ? "Not sure yet" : roomKindLabels[a.room]) : undefined,
     gender: a.gender,
     property: a.property,
+    source: a.source,
+    referralCode: a.referralCode,
   });
 
   // Saved in the background on every move forward; never blocks the visitor.
@@ -237,7 +335,16 @@ export function FindMyHome() {
   async function submitContact(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const c = Object.fromEntries(new FormData(e.currentTarget).entries()) as Record<string, string>;
-    if (!c.source && inferred) c.source = inferred;
+    const found: LeadErrors = {};
+    for (const k of ["firstName", "lastName", "phone", "email"] as const) {
+      const msg = checkField(k, c[k] ?? "");
+      if (msg) found[k] = msg;
+    }
+    if (Object.keys(found).length) {
+      setErrors(found);
+      document.getElementById(Object.keys(found)[0])?.focus();
+      return;
+    }
     setSaving(true);
     setErrors({});
     try {
@@ -308,6 +415,8 @@ export function FindMyHome() {
           ...contact,
           id: idFor(),
           form: "find-my-home",
+          source: answers.source,
+          referralCode: answers.referralCode,
           gender: answers.gender,
           property: answers.property,
           stay: answers.stay,
@@ -323,7 +432,7 @@ export function FindMyHome() {
       const body = await res.json().catch(() => ({}));
       if (res.ok && body.ok) {
         const p = getProperty(answers.property ?? "");
-        track("generate_lead", { form: "find-my-home", property: p?.code, source: contact.source });
+        track("generate_lead", { form: "find-my-home", property: p?.code, source: answers.source });
         setDone({ name: contact.firstName, phone: contact.phone, testMode: body.mode === "test" });
         setStatus("done");
         window.scrollTo({ top: 0 });
@@ -333,7 +442,8 @@ export function FindMyHome() {
         const errs = body.errors as LeadErrors;
         setErrors(errs);
         setStatus("idle");
-        if (errs.firstName || errs.lastName || errs.phone || errs.email || errs.source) goTo("you");
+        if (errs.firstName || errs.lastName || errs.phone || errs.email) goTo("you");
+        else if (errs.source) goTo("heard");
         else if (errs.gender) goTo("who");
         else if (errs.property) goTo("home");
         return;
@@ -619,7 +729,42 @@ export function FindMyHome() {
                     </ul>
                   )}
 
-                  {step === "home" && message && (
+                  {step === "heard" && (
+                    <div>
+                      <ul className="grid gap-2 sm:grid-cols-2" aria-label="How you heard of us">
+                        {sourceChoices.map((c) => {
+                          const on = answers.source === c.id;
+                          return (
+                            <li key={c.id}>
+                              <button type="button" aria-pressed={on} onClick={() => update({ source: c.id })} className={`${option} ${on ? optionOn : optionOff}`}>
+                                <span className="flex items-center gap-3">
+                                  <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full transition-colors ${on ? "bg-blue text-on-blue" : "bg-mist text-ink"}`}>
+                                    <c.icon aria-hidden className="h-[18px] w-[18px]" strokeWidth={2} />
+                                  </span>
+                                  {c.label}
+                                </span>
+                                <Tick on={on} />
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                      {errors.source && <FieldError message={errors.source} />}
+                      <div className="mt-8">
+                        <TextField
+                          name="referralCode"
+                          label="Referral code"
+                          optional
+                          autoComplete="off"
+                          placeholder="From a friend at FF21"
+                          defaultValue={answers.referralCode}
+                          onValue={(v) => update({ referralCode: v.trim() || undefined })}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {(step === "home" || step === "heard") && message && (
                     <p role="alert" className="mt-6 rounded-md bg-red-50 px-4 py-3 text-[15px] text-danger">
                       {message}
                     </p>
@@ -640,63 +785,30 @@ export function FindMyHome() {
                   )}
 
                   {step === "you" && (
-                    <form id="contact" onSubmit={submitContact} className="space-y-5">
-                      <div className="grid gap-5 sm:grid-cols-2">
-                        <div>
-                          <label htmlFor="firstName" className={label}>First name</label>
-                          <input id="firstName" name="firstName" required autoComplete="given-name" defaultValue={contact?.firstName} className={field} aria-invalid={errors.firstName ? true : undefined} />
-                          {errors.firstName && <p className="mt-1 text-[14px] text-danger">{errors.firstName}</p>}
-                        </div>
-                        <div>
-                          <label htmlFor="lastName" className={label}>Last name</label>
-                          <input id="lastName" name="lastName" required autoComplete="family-name" defaultValue={contact?.lastName} className={field} aria-invalid={errors.lastName ? true : undefined} />
-                          {errors.lastName && <p className="mt-1 text-[14px] text-danger">{errors.lastName}</p>}
-                        </div>
+                    <form id="contact" onSubmit={submitContact} noValidate className="space-y-6">
+                      <div className="grid gap-6 sm:grid-cols-2">
+                        <TextField name="firstName" label="First name" autoComplete="given-name" defaultValue={contact?.firstName} error={errors.firstName} onCheck={setFieldError} />
+                        <TextField name="lastName" label="Last name" autoComplete="family-name" defaultValue={contact?.lastName} error={errors.lastName} onCheck={setFieldError} />
                       </div>
-                      <div>
-                        <label htmlFor="phone" className={label}>Mobile number (WhatsApp)</label>
-                        <input id="phone" name="phone" type="tel" required inputMode="tel" autoComplete="tel" placeholder="98765 43210" defaultValue={contact?.phone} className={field} aria-invalid={errors.phone ? true : undefined} />
-                        {errors.phone && <p className="mt-1 text-[14px] text-danger">{errors.phone}</p>}
-                      </div>
-                      <div>
-                        <label htmlFor="email" className={label}>Email</label>
-                        <input id="email" name="email" type="email" required autoComplete="email" defaultValue={contact?.email} className={field} aria-invalid={errors.email ? true : undefined} />
-                        {errors.email && <p className="mt-1 text-[14px] text-danger">{errors.email}</p>}
-                      </div>
-                      <div className="grid gap-5 sm:grid-cols-2">
-                        {!inferred && (
-                          <div>
-                            <label htmlFor="source" className={label}>How you heard of us</label>
-                            <select id="source" name="source" required defaultValue={contact?.source ?? ""} className={`${field} cursor-pointer`} aria-invalid={errors.source ? true : undefined}>
-                              <option value="" disabled>
-                                Choose one
-                              </option>
-                              {sources.map((s) => (
-                                <option key={s} value={s}>
-                                  {s === "Reference" ? "A friend" : s === "Walk Ins" ? "Walked in" : s}
-                                </option>
-                              ))}
-                            </select>
-                            {errors.source && <p className="mt-1 text-[14px] text-danger">{errors.source}</p>}
-                          </div>
-                        )}
-                        <div>
-                          <label htmlFor="referralCode" className={label}>
-                            Referral code <span className="font-normal text-ink-3">(optional)</span>
-                          </label>
-                          <input id="referralCode" name="referralCode" autoComplete="off" defaultValue={contact?.referralCode} className={field} />
-                        </div>
-                      </div>
+                      <TextField
+                        name="phone"
+                        label="Mobile number"
+                        hint="We'll call or WhatsApp you on this number."
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel-national"
+                        placeholder="98765 43210"
+                        prefix="+91"
+                        defaultValue={contact?.phone?.replace(/^\+91/, "")}
+                        error={errors.phone}
+                        onCheck={setFieldError}
+                      />
+                      <TextField name="email" label="Email" type="email" inputMode="email" autoComplete="email" placeholder="name@example.com" defaultValue={contact?.email} error={errors.email} onCheck={setFieldError} />
                       {/* Hidden from people; bots fill it in. */}
                       <div aria-hidden className="absolute left-[-9999px] h-px w-px overflow-hidden">
                         <label htmlFor="website">Website</label>
                         <input id="website" name="website" tabIndex={-1} autoComplete="off" />
                       </div>
-                      {message && (
-                        <p role="alert" className="rounded-md bg-red-50 px-4 py-3 text-[15px] text-danger">
-                          {message}
-                        </p>
-                      )}
                       <p className="text-[14px] leading-[22px] text-ink-3">
                         By continuing you agree to our{" "}
                         <Link href="/privacypolicy" className="font-semibold text-blue-ink transition-colors hover:text-ink">privacy policy</Link> and{" "}
@@ -721,10 +833,10 @@ export function FindMyHome() {
                     {saving ? "Saving…" : "Continue"}
                   </button>
                 </>
-              ) : step === "home" ? (
+              ) : step === "heard" ? (
                 <>
                   <span className="truncate text-[14px] text-ink-3">{chosen ? `Visit to FF21 ${chosen.code}` : ""}</span>
-                  <button type="button" onClick={submit} disabled={status === "sending" || !answers.property} className={button.primary}>
+                  <button type="button" onClick={submit} disabled={status === "sending" || !answers.source} className={button.primary}>
                     {status === "sending" ? "Sending…" : "Book my visit"}
                   </button>
                 </>
@@ -737,7 +849,7 @@ export function FindMyHome() {
                   ) : (
                     <span />
                   )}
-                  <button type="button" onClick={next} disabled={step === "who" && !answers.gender} className={button.primary}>
+                  <button type="button" onClick={next} disabled={(step === "who" && !answers.gender) || (step === "home" && !answers.property)} className={button.primary}>
                     Continue
                   </button>
                 </>

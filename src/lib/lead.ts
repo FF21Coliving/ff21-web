@@ -86,11 +86,12 @@ function cleanTouch(v: unknown): Touch | undefined {
   return t;
 }
 
-export type Contact = Pick<Lead, "firstName" | "lastName" | "phone" | "email" | "source" | "referralCode">;
+export type Contact = Pick<Lead, "firstName" | "lastName" | "phone" | "email" | "referralCode"> & { source?: Source };
 
 export const isLeadId = (v: unknown): v is string => typeof v === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 
 // The first step of Find my home: who to call. Saved before anything else.
+// How they heard of us is asked last, so it is optional here.
 export function validateContact(body: unknown): { ok: true; contact: Contact } | { ok: false; errors: LeadErrors } {
   const b = (body && typeof body === "object" ? body : {}) as Record<string, unknown>;
   const errors: LeadErrors = {};
@@ -104,9 +105,9 @@ export function validateContact(body: unknown): { ok: true; contact: Contact } |
   if (!lastName) errors.lastName = "Please add your last name.";
   if (!phone) errors.phone = "Please add a valid mobile number.";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) errors.email = "Please add a valid email address.";
-  if (!sources.includes(source)) errors.source = "Please tell us how you heard about us.";
+  if (source && !sources.includes(source)) errors.source = "Please choose how you heard about us.";
   if (Object.keys(errors).length) return { ok: false, errors };
-  return { ok: true, contact: { firstName, lastName, phone: phone!, email, source, referralCode: str(b.referralCode, 40) || undefined } };
+  return { ok: true, contact: { firstName, lastName, phone: phone!, email, source: source || undefined, referralCode: str(b.referralCode, 40) || undefined } };
 }
 
 export function validateLead(body: unknown): { ok: true; lead: Lead } | { ok: false; errors: LeadErrors } {
@@ -122,9 +123,11 @@ export function validateLead(body: unknown): { ok: true; lead: Lead } | { ok: fa
   if (!genders.includes(gender)) errors.gender = "Please choose one.";
   if (!properties.some((p) => p.slug === property)) errors.property = "Please choose a home.";
   if (stay && !stays.includes(stay)) errors.stay = "Please choose a stay length.";
+  if (checked.ok && !checked.contact.source) errors.source = "Please tell us how you heard about us.";
 
   if (!checked.ok || Object.keys(errors).length) return { ok: false, errors };
-  const { firstName, lastName, phone, email, source, referralCode } = checked.contact;
+  const { firstName, lastName, phone, email, referralCode } = checked.contact;
+  const source = checked.contact.source!;
 
   const attribution = (b.attribution ?? {}) as Record<string, unknown>;
   return {
