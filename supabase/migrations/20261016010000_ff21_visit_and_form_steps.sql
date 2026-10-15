@@ -143,10 +143,10 @@ counts as (
   select
     s.step_no,
     s.question,
-    count(*) filter (where x.furthest >= s.step_no and x.started_at >= now() - interval '30 days') as last_30_days,
-    count(*) filter (where x.furthest >= s.step_no) as all_time
+    count(x.started_at) filter (where x.started_at >= now() - interval '30 days') as last_30_days,
+    count(x.started_at) as all_time
   from steps s
-  cross join sessions x
+  left join sessions x on x.furthest >= s.step_no
   group by s.step_no, s.question
 )
 select
