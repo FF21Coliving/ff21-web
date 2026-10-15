@@ -1,20 +1,23 @@
 "use client";
 
-import { ArrowLeft, Check, Search, X } from "lucide-react";
+import { ArrowLeft, Check, MapPin, Plus, Search, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { readAttribution } from "@/lib/attribution";
 import { genders, inferSource, sources, stays, type Gender, type LeadErrors, type Stay } from "@/lib/lead";
 import { photos, type Photo } from "@/lib/photos";
 import { fromPrice, getProperty, homesNear, places, properties, roomKindLabels, roomKinds, type RoomKind } from "@/lib/properties";
+import { isFullPincode, isPincodeQuery, pincodes } from "@/lib/pincodes";
 import { inr, site, whatsappLink } from "@/lib/site";
 import { track } from "@/lib/track";
 import { TrackedLink } from "../tracked-link";
 import { button } from "../ui";
 
-const STEPS = ["where", "movein", "stay", "budget", "room", "home", "who", "you"] as const;
+// Contact details come first, so every answer after them is saved to a lead
+// the team can call, even if the visitor stops halfway.
+const STEPS = ["you", "where", "movein", "stay", "budget", "room", "who", "home"] as const;
 type StepId = (typeof STEPS)[number];
 type RoomChoice = RoomKind | "unsure";
 type Budget = { label: string; max: number | null };
@@ -47,14 +50,14 @@ const roomChoices: { id: RoomChoice; title: string; body: string; photo?: Photo 
 ];
 
 const copy: Record<StepId, { title: string; lead: string }> = {
-  where: { title: "Where do you work or study?", lead: "We'll show homes close by. Pick up to three places." },
+  where: { title: "Where do you work or study?", lead: "Search an area, tech park or pincode. Pick up to three places." },
   movein: { title: "When would you like to move in?", lead: "Our team will check which rooms are free around then." },
-  stay: { title: "How long will you stay?", lead: "The minimum stay is three months." },
+  stay: { title: "How long will you stay?", lead: "Our minimum stay is three months. Staying less? Choose it anyway and our team will tell you what's possible." },
   budget: { title: "What's your monthly budget?", lead: "Per person, with meals, taxes and charges included." },
   room: { title: "What kind of room would you like?", lead: "You can change your mind on the visit." },
   home: { title: "Pick a home to visit", lead: "Ranked by what you told us. You can ask to see more than one." },
   who: { title: "Who's moving in?", lead: "So we can suggest the right room." },
-  you: { title: "How can we reach you?", lead: "Our team will call or WhatsApp you to set up your visit." },
+  you: { title: "First, how can we reach you?", lead: "Our team will call or WhatsApp you to set up a visit. Your answers save as you go." },
 };
 
 function rank(answers: Answers) {
@@ -112,6 +115,12 @@ const field =
   "mt-1.5 h-12 w-full rounded-md border border-line-strong bg-surface px-4 text-[16px] text-ink placeholder:text-ink-3 focus:border-blue-ink focus:outline-none focus:ring-2 focus:ring-blue-100 aria-[invalid=true]:border-danger";
 const label = "text-[14px] font-semibold text-ink";
 
+const noSubscribe = () => () => {};
+const inferredSource = () => inferSource(readAttribution());
+
+// Milliseconds since the visitor opened the flow (a spam check), read in handlers.
+const since = (start: number) => Date.now() - start;
+
 function Tick({ on }: { on: boolean }) {
   return (
     <span aria-hidden className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border transition-colors ${on ? "border-blue-ink bg-blue-ink text-white" : "border-line-soft"}`}>
@@ -123,15 +132,19 @@ function Tick({ on }: { on: boolean }) {
 export function FindMyHome() {
   const params = useSearchParams();
   const startProperty = getProperty(params.get("property") ?? "")?.slug;
-  const startStep = (() => {
-    // Only the opening questions can be linked to directly.
+  // Everyone starts with their contact details; links like ?step=budget pick
+  // the question that comes right after them.
+  const resumeStep = (() => {
     const s = params.get("step");
     if (s && ["where", "movein", "stay", "budget", "room"].includes(s)) return s as StepId;
     return startProperty ? "movein" : "where";
   })();
   const startRoom = params.get("room");
 
-  const [step, setStep] = useState<StepId>(startStep);
+  const [step, setStep] = useState<StepId>("you");
+  const [contact, setContact] = useState<Record<string, string> | null>(null);
+  const [saving, setSaving] = useState(false);
+  const leadId = useRef("");
   const [answers, setAnswers] = useState<Answers>(() => ({
     places: startProperty ? [getProperty(startProperty)!.area] : [],
     property: startProperty,
@@ -174,15 +187,94 @@ export function FindMyHome() {
     setStep(s);
     window.scrollTo({ top: 0 });
   };
-  const next = () => goTo(STEPS[Math.min(index + 1, STEPS.length - 1)]);
+  const idFor = () => {
+    if (!leadId.current) {
+      let id = "";
+      try {
+        id = sessionStorage.getItem("ff21-lead-id") ?? "";
+      } catch {}
+      if (!id) id = crypto.randomUUID();
+      try {
+        sessionStorage.setItem("ff21-lead-id", id);
+      } catch {}
+      leadId.current = id;
+    }
+    return leadId.current;
+  };
+
+  // The answers as the lead stores them.
+  const fields = (a: Answers) => ({
+    places: a.places,
+    moveIn: a.moveIn,
+    stay: a.stay,
+    budget: a.budget?.label,
+    room: a.room ? (a.room === "unsure" ? "Not sure yet" : roomKindLabels[a.room]) : undefined,
+    gender: a.gender,
+    property: a.property,
+  });
+
+  // Saved in the background on every move forward; never blocks the visitor.
+  const save = (at: StepId, a: Answers) => {
+    fetch("/api/lead/progress", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      keepalive: true,
+      body: JSON.stringify({ id: idFor(), step: at, ...fields(a), page: window.location.pathname + window.location.search }),
+    }).catch(() => {});
+  };
+
+  const next = () => {
+    save(step, answers);
+    goTo(STEPS[Math.min(index + 1, STEPS.length - 1)]);
+  };
   const back = () => index > 0 && goTo(STEPS[index - 1]);
   const chooseAndNext = (patch: Partial<Answers>) => {
     update(patch);
+    save(step, { ...answers, ...patch });
     window.setTimeout(() => goTo(STEPS[Math.min(STEPS.indexOf(step) + 1, STEPS.length - 1)]), 220);
   };
 
-  // Read only on the client, once the visitor reaches the last step.
-  const inferred = step === "you" && typeof window !== "undefined" ? inferSource(readAttribution()) : undefined;
+  async function submitContact(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const c = Object.fromEntries(new FormData(e.currentTarget).entries()) as Record<string, string>;
+    if (!c.source && inferred) c.source = inferred;
+    setSaving(true);
+    setErrors({});
+    try {
+      const res = await fetch("/api/lead/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...c,
+          id: idFor(),
+          step: "you",
+          ...fields(answers),
+          attribution: readAttribution(),
+          page: window.location.pathname + window.location.search,
+          elapsedMs: since(startedAt.current),
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (body.errors) {
+        setErrors(body.errors as LeadErrors);
+        return;
+      }
+    } catch {
+      // Offline for a moment: carry on; the final step sends everything again.
+    } finally {
+      setSaving(false);
+    }
+    if (!started.current) {
+      started.current = true;
+      track("form_start", { form: "find-my-home" });
+    }
+    setContact(c);
+    goTo(resumeStep);
+  }
+
+  // Where the visit came from (UTM tags, ad clicks), read only in the browser;
+  // the server render asks the question, the browser hides it if it knows.
+  const inferred = useSyncExternalStore(noSubscribe, inferredSource, () => undefined);
 
   const togglePlace = (place: string) => {
     const has = answers.places.includes(place);
@@ -190,13 +282,21 @@ export function FindMyHome() {
     update({ places: has ? answers.places.filter((p) => p !== place) : [...answers.places, place] });
   };
 
-  const shownPlaces = query.trim()
-    ? places.filter((p) => p.toLowerCase().includes(query.trim().toLowerCase())).slice(0, 12)
-    : popular.filter((p) => places.includes(p));
+  const q = query.trim();
+  const shownPlaces = !q
+    ? popular.filter((p) => places.includes(p))
+    : isPincodeQuery(q)
+      ? places.filter((p) => pincodes[p]?.startsWith(q)).slice(0, 12)
+      : places.filter((p) => p.toLowerCase().includes(q.toLowerCase()) || pincodes[p] === q).slice(0, 12);
+  // A full pincode we have no home near is still worth keeping for the team.
+  const pincodePlace = isFullPincode(q) && shownPlaces.length === 0 ? `Pincode ${q}` : null;
 
-  async function submit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const contact = Object.fromEntries(new FormData(e.currentTarget).entries()) as Record<string, string>;
+  async function submit() {
+    if (!contact) {
+      goTo("you");
+      return;
+    }
+    save(step, answers);
     setStatus("sending");
     setErrors({});
     setMessage("");
@@ -206,8 +306,8 @@ export function FindMyHome() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...contact,
+          id: idFor(),
           form: "find-my-home",
-          source: contact.source || inferred,
           gender: answers.gender,
           property: answers.property,
           stay: answers.stay,
@@ -217,13 +317,13 @@ export function FindMyHome() {
           places: answers.places,
           attribution: readAttribution(),
           page: window.location.pathname + window.location.search,
-          elapsedMs: Date.now() - startedAt.current,
+          elapsedMs: since(startedAt.current),
         }),
       });
       const body = await res.json().catch(() => ({}));
       if (res.ok && body.ok) {
         const p = getProperty(answers.property ?? "");
-        track("generate_lead", { form: "find-my-home", property: p?.code, source: contact.source || inferred });
+        track("generate_lead", { form: "find-my-home", property: p?.code, source: contact.source });
         setDone({ name: contact.firstName, phone: contact.phone, testMode: body.mode === "test" });
         setStatus("done");
         window.scrollTo({ top: 0 });
@@ -233,7 +333,8 @@ export function FindMyHome() {
         const errs = body.errors as LeadErrors;
         setErrors(errs);
         setStatus("idle");
-        if (errs.gender) goTo("who");
+        if (errs.firstName || errs.lastName || errs.phone || errs.email || errs.source) goTo("you");
+        else if (errs.gender) goTo("who");
         else if (errs.property) goTo("home");
         return;
       }
@@ -331,7 +432,7 @@ export function FindMyHome() {
                   {step === "where" && (
                     <div>
                       <label htmlFor="place-search" className="sr-only">
-                        Search areas and tech parks
+                        Search areas, tech parks or pincodes
                       </label>
                       <div className="relative">
                         <Search aria-hidden className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-3" />
@@ -339,7 +440,7 @@ export function FindMyHome() {
                           id="place-search"
                           value={query}
                           onChange={(e) => setQuery(e.target.value)}
-                          placeholder="Search areas and tech parks"
+                          placeholder="Search an area, tech park or pincode"
                           autoComplete="off"
                           className="h-13 w-full rounded-lg border border-line-strong bg-surface py-3.5 pl-12 pr-4 text-[16px] text-ink placeholder:text-ink-3 focus:border-blue-ink focus:outline-none focus:ring-2 focus:ring-blue-100"
                         />
@@ -367,6 +468,7 @@ export function FindMyHome() {
                                 <span>
                                   <span className="block">{pl}</span>
                                   <span className="block text-[13px] font-normal text-ink-3">
+                                    {pincodes[pl] ? `${pincodes[pl]} · ` : ""}
                                     {count} {count === 1 ? "home" : "homes"} close by
                                   </span>
                                 </span>
@@ -376,8 +478,27 @@ export function FindMyHome() {
                           );
                         })}
                       </ul>
-                      {query.trim() && shownPlaces.length === 0 && (
-                        <p className="mt-2 text-[15px] text-ink-2">No matches. Try the nearest area or tech park, or skip this question.</p>
+                      {pincodePlace && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            togglePlace(pincodePlace);
+                            setQuery("");
+                          }}
+                          className={`${option} ${optionOff}`}
+                        >
+                          <span className="flex items-center gap-3">
+                            <MapPin aria-hidden className="h-5 w-5 text-blue-ink" />
+                            <span>
+                              <span className="block">Add pincode {q}</span>
+                              <span className="block text-[13px] font-normal text-ink-3">No home listed there yet. We&apos;ll suggest the nearest ones.</span>
+                            </span>
+                          </span>
+                          <Plus aria-hidden className="h-5 w-5 text-ink-3" />
+                        </button>
+                      )}
+                      {q && shownPlaces.length === 0 && !pincodePlace && (
+                        <p className="mt-2 text-[15px] text-ink-2">No matches. Try the nearest area, tech park or a 6-digit pincode, or skip this question.</p>
                       )}
                     </div>
                   )}
@@ -498,6 +619,12 @@ export function FindMyHome() {
                     </ul>
                   )}
 
+                  {step === "home" && message && (
+                    <p role="alert" className="mt-6 rounded-md bg-red-50 px-4 py-3 text-[15px] text-danger">
+                      {message}
+                    </p>
+                  )}
+
                   {step === "who" && (
                     <ul className="grid gap-2 sm:grid-cols-3">
                       {genders.map((g) => (
@@ -513,34 +640,34 @@ export function FindMyHome() {
                   )}
 
                   {step === "you" && (
-                    <form id="contact" onSubmit={submit} className="space-y-5">
+                    <form id="contact" onSubmit={submitContact} className="space-y-5">
                       <div className="grid gap-5 sm:grid-cols-2">
                         <div>
                           <label htmlFor="firstName" className={label}>First name</label>
-                          <input id="firstName" name="firstName" required autoComplete="given-name" className={field} aria-invalid={errors.firstName ? true : undefined} />
+                          <input id="firstName" name="firstName" required autoComplete="given-name" defaultValue={contact?.firstName} className={field} aria-invalid={errors.firstName ? true : undefined} />
                           {errors.firstName && <p className="mt-1 text-[14px] text-danger">{errors.firstName}</p>}
                         </div>
                         <div>
                           <label htmlFor="lastName" className={label}>Last name</label>
-                          <input id="lastName" name="lastName" required autoComplete="family-name" className={field} aria-invalid={errors.lastName ? true : undefined} />
+                          <input id="lastName" name="lastName" required autoComplete="family-name" defaultValue={contact?.lastName} className={field} aria-invalid={errors.lastName ? true : undefined} />
                           {errors.lastName && <p className="mt-1 text-[14px] text-danger">{errors.lastName}</p>}
                         </div>
                       </div>
                       <div>
                         <label htmlFor="phone" className={label}>Mobile number (WhatsApp)</label>
-                        <input id="phone" name="phone" type="tel" required inputMode="tel" autoComplete="tel" placeholder="98765 43210" className={field} aria-invalid={errors.phone ? true : undefined} />
+                        <input id="phone" name="phone" type="tel" required inputMode="tel" autoComplete="tel" placeholder="98765 43210" defaultValue={contact?.phone} className={field} aria-invalid={errors.phone ? true : undefined} />
                         {errors.phone && <p className="mt-1 text-[14px] text-danger">{errors.phone}</p>}
                       </div>
                       <div>
                         <label htmlFor="email" className={label}>Email</label>
-                        <input id="email" name="email" type="email" required autoComplete="email" className={field} aria-invalid={errors.email ? true : undefined} />
+                        <input id="email" name="email" type="email" required autoComplete="email" defaultValue={contact?.email} className={field} aria-invalid={errors.email ? true : undefined} />
                         {errors.email && <p className="mt-1 text-[14px] text-danger">{errors.email}</p>}
                       </div>
                       <div className="grid gap-5 sm:grid-cols-2">
                         {!inferred && (
                           <div>
                             <label htmlFor="source" className={label}>How you heard of us</label>
-                            <select id="source" name="source" required defaultValue="" className={`${field} cursor-pointer`} aria-invalid={errors.source ? true : undefined}>
+                            <select id="source" name="source" required defaultValue={contact?.source ?? ""} className={`${field} cursor-pointer`} aria-invalid={errors.source ? true : undefined}>
                               <option value="" disabled>
                                 Choose one
                               </option>
@@ -557,7 +684,7 @@ export function FindMyHome() {
                           <label htmlFor="referralCode" className={label}>
                             Referral code <span className="font-normal text-ink-3">(optional)</span>
                           </label>
-                          <input id="referralCode" name="referralCode" autoComplete="off" className={field} />
+                          <input id="referralCode" name="referralCode" autoComplete="off" defaultValue={contact?.referralCode} className={field} />
                         </div>
                       </div>
                       {/* Hidden from people; bots fill it in. */}
@@ -589,8 +716,15 @@ export function FindMyHome() {
             <div className="mx-auto flex max-w-[580px] items-center justify-between gap-4">
               {step === "you" ? (
                 <>
-                  <span className="text-[14px] text-ink-3">{chosen ? `Visit to FF21 ${chosen.code}` : ""}</span>
-                  <button type="submit" form="contact" disabled={status === "sending"} className={button.primary}>
+                  <span className="text-[14px] text-ink-3">Takes about a minute</span>
+                  <button type="submit" form="contact" disabled={saving} className={button.primary}>
+                    {saving ? "Saving…" : "Continue"}
+                  </button>
+                </>
+              ) : step === "home" ? (
+                <>
+                  <span className="truncate text-[14px] text-ink-3">{chosen ? `Visit to FF21 ${chosen.code}` : ""}</span>
+                  <button type="button" onClick={submit} disabled={status === "sending" || !answers.property} className={button.primary}>
                     {status === "sending" ? "Sending…" : "Book my visit"}
                   </button>
                 </>
@@ -603,7 +737,7 @@ export function FindMyHome() {
                   ) : (
                     <span />
                   )}
-                  <button type="button" onClick={next} disabled={(step === "who" && !answers.gender) || (step === "home" && !answers.property)} className={button.primary}>
+                  <button type="button" onClick={next} disabled={step === "who" && !answers.gender} className={button.primary}>
                     Continue
                   </button>
                 </>

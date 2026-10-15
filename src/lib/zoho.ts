@@ -27,7 +27,7 @@ export function zohoFields(lead: Lead): Record<string, string> {
     LEADCF13: lead.gender,
     "Lead Source": lead.source,
     LEADCF9: property?.zohoValue ?? "",
-    LEADCF183: lead.stay ?? "-None-",
+    LEADCF183: lead.stay && lead.stay !== "Less than 3 months" ? lead.stay : "-None-",
     LEADCF202: lead.referralCode ?? "",
     LEADCF57: "0",
     zc_gad: last?.gclid ?? "",
