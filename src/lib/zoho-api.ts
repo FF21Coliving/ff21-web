@@ -113,7 +113,7 @@ async function accessToken() {
 
 type ZohoResult = { ok: true; id: string } | { ok: false; detail: string; duplicateField?: string };
 
-async function call(method: "POST" | "PUT", path: string, record: Record<string, string>, trigger: string[]): Promise<ZohoResult> {
+async function call(method: "POST" | "PUT", path: string, record: Record<string, unknown>, trigger: string[]): Promise<ZohoResult> {
   try {
     const res = await fetch(`${apiUrl()}/crm/v8/${path}`, {
       method,
@@ -136,6 +136,10 @@ async function call(method: "POST" | "PUT", path: string, record: Record<string,
 
 const duplicateLabels: Record<string, string> = { Phone: "phone", Email: "email", Mobile: "mobile" };
 
+// Every website lead carries this tag (created in Zoho on 15 Oct 2026), so the
+// team can keep them in their own list view.
+export const WEBSITE_TAG = "New FF21 Website 2026";
+
 // A new lead. Runs the same workflow rules a web-form lead would. If Zoho says
 // a unique field (phone or email) matches an existing lead, that lead is left
 // alone: the new lead is created without that field, and Description says
@@ -143,14 +147,27 @@ const duplicateLabels: Record<string, string> = { Phone: "phone", Email: "email"
 export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> {
   const record = toZoho(input);
   const notes: string[] = [];
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const result = await call("POST", "Leads", notes.length ? { ...record, Description: [`Returning? ${notes.join("; ")}.`, record.Description].filter(Boolean).join(" | ") } : record, ["workflow"]);
-    const field = !result.ok ? result.duplicateField : undefined;
-    if (result.ok || !field || !record[field] || !duplicateLabels[field]) return result;
-    notes.push(`Same ${duplicateLabels[field]} as an existing lead: ${record[field]}`);
-    delete record[field];
+  let tag = true;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const payload: Record<string, unknown> = notes.length ? { ...record, Description: [`Returning? ${notes.join("; ")}.`, record.Description].filter(Boolean).join(" | ") } : { ...record };
+    if (tag) payload.Tag = [{ name: WEBSITE_TAG }];
+    const result = await call("POST", "Leads", payload, ["workflow"]);
+    if (result.ok) return result;
+    const field = result.duplicateField;
+    if (field && record[field] && duplicateLabels[field]) {
+      notes.push(`Same ${duplicateLabels[field]} as an existing lead: ${record[field]}`);
+      delete record[field];
+      continue;
+    }
+    // The tag is a nice-to-have: if Zoho refuses it, save the lead without it.
+    if (tag && /tag|scope|permission/i.test(result.detail)) {
+      console.error("[lead:zoho] tag refused, saving without it", result.detail);
+      tag = false;
+      continue;
+    }
+    return result;
   }
-  return { ok: false, detail: "duplicate fields" };
+  return { ok: false, detail: "could not create the lead" };
 }
 
 // More answers for a lead the site created (id from readRef only). No rules
