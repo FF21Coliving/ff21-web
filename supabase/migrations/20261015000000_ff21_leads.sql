@@ -106,5 +106,7 @@ begin
 end;
 $$;
 
-revoke all on function public.ff21_save_lead(jsonb) from public;
+-- Supabase grants new functions to anon and authenticated by default; take
+-- those back so only the website's key (anon) can call it.
+revoke all on function public.ff21_save_lead(jsonb) from public, anon, authenticated;
 grant execute on function public.ff21_save_lead(jsonb) to anon;
