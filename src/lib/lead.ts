@@ -5,7 +5,7 @@ export const genders = ["Female", "Male", "Couple"] as const;
 // "Less than 3 months" is below the minimum stay and isn't in Zoho's picklist;
 // it reaches the sales team through the summary instead.
 export const stays = ["Less than 3 months", "3 months", "6 months", "1 year and more"] as const;
-export const sources = ["Google", "Social Media", "Reference", "Housing.com", "Magicbricks", "Walk Ins"] as const;
+export const sources = ["Google", "Social Media", "Reference", "Housing.com", "MagicBricks", "Walk Ins"] as const;
 
 export type Gender = (typeof genders)[number];
 export type Stay = (typeof stays)[number];
@@ -69,7 +69,7 @@ export function inferSource(a: Attribution | undefined): Source | undefined {
   if (t.gclid || /google/.test(hay)) return "Google";
   if (t.fbclid || /facebook|instagram|\bfb\b|\big\b|meta/.test(hay)) return "Social Media";
   if (/housing/.test(hay)) return "Housing.com";
-  if (/magicbricks/.test(hay)) return "Magicbricks";
+  if (/magicbricks/.test(hay)) return "MagicBricks";
   return undefined;
 }
 
@@ -155,13 +155,22 @@ export function validateLead(body: unknown): { ok: true; lead: Lead } | { ok: fa
 }
 
 // One line for the sales team: the answers Zoho has no picklist for.
-export function leadSummary(lead: Lead) {
+export function summarize(a: Pick<Lead, "moveIn" | "stay" | "budget" | "room" | "places">, form: Lead["form"] = "find-my-home") {
   const parts: string[] = [];
-  if (lead.moveIn) parts.push(`Move-in: ${lead.moveIn}`);
-  if (lead.stay) parts.push(`Stay: ${lead.stay}`);
-  if (lead.budget) parts.push(`Budget: ${lead.budget}`);
-  if (lead.room) parts.push(`Room: ${lead.room}`);
-  if (lead.places?.length) parts.push(`Works or studies near: ${lead.places.join(", ")}`);
-  parts.push(`Via: ${lead.form === "find-my-home" ? "Find my home" : "Register"} on ff21.in`);
+  if (a.moveIn) parts.push(`Move-in: ${a.moveIn}`);
+  if (a.stay) parts.push(`Stay: ${a.stay}`);
+  if (a.budget) parts.push(`Budget: ${a.budget}`);
+  if (a.room) parts.push(`Room: ${a.room}`);
+  if (a.places?.length) parts.push(`Works or studies near: ${a.places.join(", ")}`);
+  parts.push(`Via: ${form === "find-my-home" ? "Find my home" : "Register"} on ff21.in`);
   return parts.join(" | ");
+}
+
+export const leadSummary = (lead: Lead) => summarize(lead, lead.form);
+
+// UTM tags and ad click ids from the visit, for Zoho's campaign fields.
+export function utmOf(a: Attribution | undefined) {
+  const t = a?.last ?? a?.first;
+  if (!t) return undefined;
+  return { source: t.utm_source, medium: t.utm_medium, campaign: t.utm_campaign, term: t.utm_term, content: t.utm_content, gclid: t.gclid };
 }

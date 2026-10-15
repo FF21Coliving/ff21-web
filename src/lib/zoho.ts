@@ -1,6 +1,7 @@
 import "server-only";
-import { leadSummary, type Lead } from "./lead";
+import { leadSummary, utmOf, type Lead } from "./lead";
 import { getProperty } from "./properties";
+import { createZohoLead, readRef, updateZohoLead, zohoApiEnabled, type ZohoLeadInput } from "./zoho-api";
 
 // Leads go to Zoho CRM through the same Web-to-Lead form ff21.co.in uses.
 // LEADS_MODE=test (the default) logs the payload and sends nothing.
@@ -10,7 +11,7 @@ import { getProperty } from "./properties";
 // for the new site without reCAPTCHA (this site has its own spam checks) and
 // put its xnQsjsdp / xmIwtLD tokens in the environment.
 
-export type DeliveryResult = { ok: boolean; mode: "test" | "zoho"; detail?: string };
+export type DeliveryResult = { ok: boolean; mode: "test" | "zoho" | "zoho-api"; detail?: string; ref?: string };
 
 export function zohoFields(lead: Lead): Record<string, string> {
   const property = getProperty(lead.property);
@@ -34,7 +35,31 @@ export function zohoFields(lead: Lead): Record<string, string> {
   };
 }
 
-export async function deliverToZoho(lead: Lead): Promise<DeliveryResult> {
+export const zohoInput = (lead: Lead): ZohoLeadInput => ({
+  firstName: lead.firstName,
+  lastName: lead.lastName,
+  phone: lead.phone,
+  email: lead.email,
+  source: lead.source,
+  referralCode: lead.referralCode,
+  property: lead.property,
+  gender: lead.gender,
+  stay: lead.stay,
+  room: lead.room,
+  summary: leadSummary(lead),
+  page: lead.page,
+  utm: utmOf(lead.attribution),
+});
+
+// zohoRef: the signed reference the site handed out when it created this
+// lead at the contact step. With it, the lead is updated; without it (or if
+// it doesn't check out), a new lead is created. Never anything else.
+export async function deliverToZoho(lead: Lead, zohoRef?: unknown): Promise<DeliveryResult> {
+  if (zohoApiEnabled()) {
+    const id = readRef(zohoRef);
+    const result = id ? await updateZohoLead(id, zohoInput(lead)) : await createZohoLead(zohoInput(lead));
+    return result.ok ? { ok: true, mode: "zoho-api" } : { ok: false, mode: "zoho-api", detail: result.detail };
+  }
   const fields = zohoFields(lead);
   if (process.env.LEADS_MODE !== "zoho") {
     console.info("[lead:test] would send to Zoho", JSON.stringify({ ...fields, _summary: leadSummary(lead) }));

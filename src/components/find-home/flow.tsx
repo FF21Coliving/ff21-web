@@ -40,7 +40,7 @@ const sourceChoices: { id: Source; label: string; icon: LucideIcon }[] = [
   { id: "Social Media", label: "Instagram or Facebook", icon: Smartphone },
   { id: "Reference", label: "A friend", icon: Users },
   { id: "Housing.com", label: "Housing.com", icon: Building2 },
-  { id: "Magicbricks", label: "Magicbricks", icon: Building },
+  { id: "MagicBricks", label: "Magicbricks", icon: Building },
   { id: "Walk Ins", label: "Walked past a home", icon: Footprints },
 ];
 
@@ -232,6 +232,9 @@ export function FindMyHome() {
   const [contact, setContact] = useState<Record<string, string> | null>(null);
   const [saving, setSaving] = useState(false);
   const leadId = useRef("");
+  // The signed Zoho reference the server returns at the contact step; it lets
+  // later saves update that one lead and nothing else.
+  const zohoRef = useRef<string | undefined>(undefined);
   const [answers, setAnswers] = useState<Answers>(() => ({
     places: startProperty ? [getProperty(startProperty)!.area] : [],
     property: startProperty,
@@ -317,7 +320,7 @@ export function FindMyHome() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       keepalive: true,
-      body: JSON.stringify({ id: idFor(), step: at, ...fields(a), page: window.location.pathname + window.location.search }),
+      body: JSON.stringify({ id: idFor(), zohoRef: zohoRef.current, step: at, ...fields(a), page: window.location.pathname + window.location.search }),
     }).catch(() => {});
   };
 
@@ -366,6 +369,7 @@ export function FindMyHome() {
         setErrors(body.errors as LeadErrors);
         return;
       }
+      if (typeof body.zohoRef === "string") zohoRef.current = body.zohoRef;
     } catch {
       // Offline for a moment: carry on; the final step sends everything again.
     } finally {
@@ -414,6 +418,7 @@ export function FindMyHome() {
         body: JSON.stringify({
           ...contact,
           id: idFor(),
+          zohoRef: zohoRef.current,
           form: "find-my-home",
           source: answers.source,
           referralCode: answers.referralCode,

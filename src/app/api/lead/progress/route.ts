@@ -1,6 +1,7 @@
-import { genders, isLeadId, sources, stays, validateContact } from "@/lib/lead";
+import { genders, isLeadId, sources, stays, summarize, utmOf, validateContact, type Attribution, type Stay } from "@/lib/lead";
 import { saveLead, type LeadRow } from "@/lib/lead-store";
 import { properties } from "@/lib/properties";
+import { createZohoLead, makeRef, readRef, updateZohoLead, zohoApiEnabled } from "@/lib/zoho-api";
 
 const MIN_FILL_MS = 2500;
 const STEPS = ["you", "where", "movein", "stay", "budget", "room", "who", "home", "heard"];
@@ -58,6 +59,42 @@ export async function POST(request: Request) {
   };
   for (const [k, v] of Object.entries(answers)) if (v !== undefined) Object.assign(row, { [k]: v });
 
+  // Zoho: create the lead at the contact step, then update only that lead.
+  let zohoRef: string | undefined;
+  if (zohoApiEnabled()) {
+    const zohoAnswers = {
+      property: row.property,
+      gender: row.gender,
+      stay: row.stay,
+      room: row.room,
+      referralCode: row.referral_code,
+      summary: summarize({ moveIn: row.move_in, stay: row.stay as Stay | undefined, budget: row.budget, room: row.room, places: row.places }),
+    };
+    if (step === "you") {
+      const created = await createZohoLead({
+        ...zohoAnswers,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        phone: row.phone,
+        email: row.email,
+        // Asked at the end; until then, what the visit tells us, or "Website".
+        source: row.source ?? "Website",
+        page: row.page,
+        utm: utmOf(row.attribution as Attribution | undefined),
+      });
+      if (created.ok) zohoRef = makeRef(created.id);
+      else console.error("[lead:zoho] create failed", created.detail);
+      row.zoho_status = created.ok ? "created" : "failed";
+      row.zoho_detail = created.ok ? created.id : created.detail;
+    } else {
+      const id = readRef(b.zohoRef);
+      if (id) {
+        const updated = await updateZohoLead(id, { ...zohoAnswers, source: row.source });
+        if (!updated.ok) console.error("[lead:zoho] update failed", updated.detail);
+      }
+    }
+  }
+
   const saved = await saveLead(row);
-  return Response.json({ ok: saved.ok });
+  return Response.json({ ok: saved.ok, zohoRef });
 }

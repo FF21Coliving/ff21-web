@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   }
 
   const lead = result.lead;
-  const delivery = await deliverToZoho(lead);
+  const delivery = await deliverToZoho(lead, body.zohoRef);
   await backupLead(lead, delivery);
   if (lead.id) {
     await saveLead({
