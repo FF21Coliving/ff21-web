@@ -1,11 +1,11 @@
-import { genders, isLeadId, sources, stays, summarize, utmOf, validateContact, type Attribution, type Stay } from "@/lib/lead";
-import { saveLead, type LeadRow } from "@/lib/lead-store";
+import { genders, isLeadId, sources, stays, summarize, utmOf, validateContact, visitOf, type Attribution, type Stay, type VisitType, type VisitWindow } from "@/lib/lead";
+import { saveLead, saveOpen, type LeadRow } from "@/lib/lead-store";
 import { scoreFields, scoreLead } from "@/lib/lead-score";
 import { properties } from "@/lib/properties";
 import { createZohoLead, makeRef, readRef, updateZohoLead, zohoApiEnabled } from "@/lib/zoho-api";
 
 const MIN_FILL_MS = 2500;
-const STEPS = ["you", "where", "movein", "stay", "budget", "room", "who", "home", "heard"];
+const STEPS = ["you", "where", "movein", "stay", "budget", "room", "who", "home", "visit", "heard"];
 
 const str = (v: unknown, max = 120) => (typeof v === "string" ? v.trim().slice(0, max) : undefined) || undefined;
 
@@ -19,6 +19,10 @@ export async function POST(request: Request) {
     return Response.json({ ok: false, error: "Invalid request" }, { status: 400 });
   }
   if (!isLeadId(b.id)) return Response.json({ ok: false, error: "Invalid request" }, { status: 400 });
+  if (b.step === "open") {
+    await saveOpen(b.id);
+    return Response.json({ ok: true });
+  }
   const step = STEPS.includes(String(b.step)) ? String(b.step) : undefined;
 
   const row: LeadRow = { id: b.id, last_step: step, page: str(b.page, 300) };
@@ -47,6 +51,7 @@ export async function POST(request: Request) {
   const stay = str(b.stay);
   const gender = str(b.gender);
   const property = str(b.property);
+  const visit = visitOf(b);
   const answers = {
     places,
     move_in: str(b.moveIn, 60),
@@ -57,6 +62,9 @@ export async function POST(request: Request) {
     property: property && properties.some((p) => p.slug === property) ? property : undefined,
     source: source && (sources as readonly string[]).includes(source) ? source : undefined,
     referral_code: str(b.referralCode, 40),
+    visit_day: visit.visitDay,
+    visit_window: visit.visitWindow,
+    visit_type: visit.visitDay ? visit.visitType : undefined,
   };
   for (const [k, v] of Object.entries(answers)) if (v !== undefined) Object.assign(row, { [k]: v });
 
@@ -76,7 +84,18 @@ export async function POST(request: Request) {
       stay: row.stay,
       room: row.room,
       referralCode: row.referral_code,
-      summary: summarize({ moveIn: row.move_in, stay: row.stay as Stay | undefined, budget: row.budget, room: row.room, places: row.places }),
+      visitDay: row.visit_day,
+      visitType: row.visit_type,
+      summary: summarize({
+        moveIn: row.move_in,
+        stay: row.stay as Stay | undefined,
+        budget: row.budget,
+        room: row.room,
+        places: row.places,
+        visitDay: row.visit_day,
+        visitWindow: row.visit_window as VisitWindow | undefined,
+        visitType: row.visit_type as VisitType | undefined,
+      }),
     };
     if (step === "you") {
       const created = await createZohoLead({

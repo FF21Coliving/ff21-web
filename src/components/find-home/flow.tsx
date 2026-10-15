@@ -1,12 +1,12 @@
 "use client";
 
-import { ArrowLeft, Building, Building2, Check, CircleAlert, Footprints, MapPin, Plus, Search, Smartphone, Users, X, type LucideIcon } from "lucide-react";
+import { ArrowLeft, Building, Building2, Check, CircleAlert, Footprints, MapPin, Plus, Search, Smartphone, Users, Video, X, type LucideIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { readAttribution } from "@/lib/attribution";
-import { genders, inferSource, normalizePhone, stays, type Gender, type LeadErrors, type Source, type Stay } from "@/lib/lead";
+import { genders, inferSource, istDay, normalizePhone, stays, visitLabel, visitWindowHours, visitWindows, type Gender, type LeadErrors, type Source, type Stay, type VisitType, type VisitWindow } from "@/lib/lead";
 import { photos, type Photo } from "@/lib/photos";
 import { fromPrice, getProperty, homesNear, places, properties, roomKindLabels, roomKinds, type RoomKind } from "@/lib/properties";
 import { isFullPincode, isPincodeQuery, pincodes } from "@/lib/pincodes";
@@ -17,7 +17,7 @@ import { button } from "../ui";
 
 // Contact details come first, so every answer after them is saved to a lead
 // the team can call, even if the visitor stops halfway.
-const STEPS = ["you", "where", "movein", "stay", "budget", "room", "who", "home", "heard"] as const;
+const STEPS = ["you", "where", "movein", "stay", "budget", "room", "who", "home", "visit", "heard"] as const;
 type StepId = (typeof STEPS)[number];
 type RoomChoice = RoomKind | "unsure";
 type Budget = { label: string; max: number | null };
@@ -30,6 +30,9 @@ type Answers = {
   room?: RoomChoice;
   property?: string;
   gender?: Gender;
+  visitDay?: string;
+  visitWindow?: VisitWindow;
+  visitType: VisitType;
   source?: Source;
   referralCode?: string;
 };
@@ -56,6 +59,42 @@ function checkField(name: string, value: string): string | undefined {
 }
 
 const popular = ["ITPL", "EPIP Zone", "Whitefield", "Bagmane Tech Park", "Marathahalli", "Ecospace", "Bellandur", "Embassy Tech Village", "Manyata Tech Park", "Koramangala", "HSR Layout", "Sarjapur Road"];
+// The next seven visiting days in Bangalore time. Today counts while at least
+// one part of the day is still more than an hour away from ending.
+const windowEnds: Record<VisitWindow, number> = { Morning: 12, Afternoon: 16, Evening: 20 };
+const istHour = (at: number) => Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", hour: "numeric", hourCycle: "h23" }).format(at));
+function visitDays() {
+  const now = Date.now();
+  const hour = istHour(now);
+  const today = istDay(now);
+  const start = hour + 1 < windowEnds.Evening ? 0 : 1;
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(Date.parse(`${today}T00:00:00Z`) + (start + i) * 86_400_000);
+    const day = d.toISOString().slice(0, 10);
+    const n = start + i;
+    return {
+      day,
+      top: n === 0 ? "Today" : n === 1 ? "Tomorrow" : d.toLocaleDateString("en-IN", { weekday: "short", timeZone: "UTC" }),
+      bottom: d.toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "UTC" }),
+      open: visitWindows.filter((w) => n > 0 || hour + 1 < windowEnds[w]),
+    };
+  });
+}
+
+// One id per visit to the form, kept for the tab's life so every save lands
+// on the same lead.
+function sessionLeadId() {
+  let id = "";
+  try {
+    id = sessionStorage.getItem("ff21-lead-id") ?? "";
+  } catch {}
+  if (!id) id = crypto.randomUUID();
+  try {
+    sessionStorage.setItem("ff21-lead-id", id);
+  } catch {}
+  return id;
+}
+
 const moveIns = ["As soon as possible", "Next month", "In two months", "I'm flexible"];
 const budgets: Budget[] = [
   { label: "Under ₹12,000", max: 12000 },
@@ -81,6 +120,7 @@ const copy: Record<StepId, { title: string; lead: string }> = {
   home: { title: "Pick a home to visit", lead: "Ranked by what you told us. You can ask to see more than one." },
   heard: { title: "Last thing: how did you hear about us?", lead: "It helps us know what's working. Got a referral code from a friend? Add it below." },
   who: { title: "Who's moving in?", lead: "So we can suggest the right room." },
+  visit: { title: "When would you like to visit?", lead: `Pick a day and a time of day. Our team will confirm on WhatsApp. Visits ${site.visitHours}.` },
   you: { title: "First, how can we reach you?", lead: "Our team will call or WhatsApp you to set up a visit. Your answers save as you go." },
 };
 
@@ -126,6 +166,8 @@ function photoFor(step: StepId, answers: Answers): Photo {
       return getProperty(answers.property ?? "")?.hero ?? photos.rooftopDeck;
     case "who":
       return photos.holi;
+    case "visit":
+      return getProperty(answers.property ?? "")?.hero ?? photos.loungeTeal;
     case "you":
       return photos.diningFamily;
     case "heard":
@@ -216,6 +258,83 @@ function Tick({ on }: { on: boolean }) {
   );
 }
 
+// Day, part of the day, and in person or on video. Nothing here is booked
+// until the team confirms; the form says so.
+function VisitPicker({ answers, onChange }: { answers: Answers; onChange: (patch: Partial<Answers>) => void }) {
+  const days = visitDays();
+  const picked = days.find((d) => d.day === answers.visitDay);
+  const types: { id: VisitType; label: string; icon: LucideIcon }[] = [
+    { id: "Physical", label: "In person", icon: Footprints },
+    { id: "Virtual", label: "Video call", icon: Video },
+  ];
+  return (
+    <div>
+      <div role="radiogroup" aria-label="How you'd like to visit" className="grid grid-cols-2 gap-2">
+        {types.map((t) => {
+          const on = answers.visitType === t.id;
+          return (
+            <button key={t.id} type="button" role="radio" aria-checked={on} onClick={() => onChange({ visitType: t.id })} className={`${option} ${on ? optionOn : optionOff}`}>
+              <span className="flex items-center gap-3 whitespace-nowrap">
+                <t.icon aria-hidden className="h-5 w-5 shrink-0 text-blue-ink" />
+                {t.label}
+              </span>
+              <span className="max-sm:hidden">
+                <Tick on={on} />
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <p className="mt-8 text-[14px] font-semibold text-ink-2">Day</p>
+      <ul className="-mx-5 mt-3 flex snap-x gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-7 sm:overflow-visible sm:px-0">
+        {days.map((d) => {
+          const on = answers.visitDay === d.day;
+          return (
+            <li key={d.day} className="shrink-0 snap-start">
+              <button
+                type="button"
+                aria-pressed={on}
+                onClick={() => onChange({ visitDay: d.day, visitWindow: answers.visitWindow && d.open.includes(answers.visitWindow) ? answers.visitWindow : undefined })}
+                className={`flex h-[72px] w-[76px] flex-col items-center justify-center rounded-lg border text-center transition-[border-color,background-color,box-shadow] sm:w-full ${on ? optionOn : optionOff}`}
+              >
+                <span className="text-[13px] font-semibold text-ink-2">{d.top}</span>
+                <span className="mt-0.5 text-[16px] font-semibold text-ink">{d.bottom}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+
+      <p className="mt-8 text-[14px] font-semibold text-ink-2">Time</p>
+      <ul className="mt-3 grid gap-2 sm:grid-cols-3">
+        {visitWindows.map((w) => {
+          const on = answers.visitWindow === w;
+          const closed = picked ? !picked.open.includes(w) : false;
+          return (
+            <li key={w}>
+              <button
+                type="button"
+                aria-pressed={on}
+                disabled={closed}
+                onClick={() => onChange({ visitWindow: w, visitDay: answers.visitDay ?? days.find((d) => d.open.includes(w))?.day })}
+                className={`${option} h-full disabled:cursor-not-allowed disabled:opacity-40 ${on ? optionOn : optionOff}`}
+              >
+                <span>
+                  <span className="block">{w}</span>
+                  <span className="block text-[13px] font-normal text-ink-3">{visitWindowHours[w]}</span>
+                </span>
+                <Tick on={on} />
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      {answers.visitDay && !answers.visitWindow && <p className="mt-4 text-[14px] text-ink-3">Pick a time of day to continue, or skip and we&apos;ll call to fix one.</p>}
+    </div>
+  );
+}
+
 export function FindMyHome() {
   const params = useSearchParams();
   const startProperty = getProperty(params.get("property") ?? "")?.slug;
@@ -240,6 +359,7 @@ export function FindMyHome() {
     property: startProperty,
     moveIn: params.get("movein") ?? undefined,
     room: startRoom === "twin" || startRoom === "private" || startRoom === "studio" ? startRoom : undefined,
+    visitType: "Physical",
   }));
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
@@ -254,6 +374,24 @@ export function FindMyHome() {
   const index = STEPS.indexOf(step);
   const ranked = useMemo(() => rank(answers), [answers]);
   const photo = status === "done" ? photos.rooftopDusk : photoFor(step, answers);
+
+  // Count each visit to the form once (no personal details), for the
+  // drop-off chart's first bar.
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("ff21-opened")) return;
+      sessionStorage.setItem("ff21-opened", "1");
+    } catch {
+      return;
+    }
+    if (!leadId.current) leadId.current = sessionLeadId();
+    fetch("/api/lead/progress", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      keepalive: true,
+      body: JSON.stringify({ id: leadId.current, step: "open" }),
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!startedAt.current) startedAt.current = Date.now();
@@ -287,17 +425,7 @@ export function FindMyHome() {
     window.scrollTo({ top: 0 });
   };
   const idFor = () => {
-    if (!leadId.current) {
-      let id = "";
-      try {
-        id = sessionStorage.getItem("ff21-lead-id") ?? "";
-      } catch {}
-      if (!id) id = crypto.randomUUID();
-      try {
-        sessionStorage.setItem("ff21-lead-id", id);
-      } catch {}
-      leadId.current = id;
-    }
+    if (!leadId.current) leadId.current = sessionLeadId();
     return leadId.current;
   };
 
@@ -310,6 +438,9 @@ export function FindMyHome() {
     room: a.room ? (a.room === "unsure" ? "Not sure yet" : roomKindLabels[a.room]) : undefined,
     gender: a.gender,
     property: a.property,
+    visitDay: a.visitDay,
+    visitWindow: a.visitWindow,
+    visitType: a.visitType,
     source: a.source,
     referralCode: a.referralCode,
   });
@@ -425,6 +556,9 @@ export function FindMyHome() {
           gender: answers.gender,
           property: answers.property,
           stay: answers.stay,
+          visitDay: answers.visitDay,
+          visitWindow: answers.visitWindow,
+          visitType: answers.visitType,
           moveIn: answers.moveIn,
           budget: answers.budget?.label,
           room: answers.room ? (answers.room === "unsure" ? "Not sure yet" : roomKindLabels[answers.room]) : undefined,
@@ -463,6 +597,7 @@ export function FindMyHome() {
 
   const exitHref = startProperty ? `/properties/${startProperty}` : "/";
   const chosen = getProperty(answers.property ?? "");
+  const visit = answers.visitDay ? visitLabel(answers.visitDay, answers.visitWindow, answers.visitType) : undefined;
 
   return (
     <div className="min-h-dvh bg-surface lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,44%)]">
@@ -493,11 +628,14 @@ export function FindMyHome() {
                 You&apos;re all set, {done.name}.
               </h1>
               <p className="mt-3 text-[17px] leading-[27px] text-ink-2">
-                Our team will call you on {done.phone} to set up your visit{chosen ? ` to FF21 ${chosen.code}` : ""}. Visits {site.visitHours}.
+                {visit
+                  ? `Our team will confirm your ${answers.visitType === "Virtual" ? "video tour" : "visit"}${chosen ? ` of FF21 ${chosen.code}` : ""} for ${visitLabel(answers.visitDay!, answers.visitWindow)} by WhatsApp or a call on ${done.phone}.`
+                  : `Our team will call you on ${done.phone} to set up your visit${chosen ? ` to FF21 ${chosen.code}` : ""}. Visits ${site.visitHours}.`}
               </p>
               <dl className="mt-8 divide-y divide-line rounded-lg border border-line">
                 {[
                   ["Home", chosen ? `FF21 ${chosen.code} · ${chosen.area}` : undefined],
+                  ["Visit", visit],
                   ["Move in", answers.moveIn],
                   ["Stay", answers.stay],
                   ["Budget", answers.budget?.label],
@@ -532,7 +670,7 @@ export function FindMyHome() {
                   <span className="text-[32px] font-bold leading-none tracking-[-0.02em]">{index + 1}</span>
                   <span className="text-[15px] text-ink-3"> / {STEPS.length}</span>
                 </p>
-                <p className="text-[14px] text-ink-3">{STEPS.length - index - 1 === 0 ? "Last step" : `${STEPS.length - index - 1} steps left`}</p>
+                <p className="text-[14px] text-ink-3">{STEPS.length - index - 1 === 0 ? "Last step" : STEPS.length - index - 1 === 1 ? "1 step left" : `${STEPS.length - index - 1} steps left`}</p>
               </div>
               <div className="mt-3 h-1 overflow-hidden rounded-full bg-line" aria-hidden>
                 <div className="h-full rounded-full bg-blue transition-[width] duration-500 ease-[var(--ease-standard)]" style={{ width: `${((index + 1) / STEPS.length) * 100}%` }} />
@@ -734,6 +872,10 @@ export function FindMyHome() {
                     </ul>
                   )}
 
+                  {step === "visit" && (
+                    <VisitPicker answers={answers} onChange={update} />
+                  )}
+
                   {step === "heard" && (
                     <div>
                       <ul className="grid gap-2 sm:grid-cols-2" aria-label="How you heard of us">
@@ -847,14 +989,14 @@ export function FindMyHome() {
                 </>
               ) : (
                 <>
-                  {step === "where" || step === "movein" || step === "budget" || step === "room" ? (
+                  {step === "where" || step === "movein" || step === "budget" || step === "room" || step === "visit" ? (
                     <button type="button" onClick={next} className="rounded-full px-4 py-2.5 text-[15px] font-semibold text-ink transition-colors hover:bg-mist">
                       Skip for now
                     </button>
                   ) : (
                     <span />
                   )}
-                  <button type="button" onClick={next} disabled={(step === "who" && !answers.gender) || (step === "home" && !answers.property)} className={button.primary}>
+                  <button type="button" onClick={next} disabled={(step === "who" && !answers.gender) || (step === "home" && !answers.property) || (step === "visit" && Boolean(answers.visitDay) && !answers.visitWindow)} className={button.primary}>
                     Continue
                   </button>
                 </>
@@ -872,7 +1014,7 @@ export function FindMyHome() {
           </div>
           <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[rgb(15_30_32/0.55)] via-transparent to-transparent" />
           <p className="absolute bottom-8 left-8 right-8 text-[22px] font-semibold leading-[30px] text-white">
-            {step === "home" && chosen ? `FF21 ${chosen.code} · ${chosen.area}` : "Where friends become family."}
+            {(step === "home" || step === "visit") && chosen ? `FF21 ${chosen.code} · ${chosen.area}` : "Where friends become family."}
           </p>
         </div>
       </div>

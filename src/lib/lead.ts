@@ -7,6 +7,32 @@ export const genders = ["Female", "Male", "Couple"] as const;
 export const stays = ["Less than 3 months", "3 months", "6 months", "1 year and more"] as const;
 export const sources = ["Google", "Social Media", "Reference", "Housing.com", "MagicBricks", "Walk Ins"] as const;
 
+// Visit requests from Find my home: a day, a part of the day within visiting
+// hours, and in person or on video. Zoho's Visit Type picklist uses
+// Physical and Virtual.
+export const visitWindows = ["Morning", "Afternoon", "Evening"] as const;
+export const visitWindowHours: Record<VisitWindow, string> = { Morning: "9am to 12pm", Afternoon: "12pm to 4pm", Evening: "4pm to 8pm" };
+export const visitTypes = ["Physical", "Virtual"] as const;
+export type VisitWindow = (typeof visitWindows)[number];
+export type VisitType = (typeof visitTypes)[number];
+
+// Today in Bangalore, as YYYY-MM-DD.
+export const istDay = (at: number) => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(at);
+
+// A visit day the site will pass on: a real date from today to 30 days out.
+export function visitDayOk(v: unknown, now = Date.now()): v is string {
+  if (typeof v !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+  const t = Date.parse(`${v}T00:00:00Z`);
+  const today = Date.parse(`${istDay(now)}T00:00:00Z`);
+  return !Number.isNaN(t) && t >= today && t <= today + 30 * 86_400_000;
+}
+
+export function visitLabel(day: string, window?: VisitWindow, type?: VisitType) {
+  const d = new Date(`${day}T00:00:00Z`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+  const when = [d, window && `${window.toLowerCase()} (${visitWindowHours[window]})`].filter(Boolean).join(", ");
+  return type ? `${when}, ${type === "Virtual" ? "on video" : "in person"}` : when;
+}
+
 export type Gender = (typeof genders)[number];
 export type Stay = (typeof stays)[number];
 export type Source = (typeof sources)[number];
@@ -40,6 +66,9 @@ export type Lead = {
   gender: Gender;
   property: string;
   stay?: Stay;
+  visitDay?: string;
+  visitWindow?: VisitWindow;
+  visitType?: VisitType;
   source: Source;
   referralCode?: string;
   page?: string;
@@ -119,6 +148,7 @@ export function validateLead(body: unknown): { ok: true; lead: Lead } | { ok: fa
   const property = str(b.property);
   const stay = str(b.stay) as Stay;
   const places = Array.isArray(b.places) ? b.places.map((x) => str(x, 60)).filter(Boolean).slice(0, 8) : [];
+  const visit = visitOf(b);
 
   if (!genders.includes(gender)) errors.gender = "Please choose one.";
   if (!properties.some((p) => p.slug === property)) errors.property = "Please choose a home.";
@@ -146,6 +176,7 @@ export function validateLead(body: unknown): { ok: true; lead: Lead } | { ok: fa
       gender,
       property,
       stay: stay || undefined,
+      ...visit,
       source,
       referralCode,
       page: str(b.page, 300) || undefined,
@@ -154,9 +185,18 @@ export function validateLead(body: unknown): { ok: true; lead: Lead } | { ok: fa
   };
 }
 
+// The visit fields of a request, kept only if they make sense together.
+export function visitOf(b: Record<string, unknown>): Pick<Lead, "visitDay" | "visitWindow" | "visitType"> {
+  if (!visitDayOk(b.visitDay)) return {};
+  const window = visitWindows.find((w) => w === b.visitWindow);
+  const type = visitTypes.find((t) => t === b.visitType) ?? "Physical";
+  return { visitDay: b.visitDay, visitWindow: window, visitType: type };
+}
+
 // One line for the sales team: the answers Zoho has no picklist for.
-export function summarize(a: Pick<Lead, "moveIn" | "stay" | "budget" | "room" | "places">, form: Lead["form"] = "find-my-home") {
+export function summarize(a: Pick<Lead, "moveIn" | "stay" | "budget" | "room" | "places" | "visitDay" | "visitWindow" | "visitType">, form: Lead["form"] = "find-my-home") {
   const parts: string[] = [];
+  if (a.visitDay) parts.push(`Visit requested: ${visitLabel(a.visitDay, a.visitWindow, a.visitType)}`);
   if (a.moveIn) parts.push(`Move-in: ${a.moveIn}`);
   if (a.stay) parts.push(`Stay: ${a.stay}`);
   if (a.budget) parts.push(`Budget: ${a.budget}`);

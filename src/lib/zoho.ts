@@ -47,6 +47,8 @@ export const zohoInput = (lead: Lead): ZohoLeadInput => ({
   gender: lead.gender,
   stay: lead.stay,
   room: lead.room,
+  visitDay: lead.visitDay,
+  visitType: lead.visitType,
   summary: leadSummary(lead),
   ...scoreFields(scoreLead({ ...lead, finished: true })),
   page: lead.page,

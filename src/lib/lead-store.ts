@@ -31,7 +31,24 @@ export type LeadRow = {
   zoho_detail?: string;
   score?: number;
   qualification?: string;
+  visit_day?: string;
+  visit_window?: string;
+  visit_type?: string;
 };
+
+// Someone opened Find my home (no personal details): the top of the drop-off
+// chart, so it shows how many leave before giving their contact details.
+export async function saveOpen(id: string) {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) return;
+  await fetch(`${url}/rest/v1/rpc/ff21_form_opened`, {
+    method: "POST",
+    headers: { apikey: key, "Content-Type": "application/json" },
+    body: JSON.stringify({ p_id: id }),
+    signal: AbortSignal.timeout(4_000),
+  }).catch(() => undefined);
+}
 
 export async function saveLead(row: LeadRow): Promise<{ ok: boolean; skipped?: boolean }> {
   const url = process.env.SUPABASE_URL;

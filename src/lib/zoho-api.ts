@@ -53,6 +53,9 @@ export type ZohoLeadInput = {
   gender?: string;
   stay?: string;
   room?: string;
+  // A requested visit (YYYY-MM-DD, Physical or Virtual); the team confirms it.
+  visitDay?: string;
+  visitType?: string;
   summary?: string;
   // The website's first guess (lib/lead-score.ts): Hot, Warm or Cold, and why.
   qualification?: string;
@@ -85,6 +88,8 @@ export function toZoho(i: ZohoLeadInput): Record<string, string> {
     Gender: i.gender,
     Minimum_Stay: i.stay ? stayValues[i.stay] : undefined,
     Room_Type_Requirement: i.room,
+    Site_Visit_Schedule_Date: i.visitDay,
+    Visit_Type: i.visitDay ? i.visitType : undefined,
     Lead_Qualification: i.qualification,
     Description: [i.scoreNote, i.summary].filter(Boolean).join(" | ") || undefined,
     Campaign_Source1: i.utm?.source,
