@@ -25,6 +25,8 @@
 
   /* Accents and states */
   --color-sun: #ffd525;
+  /* Deep FF21 teal: the dark ground for big white type and yellow accents */
+  --color-night: #0f3134;
   --color-danger: #b42318;
   --color-success: #027a48;
 
@@ -445,6 +447,7 @@ dialog.page {
   height: 100svh;
   min-height: 600px;
   overflow: hidden;
+  background: var(--color-night);
 }
 /* The window and the collage share one box: top --t0, bottom --b0 of the
    stage, the window --w0 wide in the middle. */
@@ -547,7 +550,7 @@ dialog.page {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-ink-3);
+  color: rgb(255 255 255 / 0.72);
 }
 .xh-title {
   margin: 0;
@@ -555,7 +558,7 @@ dialog.page {
   line-height: 1;
   font-weight: 800;
   letter-spacing: -0.035em;
-  color: var(--color-ink);
+  color: #fff;
 }
 @media (min-width: 768px) {
   .xh-title {
@@ -604,7 +607,7 @@ dialog.page {
   position: relative;
   overflow: hidden;
   border-radius: 18px;
-  background: var(--color-mist);
+  background: rgb(255 255 255 / 0.06);
 }
 @media (min-width: 768px) {
   .xh-col {
@@ -630,7 +633,7 @@ dialog.page {
   margin: 0;
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-ink-3);
+  color: rgb(255 255 255 / 0.6);
   opacity: var(--i);
 }
 @media (max-width: 767px) {
