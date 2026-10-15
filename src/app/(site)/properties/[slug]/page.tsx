@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: PageProps<"/properties/[slug]
   const from = fromPrice(p);
   return {
     title: `FF21 ${p.code}: coliving in ${p.area}`,
-    description: `${p.tagline}. Furnished rooms with meals, WiFi and housekeeping${from ? ` from ${inr(from)} a month` : ""}. Book a visit, any day 9am to 8pm.`,
+    description: `${p.tagline}. Furnished rooms with meals, WiFi and housekeeping${from ? ` from ${inr(from)} a month` : ""}. Visit any day, 9am to 8pm.`,
     alternates: { canonical: `/properties/${p.slug}` },
     openGraph: { images: [{ url: ogImage(p.hero), width: 1200, height: 630, alt: p.hero.alt }] },
   };
@@ -342,7 +342,7 @@ async function PropertyContent({ params }: Pick<PageProps<"/properties/[slug]">,
           </p>
         </div>
         <Link href={`/find-my-home?property=${p.slug}`} className={button.primary}>
-          Book a visit
+          Book now
         </Link>
       </div>
     </>

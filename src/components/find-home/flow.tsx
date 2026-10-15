@@ -837,7 +837,7 @@ export function FindMyHome() {
                 <>
                   <span className="truncate text-[14px] text-ink-3">{chosen ? `Visit to FF21 ${chosen.code}` : ""}</span>
                   <button type="button" onClick={submit} disabled={status === "sending" || !answers.source} className={button.primary}>
-                    {status === "sending" ? "Sending…" : "Book my visit"}
+                    {status === "sending" ? "Sending…" : "Book now"}
                   </button>
                 </>
               ) : (

@@ -78,7 +78,7 @@ export function BookingCard({ slug, code, area, from, rooms }: Props) {
       </div>
 
       <Link href={`/find-my-home?${params}`} className={`${button.primary} mt-4 w-full`}>
-        Book a visit
+        Book now
       </Link>
       <TrackedLink
         event="whatsapp_click"

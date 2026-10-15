@@ -268,24 +268,28 @@ export function WhoLivesHere() {
       </div>
       <ul className="no-scrollbar mt-12 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-6 px-6 pb-2 md:mx-auto md:mt-14 md:grid md:max-w-[1440px] md:grid-cols-2 md:gap-5 md:overflow-visible md:px-10 lg:grid-cols-3 xl:px-20">
         {personas.map((p) => (
-          <li key={p.tag} className="w-[82vw] shrink-0 snap-start sm:w-[60vw] md:w-auto">
-            <Link href={p.href} className="group relative block aspect-[4/5] overflow-hidden rounded-2xl bg-ink">
-              <span className="reveal-img absolute inset-0 block">
-                <Image src={p.photo.id} alt={p.photo.alt} fill sizes="(min-width: 1024px) 30vw, (min-width: 768px) 45vw, 82vw" className="object-cover transition-transform duration-[900ms] ease-[var(--ease-standard)] group-hover:scale-105" />
+          <li key={p.tag} className="w-[80vw] shrink-0 snap-start sm:w-[60vw] md:w-auto">
+            {/* Phones: the photo, then the words on white, so they always read.
+                Larger screens: the words over the photo. */}
+            <Link href={p.href} className="group relative flex h-full flex-col overflow-hidden rounded-2xl bg-surface md:block md:aspect-[4/5] md:bg-ink">
+              <span className="relative block aspect-[4/3] shrink-0 overflow-hidden md:absolute md:inset-0 md:aspect-auto">
+                <span className="reveal-img absolute inset-0 block">
+                  <Image src={p.photo.id} alt={p.photo.alt} fill sizes="(min-width: 1024px) 30vw, (min-width: 768px) 45vw, 82vw" className="object-cover transition-transform duration-[900ms] ease-[var(--ease-standard)] group-hover:scale-105" />
+                </span>
               </span>
-              <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-[rgb(12_24_26/0.9)] via-[rgb(12_24_26/0.25)] to-[rgb(12_24_26/0.05)]" />
-              <Tag icon={p.icon} tone="light" className="absolute left-5 top-5">
+              <span aria-hidden className="absolute inset-0 hidden bg-gradient-to-t from-[rgb(12_24_26/0.9)] via-[rgb(12_24_26/0.25)] to-[rgb(12_24_26/0.05)] md:block" />
+              <Tag icon={p.icon} tone="light" className="absolute left-4 top-4 md:left-5 md:top-5">
                 {p.tag}
               </Tag>
               <span className="absolute right-5 top-5 grid h-10 w-10 translate-y-1 place-items-center rounded-full bg-blue text-on-blue opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                 <ArrowUpRight aria-hidden className="h-5 w-5" />
               </span>
-              <span className="absolute inset-x-5 bottom-5 md:inset-x-6 md:bottom-6">
-                <span className="block font-display text-[28px] font-bold leading-8 tracking-[-0.025em] text-white md:text-[30px] md:leading-9">{p.title}</span>
-                <span className="mt-2 block text-[15px] leading-6 text-white/85">{p.body}</span>
+              <span className="block p-5 md:absolute md:inset-x-6 md:bottom-6 md:p-0">
+                <span className="block font-display text-[22px] font-bold leading-7 tracking-[-0.02em] text-ink md:text-[30px] md:leading-9 md:text-white">{p.title}</span>
+                <span className="mt-1.5 block text-[15px] leading-6 text-ink-2 md:mt-2 md:text-white/85">{p.body}</span>
                 <span className="mt-4 flex flex-wrap gap-1.5">
                   {p.rooms.map((k) => (
-                    <Tag key={k} icon={roomIcons[k]} tone="glass" size="sm">
+                    <Tag key={k} icon={roomIcons[k]} tone="mist" size="sm" className="md:bg-white/15 md:text-white md:backdrop-blur-md">
                       {roomKindLabels[k]}
                     </Tag>
                   ))}
@@ -308,11 +312,11 @@ export function PhotoMoment({ photo, eyebrow, title, body }: { photo: PhotoType;
       <div className="moment-media absolute inset-0">
         <Image src={photo.id} alt={photo.alt} fill sizes="100vw" quality={85} className="object-cover" />
       </div>
-      <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-[rgb(12_24_26/0.85)] via-[rgb(12_24_26/0.15)] to-[rgb(12_24_26/0.25)]" />
-      <div className={`${container} relative flex h-full flex-col justify-end pb-24 md:pb-28`}>
+      <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-[rgb(12_24_26/0.96)] via-[rgb(12_24_26/0.55)] via-45% to-transparent md:from-[rgb(12_24_26/0.85)] md:via-[rgb(12_24_26/0.15)] md:to-[rgb(12_24_26/0.25)]" />
+      <div className={`${container} relative flex h-full flex-col justify-end pb-14 md:pb-28`}>
         <Eyebrow tone="light">{eyebrow}</Eyebrow>
-        <h2 className="mt-5 max-w-5xl text-[46px] font-extrabold leading-[48px] tracking-[-0.035em] text-white md:text-[88px] md:leading-[88px]">{title}</h2>
-        <p className="mt-6 max-w-lg text-[17px] leading-[28px] text-white/85 md:text-[19px] md:leading-[31px]">{body}</p>
+        <h2 className="mt-4 max-w-5xl text-[36px] font-extrabold leading-[39px] md:mt-5 tracking-[-0.035em] text-white md:text-[88px] md:leading-[88px]">{title}</h2>
+        <p className="mt-4 max-w-lg text-[16px] leading-[25px] text-white/90 md:mt-6 md:text-[19px] md:leading-[31px]">{body}</p>
       </div>
     </section>
   );
@@ -542,13 +546,13 @@ export function AmenitiesBento() {
         <span className="reveal-img absolute inset-0 block">
           <Image src={ph.id} alt={ph.alt} fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover transition-transform duration-[900ms] ease-[var(--ease-standard)] group-hover:scale-105" />
         </span>
-        <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-[rgb(12_24_26/0.85)] via-[rgb(12_24_26/0.1)] to-transparent" />
+        <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-[rgb(12_24_26/0.9)] via-[rgb(12_24_26/0.2)] to-transparent" />
         <Tag icon={Icon} tone="light" size="sm" className="absolute left-5 top-5 md:left-8 md:top-8">
           Included
         </Tag>
         <div className="absolute inset-x-5 bottom-5 md:inset-x-8 md:bottom-8">
           <h3 className="text-[24px] font-bold leading-8 tracking-[-0.025em] text-white md:text-[34px] md:leading-10">{a.title}</h3>
-          <p className="mt-1.5 max-w-sm text-[15px] leading-6 text-white/85 md:mt-2 md:text-[16px] md:leading-[26px]">{a.body}</p>
+          <p className="mt-2 hidden max-w-sm text-[16px] leading-[26px] text-white/85 md:block">{a.body}</p>
         </div>
       </div>
     );
@@ -614,7 +618,7 @@ export function MovingIn() {
         {steps.map((s, i) => {
           const Icon = stepIcons[i];
           return (
-            <li key={s.title} className="group flex gap-4 rounded-2xl bg-surface p-5 transition-shadow duration-300 hover:shadow-md sm:flex-col sm:gap-0 sm:p-6 md:p-7">
+            <li key={s.title} className="group flex gap-4 rounded-2xl bg-mist p-5 transition-shadow duration-300 hover:shadow-md sm:flex-col sm:gap-0 sm:p-6 md:p-7">
               <div className="flex shrink-0 items-center justify-between">
                 <span className="pebble grid h-11 w-11 place-items-center bg-blue text-on-blue sm:h-14 sm:w-14">
                   <Icon aria-hidden className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.75} />
@@ -632,7 +636,7 @@ export function MovingIn() {
           );
         })}
       </ol>
-      <div className="mt-3 rounded-2xl bg-surface p-5 sm:mt-5 sm:p-7 md:p-10">
+      <div className="mt-3 rounded-2xl bg-mist p-5 sm:mt-5 sm:p-7 md:p-10">
         <div className="flex flex-col gap-2 md:flex-row md:items-baseline md:justify-between">
           <h3 className="text-[22px] font-bold tracking-[-0.02em] text-ink">The fine print</h3>
           <p className="text-[15px] text-ink-3">The full terms are in the rental agreement you sign at check-in.</p>
@@ -642,7 +646,7 @@ export function MovingIn() {
             const Icon = termIcons[t.label];
             return (
               <div key={t.label} className="flex flex-col gap-2 sm:flex-row sm:gap-4">
-                <span className="pebble grid h-9 w-9 shrink-0 place-items-center bg-mist text-ink sm:h-11 sm:w-11">
+                <span className="pebble grid h-9 w-9 shrink-0 place-items-center bg-surface text-ink sm:h-11 sm:w-11">
                   <Icon aria-hidden className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
                 </span>
                 <div>
@@ -693,7 +697,7 @@ export function ReviewsFeature() {
           </p>
           <div className="relative">
             <Link href="/find-my-home" className={`${button.onBlue} group`}>
-              Book a visit <ArrowRight aria-hidden className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+              Book now <ArrowRight aria-hidden className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
         </div>
@@ -751,19 +755,19 @@ export function VisitInvite({ photo = photos.rooftopDusk }: { photo?: PhotoType 
       <div className="moment-media absolute inset-0">
         <Image src={photo.id} alt={photo.alt} fill sizes="100vw" quality={85} className="object-cover" />
       </div>
-      <span aria-hidden className="absolute inset-0 bg-gradient-to-r from-[rgb(12_24_26/0.82)] via-[rgb(12_24_26/0.4)] to-transparent" />
-      <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-[rgb(12_24_26/0.6)] to-transparent" />
-      <div className={`${container} relative flex h-full flex-col justify-end pb-28 md:pb-28`}>
+      <span aria-hidden className="absolute inset-0 hidden bg-gradient-to-r from-[rgb(12_24_26/0.82)] via-[rgb(12_24_26/0.4)] to-transparent md:block" />
+      <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-[rgb(12_24_26/0.96)] via-[rgb(12_24_26/0.6)] via-45% to-transparent md:from-[rgb(12_24_26/0.6)] md:via-transparent" />
+      <div className={`${container} relative flex h-full flex-col justify-end pb-24 md:pb-28`}>
         <Eyebrow tone="light">Visits {site.visitHours}</Eyebrow>
-        <h2 id="visit-title" className="mt-5 max-w-3xl text-[48px] font-extrabold leading-[50px] tracking-[-0.035em] text-white md:text-[88px] md:leading-[88px]">
+        <h2 id="visit-title" className="mt-4 max-w-3xl text-[38px] font-extrabold leading-[41px] tracking-[-0.035em] text-white md:mt-5 md:text-[88px] md:leading-[88px]">
           Come see it for <Accent tone="light">yourself</Accent>.
         </h2>
-        <p className="mt-6 max-w-md text-[17px] leading-[28px] text-white/85 md:text-[19px] md:leading-[31px]">In person, or on a video call if you&apos;re moving from another city.</p>
-        <div className="mt-9 flex flex-wrap gap-3">
-          <Link href="/find-my-home" className={button.primary}>
-            Book a visit
+        <p className="mt-4 max-w-md text-[16px] leading-[25px] text-white/90 md:mt-6 md:text-[19px] md:leading-[31px]">In person, or on a video call if you&apos;re moving from another city.</p>
+        <div className="mt-7 flex gap-3 md:mt-9">
+          <Link href="/find-my-home" className={`${button.primary} flex-1 md:flex-none`}>
+            Book now
           </Link>
-          <TrackedLink event="whatsapp_click" params={{ placement: "visit_invite" }} href={whatsappLink("Hi FF21! I'd like to visit one of your homes.")} className={button.onMediaGlass}>
+          <TrackedLink event="whatsapp_click" params={{ placement: "visit_invite" }} href={whatsappLink("Hi FF21! I'd like to visit one of your homes.")} className={`${button.onMediaGlass} flex-1 md:flex-none`}>
             <MessageCircle aria-hidden className="h-5 w-5" />
             WhatsApp us
           </TrackedLink>

@@ -426,10 +426,11 @@ dialog.page {
 }
 
 /* ---------------------------------------------------------------------------
-   Scroll-expand opener. --e (0→1) opens the window from a small card to the
-   whole screen, edge to edge, while the photo inside zooms out; --i fades the
-   introduction; --f brings in the hero. The stage starts under the floating
-   header. Set from scroll position by ScrollExpandHero. */
+   Scroll-expand opener. It opens on a collage of FF21's common spaces and
+   community around one window; scrolling slides the side photos away and
+   opens the window to the whole screen while the photo inside zooms out.
+   --e (0→1) the opening, --i the introduction fading, --f the hero arriving.
+   Set from scroll position by ScrollExpandHero. */
 .xh {
   position: relative;
   height: 200svh;
@@ -445,26 +446,31 @@ dialog.page {
   min-height: 600px;
   overflow: hidden;
 }
+/* The window and the collage share one box: top --t0, bottom --b0 of the
+   stage, the window --w0 wide in the middle. */
 .xh-frame {
   position: absolute;
   inset: 0;
-  --w0: 66%;
-  --t0: 27%;
-  --b0: 25%;
+  --w0: 52vw;
+  --t0: 30%;
+  --b0: 17%;
+  --gap: 10px;
 }
 @media (min-width: 768px) {
   .xh {
     height: 220svh;
   }
   .xh-frame {
-    --w0: min(380px, 30%);
-    --t0: 24%;
-    --b0: 27%;
+    --w0: min(360px, 28vw);
+    --t0: 31%;
+    --b0: 9%;
+    --gap: 14px;
   }
 }
 @media (min-width: 1280px) {
   .xh-frame {
-    --w0: min(420px, 27%);
+    --w0: min(400px, 25vw);
+    --gap: 16px;
   }
 }
 .xh[data-reduced="true"] {
@@ -480,7 +486,7 @@ dialog.page {
   overflow: hidden;
   background: var(--color-ink);
   --x: calc((100% - var(--w0)) / 2 * (1 - var(--e)));
-  --r: calc(28px * (1 - var(--e)));
+  --r: calc(22px * (1 - var(--e)));
   clip-path: inset(calc(var(--t0) * (1 - var(--e))) var(--x) calc(var(--b0) * (1 - var(--e))) var(--x) round var(--r));
   will-change: clip-path;
 }
@@ -493,12 +499,20 @@ dialog.page {
 .xh-scrim {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(to top, rgb(12 24 26 / 0.86), rgb(12 24 26 / 0.2) 52%, rgb(12 24 26 / 0.05) 70%, rgb(12 24 26 / 0.35)),
-    linear-gradient(to right, rgb(12 24 26 / 0.35), transparent 60%);
+  /* Phones: a solid band at the foot so the words read on any photo. */
+  background: linear-gradient(to top, rgb(12 24 26 / 0.96) 0%, rgb(12 24 26 / 0.86) 26%, rgb(12 24 26 / 0.35) 50%, rgb(12 24 26 / 0) 66%),
+    linear-gradient(to bottom, rgb(12 24 26 / 0.35), transparent 22%);
   opacity: var(--f);
 }
+@media (min-width: 768px) {
+  .xh-scrim {
+    background: linear-gradient(to top, rgb(12 24 26 / 0.82), rgb(12 24 26 / 0.15) 50%, transparent 70%),
+      linear-gradient(to right, rgb(12 24 26 / 0.45), transparent 58%),
+      linear-gradient(to bottom, rgb(12 24 26 / 0.3), transparent 20%);
+  }
+}
 
+/* The introduction: a short headline above a collage. */
 .xh-intro {
   position: absolute;
   inset: 0;
@@ -507,90 +521,122 @@ dialog.page {
 .xh[data-intro="off"] .xh-intro {
   visibility: hidden;
 }
-.xh-title {
-  margin: 0;
-}
-.xh-eyebrow {
+.xh-head {
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(var(--t0) - 104px);
+  top: calc(var(--header-space) + 2%);
+  height: calc(var(--t0) - var(--header-space) - 2%);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 12px;
+  padding: 0 24px;
+  text-align: center;
+  opacity: var(--i);
+  transform: translateY(calc(var(--e) * -60px));
+}
+.xh-eyebrow {
+  display: flex;
+  align-items: center;
   gap: 10px;
   font-family: var(--font-sans);
-  font-size: 12.5px;
-  line-height: 20px;
+  font-size: 12px;
+  line-height: 18px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-ink-3);
-  opacity: var(--i);
 }
-.xh-word {
-  position: absolute;
-  white-space: nowrap;
-  font-size: clamp(42px, 12.5vw, 60px);
-  line-height: 0.95;
+.xh-title {
+  margin: 0;
+  font-size: clamp(34px, 9.5vw, 44px);
+  line-height: 1;
   font-weight: 800;
   letter-spacing: -0.035em;
   color: var(--color-ink);
-  opacity: var(--i);
 }
-.xh-word--a {
-  left: 0;
-  right: 0;
-  text-align: center;
-  bottom: calc(100% - var(--t0) + 14px);
-  transform: translateY(calc(var(--e) * -30vh));
+@media (min-width: 768px) {
+  .xh-title {
+    font-size: clamp(48px, 5.4vw, 86px);
+  }
 }
-.xh-word--b {
-  left: 0;
-  right: 0;
-  text-align: center;
-  top: calc(100% - var(--b0) + 12px);
-  transform: translateY(calc(var(--e) * 30vh));
-}
-.xh-splash {
+.xh-collage {
   position: absolute;
-  width: 132px;
-  height: 132px;
-  left: calc(50% + var(--w0) / 2 - 64px);
-  top: calc(var(--t0) - 52px);
-  color: var(--color-sun);
-  opacity: var(--i);
-  transform: rotate(-8deg) scale(calc(1 - 0.4 * var(--e)));
-}
-.xh-facts {
-  position: absolute;
+  top: var(--t0);
+  bottom: var(--b0);
   left: 0;
   right: 0;
-  top: calc(100% - var(--b0) + 28px);
+  display: grid;
+  grid-template-columns: 1fr var(--w0) 1fr;
+  column-gap: var(--gap);
+}
+.xh-side {
+  display: flex;
+  gap: var(--gap);
+  min-width: 0;
+  opacity: calc(1 - var(--e) * 1.8);
+}
+.xh-side--l {
+  justify-content: flex-end;
+  transform: translateX(calc(var(--e) * -55vw));
+}
+.xh-side--r {
+  grid-column: 3;
+  justify-content: flex-start;
+  transform: translateX(calc(var(--e) * 55vw));
+}
+.xh-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--gap);
+  /* Phones: one column a side, bleeding off the screen edge. */
+  width: calc((100vw - var(--w0)) / 2 - var(--gap) + 28px);
+  flex: none;
+}
+.xh-col--outer {
   display: none;
-  flex-wrap: wrap;
   justify-content: center;
-  gap: 10px;
-  margin: 0;
-  padding: 0 24px;
-  list-style: none;
-  opacity: var(--i);
-  transform: translateY(calc(var(--e) * 40px));
+}
+.xh-tile {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--color-mist);
+}
+@media (min-width: 768px) {
+  .xh-col {
+    width: min(17vw, 250px);
+  }
+  .xh-col--outer {
+    display: flex;
+    width: min(12vw, 190px);
+  }
+  .xh-tile {
+    border-radius: 22px;
+  }
 }
 .xh-cue {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 86px;
+  bottom: calc(var(--b0) / 2 - 18px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   margin: 0;
   font-size: 13px;
   font-weight: 600;
   color: var(--color-ink-3);
   opacity: var(--i);
+}
+@media (max-width: 767px) {
+  .xh-cue {
+    display: none;
+  }
 }
 @media (prefers-reduced-motion: no-preference) {
   .xh-cue svg {
@@ -606,41 +652,8 @@ dialog.page {
     transform: translateY(5px);
   }
 }
-@media (min-width: 768px) {
-  .xh-eyebrow {
-    top: calc(var(--t0) - 56px);
-  }
-  .xh-word {
-    font-size: clamp(48px, 5.6vw, 100px);
-    top: calc(var(--t0) + (100% - var(--t0) - var(--b0)) / 2);
-    bottom: auto;
-  }
-  .xh-word--a {
-    left: auto;
-    right: calc(50% + var(--w0) / 2 + 32px);
-    text-align: right;
-    transform: translate(calc(var(--e) * -42vw), -50%);
-  }
-  .xh-word--b {
-    right: auto;
-    left: calc(50% + var(--w0) / 2 + 32px);
-    text-align: left;
-    transform: translate(calc(var(--e) * 42vw), -50%);
-  }
-  .xh-splash {
-    width: 168px;
-    height: 168px;
-    left: calc(50% + var(--w0) / 2 - 92px);
-    top: calc(var(--t0) - 64px);
-  }
-  .xh-facts {
-    display: flex;
-  }
-  .xh-cue {
-    bottom: 28px;
-  }
-}
 
+/* What the window opens into. */
 .xh-final {
   position: absolute;
   inset: 0;
@@ -649,19 +662,4 @@ dialog.page {
 }
 .xh[data-final="off"] .xh-final {
   visibility: hidden;
-}
-/* Larger screens: the search bar floats near the bottom of the photo.
-   Phones already carry Find my home in the bottom bar. */
-.xh-search {
-  position: absolute;
-  left: 50%;
-  bottom: 40px;
-  display: none;
-  width: min(980px, calc(100% - 64px));
-  transform: translateX(-50%);
-}
-@media (min-width: 768px) {
-  .xh-search {
-    display: block;
-  }
 }

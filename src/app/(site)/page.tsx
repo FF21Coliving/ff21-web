@@ -52,9 +52,33 @@ export default function Home() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
 
-      <ScrollExpandHero frames={frames} homes={properties.length} from={inr(prices.twinFrom)} />
+      <ScrollExpandHero
+        frames={frames}
+        left={{ inner: [{ photo: photos.partyFriends, grow: 1.25 }, { photo: photos.loungeBright }], outer: { photo: photos.diwali } }}
+        right={{ inner: [{ photo: photos.poolGame }, { photo: photos.diningHall, grow: 1.25 }], outer: { photo: photos.holi } }}
+        homes={properties.length}
+        from={inr(prices.twinFrom)}
+      />
 
       <IncludedBand />
+
+      <section id="how" aria-labelledby="how-title" className={`scroll-mt-24 ${sectionY}`}>
+        <div className={container}>
+          <SectionHeader
+            id="how-title"
+            eyebrow="Moving in"
+            title={
+              <>
+                Four steps, and you&apos;re <Accent>home</Accent>.
+              </>
+            }
+            lead={`Visits ${site.visitHours}, in person or on video.`}
+          />
+          <div className="mt-12 md:mt-14">
+            <MovingIn />
+          </div>
+        </div>
+      </section>
 
       <section aria-labelledby="homes" className={`${container} ${sectionY}`}>
         <SectionHeader
@@ -108,23 +132,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section aria-labelledby="how-title" className={`bg-mist ${sectionY}`}>
-        <div className={container}>
-          <SectionHeader
-            id="how-title"
-            eyebrow="Moving in"
-            title={
-              <>
-                Four steps, and you&apos;re <Accent>home</Accent>.
-              </>
-            }
-            lead={`Visits ${site.visitHours}, in person or on video.`}
-          />
-          <div className="mt-12 md:mt-14">
-            <MovingIn />
-          </div>
-        </div>
-      </section>
 
       <section aria-labelledby="reviews-title" className={`bg-blue-50 ${sectionY}`}>
         <div className={container}>
