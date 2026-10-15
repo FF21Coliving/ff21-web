@@ -61,6 +61,7 @@ export async function POST(request: Request) {
 
   // Zoho: create the lead at the contact step, then update only that lead.
   let zohoRef: string | undefined;
+  let zohoError: string | undefined;
   if (zohoApiEnabled()) {
     const zohoAnswers = {
       property: row.property,
@@ -83,7 +84,10 @@ export async function POST(request: Request) {
         utm: utmOf(row.attribution as Attribution | undefined),
       });
       if (created.ok) zohoRef = makeRef(created.id);
-      else console.error("[lead:zoho] create failed", created.detail);
+      else {
+        console.error("[lead:zoho] create failed", created.detail);
+        zohoError = created.detail;
+      }
       row.zoho_status = created.ok ? "created" : "failed";
       row.zoho_detail = created.ok ? created.id : created.detail;
     } else {
@@ -96,5 +100,8 @@ export async function POST(request: Request) {
   }
 
   const saved = await saveLead(row);
-  return Response.json({ ok: saved.ok, zohoRef });
+  // Setup check only: with ?check=zoho the reply says why Zoho refused (an
+  // error code from Zoho, never a secret). Remove once leads flow.
+  const check = new URL(request.url).searchParams.get("check") === "zoho";
+  return Response.json({ ok: saved.ok, zohoRef, ...(check ? { zohoEnabled: zohoApiEnabled(), zohoError } : {}) });
 }
