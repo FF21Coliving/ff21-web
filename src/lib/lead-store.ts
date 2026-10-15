@@ -2,7 +2,7 @@ import "server-only";
 
 // Every Find my home answer is saved to Supabase the moment the visitor moves
 // on, so the team has the lead even if they drop off halfway. Rows are written
-// through one database function (save_lead) that merges each save into the
+// through one database function (ff21_save_lead) that merges each save into the
 // row for that visit; the leads table itself has no public access.
 //
 // SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY are server-side only (no
@@ -41,7 +41,7 @@ export async function saveLead(row: LeadRow): Promise<{ ok: boolean; skipped?: b
   // Drop empty values so a later save never blanks an earlier answer.
   const p = Object.fromEntries(Object.entries(row).filter(([, v]) => v !== undefined && v !== "" && !(Array.isArray(v) && v.length === 0)));
   try {
-    const res = await fetch(`${url}/rest/v1/rpc/save_lead`, {
+    const res = await fetch(`${url}/rest/v1/rpc/ff21_save_lead`, {
       method: "POST",
       headers: { apikey: key, "Content-Type": "application/json" },
       body: JSON.stringify({ p }),
