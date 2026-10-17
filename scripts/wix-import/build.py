@@ -34,6 +34,19 @@ LEFTOVER = re.compile(
 )
 
 
+# FF21's own prices that changed since the Wix copy was written, applied to
+# the area pages (blog lists of other PGs keep their numbers).
+PRICE_FIXES = [
+    (re.compile(r"11,200"), "12,000"),  # ITP twin, from 17 Oct 2026
+]
+
+
+def fix_prices(h):
+    for pattern, new in PRICE_FIXES:
+        h = pattern.sub(new, h)
+    return h
+
+
 def text(h):
     return unescape(re.sub(r"<[^>]+>", "", h)).strip()
 
@@ -151,6 +164,11 @@ for p in pages:
     if path in REDIRECTED:
         continue
     blocks = shape(p["blocks"])
+    for b in blocks:
+        if "h" in b:
+            b["h"] = fix_prices(b["h"])
+        if "items" in b:
+            b["items"] = [fix_prices(i) for i in b["items"]]
     h1 = next((text(b["h"]) for b in blocks if b["t"] == "h1"), None)
     blocks = [b for b in blocks if b["t"] != "h1"]
     landing.append({
