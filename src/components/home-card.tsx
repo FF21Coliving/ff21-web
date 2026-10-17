@@ -115,7 +115,7 @@ export function HomeCard({ property: p, sizes, eager }: Props) {
           <p className="text-[15px] text-ink-2">
             {from ? (
               <>
-                <span className="tabular text-[17px] font-semibold text-ink">{inr(from)}</span> a month
+                From <span className="tabular text-[17px] font-semibold text-ink">{inr(from)}</span> a month
               </>
             ) : (
               "Prices on request"

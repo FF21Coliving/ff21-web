@@ -23,6 +23,9 @@ export type Property = {
   tagline: string;
   nearby: string[];
   rooms: Room[];
+  // The lowest rent at this home, per person per month, all-inclusive.
+  // Confirmed by Madhvik on 17 Oct 2026.
+  from: number;
   hero: Photo;
   gallery: Photo[];
   // Exact option value in the Zoho CRM "FF21 Property" picklist.
@@ -38,6 +41,7 @@ const studio: Room = { name: "Studio", description: "Twin beds or a double bed, 
 export const properties: Property[] = [
   {
     code: "ITP",
+    from: 12000,
     slug: "itp-whitefield",
     area: "ITPL",
     zone: "whitefield",
@@ -46,7 +50,7 @@ export const properties: Property[] = [
     tagline: "In Whitefield, near ITPL and EPIP Zone",
     nearby: ["Whitefield", "ITPL", "EPIP Zone", "AECS Layout", "Brookefield", "Hope Farm", "Nallurahalli", "Prestige Shantiniketan"],
     rooms: [
-      { ...twin, price: 11200 },
+      { ...twin, price: 12000 },
       { ...studio, price: 18500 },
     ],
     hero: photos.loungeTeal,
@@ -56,6 +60,7 @@ export const properties: Property[] = [
   },
   {
     code: "WFD",
+    from: 14000,
     slug: "wfd-whitefield",
     area: "Whitefield",
     zone: "whitefield",
@@ -70,6 +75,7 @@ export const properties: Property[] = [
   },
   {
     code: "KDH",
+    from: 15750,
     slug: "kdh-kundanahalli",
     area: "Kundanahalli",
     zone: "marathahalli",
@@ -94,6 +100,7 @@ export const properties: Property[] = [
   },
   {
     code: "PODS",
+    from: 14000,
     slug: "pods-marathahalli",
     area: "Marathahalli",
     zone: "marathahalli",
@@ -119,6 +126,7 @@ export const properties: Property[] = [
   },
   {
     code: "LIT",
+    from: 17000,
     slug: "lit-thubarahalli",
     area: "Thubarahalli",
     zone: "marathahalli",
@@ -143,6 +151,7 @@ export const properties: Property[] = [
   },
   {
     code: "BGM",
+    from: 15750,
     slug: "bgm-doddanekundi",
     area: "Doddanekundi",
     zone: "marathahalli",
@@ -164,6 +173,7 @@ export const properties: Property[] = [
   },
   {
     code: "PMC",
+    from: 16450,
     slug: "pmc-mahadevapura",
     area: "Mahadevapura",
     zone: "mahadevapura",
@@ -191,6 +201,7 @@ export const properties: Property[] = [
   },
   {
     code: "HBR",
+    from: 15750,
     slug: "hbr-hennur",
     area: "HBR Layout",
     zone: "hbr",
@@ -209,6 +220,7 @@ export const properties: Property[] = [
   },
   {
     code: "KORA",
+    from: 17300,
     slug: "kora-koramangala",
     area: "Koramangala",
     zone: "koramangala",
@@ -230,6 +242,7 @@ export const properties: Property[] = [
   },
   {
     code: "SJR",
+    from: 17800,
     slug: "sjr-sarjapur",
     area: "Sarjapur",
     zone: "sarjapur",
@@ -249,9 +262,8 @@ export function getProperty(slug: string) {
   return properties.find((p) => p.slug === slug);
 }
 
-export function fromPrice(p: Property) {
-  const listed = p.rooms.map((r) => r.price).filter((n): n is number => typeof n === "number");
-  return listed.length ? Math.min(...listed) : undefined;
+export function fromPrice(p: Property): number | undefined {
+  return p.from;
 }
 
 export const zones: { id: Zone; label: string }[] = [

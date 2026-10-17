@@ -335,7 +335,7 @@ async function PropertyContent({ params }: Pick<PageProps<"/properties/[slug]">,
       {/* Phones: the price and the action, always in reach */}
       <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-4 bg-surface px-5 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_28px_rgb(23_43_45/0.1)] lg:hidden">
         <div>
-          <p className="text-[16px] font-semibold text-ink">{from ? <span className="tabular">{inr(from)} <span className="font-normal text-ink-2">a month</span></span> : "Prices on request"}</p>
+          <p className="text-[16px] font-semibold text-ink">{from ? <span className="tabular"><span className="font-normal text-ink-2">From </span>{inr(from)} <span className="font-normal text-ink-2">a month</span></span> : "Prices on request"}</p>
           <p className="flex items-center gap-1 text-[13px] font-semibold text-blue-ink">
             <Check aria-hidden className="h-3.5 w-3.5" strokeWidth={2.75} />
             All-inclusive

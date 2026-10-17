@@ -19,7 +19,8 @@ export const site = {
 };
 
 export const prices = {
-  twinFrom: 11200,
+  // The lowest rent across all homes (FF21 ITP), confirmed 17 Oct 2026.
+  twinFrom: 12000,
   privateFrom: 14000,
   bookingAmount: 6000,
   moveOutCharge: 2999,

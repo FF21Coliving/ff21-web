@@ -33,6 +33,7 @@ export function BookingCard({ slug, code, area, from, rooms }: Props) {
       <p className="text-ink">
         {from ? (
           <>
+            <span className="text-[16px] text-ink-2">From </span>
             <span className="tabular font-display text-[30px] font-extrabold tracking-[-0.02em]">₹{from.toLocaleString("en-IN")}</span>{" "}
             <span className="text-[16px] text-ink-2">a month</span>
           </>
