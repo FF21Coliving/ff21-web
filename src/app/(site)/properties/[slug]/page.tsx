@@ -16,7 +16,7 @@ import { TourTrigger } from "@/components/tour-player";
 import { TrackView } from "@/components/track-view";
 import { button, container, listingTitle } from "@/components/ui";
 import { ogImage } from "@/lib/photos";
-import { fromPrice, getProperty, properties, roomKindLabels, roomKinds, zones, type Property } from "@/lib/properties";
+import { fromPrice, getProperty, properties, roomKindLabels, roomKindOf, roomKinds, zones, type Property } from "@/lib/properties";
 import { inr, site, terms } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -85,13 +85,6 @@ async function PropertyContent({ params }: Pick<PageProps<"/properties/[slug]">,
   const zone = zones.find((z) => z.id === p.zone)!;
   const title = `FF21 ${p.code} · ${p.area}`;
   const others = [...properties.filter((o) => o.slug !== p.slug && o.zone === p.zone), ...properties.filter((o) => o.zone !== p.zone)].slice(0, 4);
-  const roomKindOf = (name: string) => {
-    const n = name.toLowerCase();
-    if (/studio/.test(n)) return "studio";
-    if (/twin|double|bunk/.test(n)) return "twin";
-    if (/private|single|pod|king/.test(n)) return "private";
-    return undefined;
-  };
   const highlights = [
     { icon: Wallet, title: "Zero deposit option", body: "Or pay two months' rent as deposit. Your choice." },
     { icon: CalendarClock, title: "Visit any day", body: `${site.visitHours[0].toUpperCase()}${site.visitHours.slice(1)}, in person or on video.` },

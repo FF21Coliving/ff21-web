@@ -16,7 +16,7 @@ export default function PropertiesPage() {
       <section className={`${container} pb-20 pt-10 md:pb-28 md:pt-14`}>
         <Eyebrow>The homes</Eyebrow>
         <h1 className={`rise mt-5 ${pageTitle}`}>
-          Ten homes across <Accent>Bangalore</Accent>.
+          Find your <Accent>home</Accent> in Bangalore.
         </h1>
         <p className={`rise-2 mt-5 max-w-2xl ${lead}`}>
           Every FF21 home comes furnished, and one rent covers it all. Filter by area or room type, or let us match you.

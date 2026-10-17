@@ -51,6 +51,7 @@ export const includedShort = included.filter((i) => ["Meals", "WiFi", "Housekeep
 export const roomIcons: Record<RoomKind, LucideIcon> = {
   twin: Users,
   private: KeyRound,
+  pod: BedSingle,
   studio: DoorOpen,
 };
 

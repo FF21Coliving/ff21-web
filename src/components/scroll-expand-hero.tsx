@@ -13,7 +13,7 @@ type Props = {
   // The collage around the window: inner columns of two, outer columns of one.
   left: { inner: [Tile, Tile]; outer: Tile };
   right: { inner: [Tile, Tile]; outer: Tile };
-  homes: number;
+  founded: number;
   from: string;
 };
 
@@ -32,7 +32,7 @@ function CollageTile({ tile, sizes, className = "" }: { tile: Tile; sizes: strin
 // community around one window; scrolling slides the collage away and opens
 // the window to the whole screen while the photo inside zooms out. Pure CSS
 // does the drawing: this only turns scroll position into three numbers.
-export function ScrollExpandHero({ frames, left, right, homes, from }: Props) {
+export function ScrollExpandHero({ frames, left, right, founded, from }: Props) {
   const root = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
 
@@ -160,13 +160,13 @@ export function ScrollExpandHero({ frames, left, right, homes, from }: Props) {
             <div className="absolute inset-x-6 bottom-[104px] md:bottom-16 md:left-12 md:right-auto md:max-w-3xl xl:left-20">
               <p className="flex items-center gap-2.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-white/80 md:text-[12.5px]">
                 <span aria-hidden className="door" />
-                FF21 Coliving · since 2016
+                FF21 Coliving · since {founded}
               </p>
               <h2 className="mt-3 text-[38px] font-extrabold leading-[40px] tracking-[-0.035em] text-white md:mt-4 md:text-[80px] md:leading-[80px]">
-                Ten homes across <em className="accent">Bangalore</em>.
+                Your <em className="accent">home</em> in Bangalore.
               </h2>
               <p className="mt-3 max-w-xl text-[15px] leading-[23px] text-white/85 md:mt-5 md:text-[19px] md:leading-[30px]">
-                Furnished rooms in {homes} homes, with meals, WiFi and housekeeping in one rent. From {from} a month.
+                Furnished rooms near the city&apos;s tech parks, with meals, WiFi and housekeeping in one rent. From {from} a month.
               </p>
               <div className="mt-5 flex gap-3 md:mt-8">
                 <Link href="/find-my-home" className={`${button.primary} group flex-1 md:flex-none`}>

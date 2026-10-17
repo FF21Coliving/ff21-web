@@ -9,7 +9,7 @@ import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "About FF21",
-  description: "FF21 opened in 2016 with 33 rooms. Today it runs coliving homes across Bangalore for young professionals and students.",
+  description: `FF21 opened in ${site.founded} with 33 rooms. Today it runs coliving homes across Bangalore for young professionals and students.`,
   alternates: { canonical: "/about" },
 };
 

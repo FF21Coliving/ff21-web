@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "reac
 import { readAttribution } from "@/lib/attribution";
 import { genders, inferSource, istDay, normalizePhone, stays, visitLabel, visitWindowHours, visitWindows, type Gender, type LeadErrors, type Source, type Stay, type VisitType, type VisitWindow } from "@/lib/lead";
 import { photos, type Photo } from "@/lib/photos";
-import { fromPrice, getProperty, homesNear, places, properties, roomKindLabels, roomKinds, type RoomKind } from "@/lib/properties";
+import { fromPrice, getProperty, homesNear, nearPlace, places, properties, roomKindLabels, roomKinds, zones, type RoomKind } from "@/lib/properties";
 import { isFullPincode, isPincodeQuery, pincodes } from "@/lib/pincodes";
 import { inr, site, whatsappLink } from "@/lib/site";
 import { track } from "@/lib/track";
@@ -107,6 +107,7 @@ const budgets: Budget[] = [
 const roomChoices: { id: RoomChoice; title: string; body: string; photo?: Photo }[] = [
   { id: "twin", title: "Twin", body: "Share a room with one person", photo: photos.roomTwin },
   { id: "private", title: "Private", body: "A room to yourself", photo: photos.roomPrivate },
+  { id: "pod", title: "Pod", body: "A compact private pod, at a lower rent", photo: getProperty("pods-marathahalli")?.hero },
   { id: "studio", title: "Studio", body: "More space, with a kitchenette", photo: photos.roomStudio },
   { id: "unsure", title: "Not sure yet", body: "We'll show you options on the visit" },
 ];
@@ -129,7 +130,7 @@ function rank(answers: Answers) {
     .map((p, order) => {
       let score = 0;
       const reasons: string[] = [];
-      const near = answers.places.filter((pl) => p.area === pl || p.nearby.includes(pl));
+      const near = answers.places.filter((pl) => nearPlace(p, pl));
       if (near.length) {
         score += 3 * near.length;
         reasons.push(`Near ${near[0]}`);
@@ -349,11 +350,13 @@ export function FindMyHome() {
 
   const [step, setStep] = useState<StepId>("you");
   const [contact, setContact] = useState<Record<string, string> | null>(null);
-  const [saving, setSaving] = useState(false);
   const leadId = useRef("");
   // The signed Zoho reference the server returns at the contact step; it lets
   // later saves update that one lead and nothing else.
   const zohoRef = useRef<string | undefined>(undefined);
+  // The contact step's save, still in flight while the visitor answers the
+  // next question; later saves wait for it so they carry the Zoho reference.
+  const contactSaved = useRef<Promise<void>>(Promise.resolve());
   const [answers, setAnswers] = useState<Answers>(() => ({
     places: startProperty ? [getProperty(startProperty)!.area] : [],
     property: startProperty,
@@ -447,12 +450,17 @@ export function FindMyHome() {
 
   // Saved in the background on every move forward; never blocks the visitor.
   const save = (at: StepId, a: Answers) => {
-    fetch("/api/lead/progress", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      keepalive: true,
-      body: JSON.stringify({ id: idFor(), zohoRef: zohoRef.current, step: at, ...fields(a), page: window.location.pathname + window.location.search }),
-    }).catch(() => {});
+    const page = window.location.pathname + window.location.search;
+    contactSaved.current
+      .then(() =>
+        fetch("/api/lead/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          keepalive: true,
+          body: JSON.stringify({ id: idFor(), zohoRef: zohoRef.current, step: at, ...fields(a), page }),
+        }),
+      )
+      .catch(() => {});
   };
 
   const next = () => {
@@ -479,33 +487,34 @@ export function FindMyHome() {
       document.getElementById(Object.keys(found)[0])?.focus();
       return;
     }
-    setSaving(true);
     setErrors({});
-    try {
-      const res = await fetch("/api/lead/progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...c,
-          id: idFor(),
-          step: "you",
-          ...fields(answers),
-          attribution: readAttribution(),
-          page: window.location.pathname + window.location.search,
-          elapsedMs: since(startedAt.current),
-        }),
+    // The same checks just passed here, so move on straight away and save in
+    // the background; if the server still finds a problem, come back to it.
+    contactSaved.current = fetch("/api/lead/progress", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...c,
+        id: idFor(),
+        step: "you",
+        ...fields(answers),
+        attribution: readAttribution(),
+        page: window.location.pathname + window.location.search,
+        elapsedMs: since(startedAt.current),
+      }),
+    })
+      .then((res) => res.json().catch(() => ({})))
+      .then((body) => {
+        if (body.errors) {
+          setErrors(body.errors as LeadErrors);
+          goTo("you");
+          return;
+        }
+        if (typeof body.zohoRef === "string") zohoRef.current = body.zohoRef;
+      })
+      .catch(() => {
+        // Offline for a moment: carry on; the final step sends everything again.
       });
-      const body = await res.json().catch(() => ({}));
-      if (body.errors) {
-        setErrors(body.errors as LeadErrors);
-        return;
-      }
-      if (typeof body.zohoRef === "string") zohoRef.current = body.zohoRef;
-    } catch {
-      // Offline for a moment: carry on; the final step sends everything again.
-    } finally {
-      setSaving(false);
-    }
     if (!started.current) {
       started.current = true;
       track("form_start", { form: "find-my-home" });
@@ -525,8 +534,9 @@ export function FindMyHome() {
   };
 
   const q = query.trim();
+  const areaNames = zones.map((z) => z.label);
   const shownPlaces = !q
-    ? popular.filter((p) => places.includes(p))
+    ? popular.filter((p) => places.includes(p) && !areaNames.includes(p))
     : isPincodeQuery(q)
       ? places.filter((p) => pincodes[p]?.startsWith(q)).slice(0, 12)
       : places.filter((p) => p.toLowerCase().includes(q.toLowerCase()) || pincodes[p] === q).slice(0, 12);
@@ -540,6 +550,7 @@ export function FindMyHome() {
     }
     save(step, answers);
     setStatus("sending");
+    await contactSaved.current;
     setErrors({});
     setMessage("");
     try {
@@ -710,7 +721,33 @@ export function FindMyHome() {
                           ))}
                         </ul>
                       )}
-                      <p className="mt-6 text-[14px] font-semibold text-ink-2">{query.trim() ? "Matches" : "Popular with FFers"}</p>
+                      {!q && (
+                        <>
+                          <p className="mt-6 text-[14px] font-semibold text-ink-2">Areas we&apos;re in</p>
+                          <ul className="mt-3 flex flex-wrap gap-2">
+                            {areaNames.map((a) => {
+                              const on = answers.places.includes(a);
+                              const count = homesNear(a).length;
+                              return (
+                                <li key={a}>
+                                  <button
+                                    type="button"
+                                    aria-pressed={on}
+                                    onClick={() => togglePlace(a)}
+                                    className={`inline-flex h-11 items-center gap-2 rounded-full border px-4 text-[15px] font-medium transition-[border-color,background-color] ${on ? optionOn : optionOff}`}
+                                  >
+                                    {a}
+                                    <span className={`text-[13px] font-normal ${on ? "text-ink-2" : "text-ink-3"}`}>
+                                      {count} {count === 1 ? "home" : "homes"}
+                                    </span>
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </>
+                      )}
+                      <p className="mt-6 text-[14px] font-semibold text-ink-2">{q ? "Matches" : "Tech parks and places nearby"}</p>
                       <ul className="mt-3 grid gap-2 sm:grid-cols-2">
                         {shownPlaces.map((pl) => {
                           const on = answers.places.includes(pl);
@@ -976,8 +1013,8 @@ export function FindMyHome() {
               {step === "you" ? (
                 <>
                   <span className="text-[14px] text-ink-3">Takes about a minute</span>
-                  <button type="submit" form="contact" disabled={saving} className={button.primary}>
-                    {saving ? "Saving…" : "Continue"}
+                  <button type="submit" form="contact" className={button.primary}>
+                    Continue
                   </button>
                 </>
               ) : step === "heard" ? (

@@ -174,7 +174,7 @@ export function IncludedBand() {
               <span className="tabular font-display text-[30px] font-extrabold leading-none tracking-[-0.02em] text-ink md:text-[36px]">{inr(prices.twinFrom)}</span>
             </div>
           </div>
-          <Stamp id="stamp-rent" text="ALL-INCLUSIVE RENT · SINCE 2016 · " className="absolute -right-3 -top-10 h-24 w-24 md:-right-12 md:-top-14 md:h-32 md:w-32" />
+          <Stamp id="stamp-rent" text={`ALL-INCLUSIVE RENT · SINCE ${site.founded} · `} className="absolute -right-3 -top-10 h-24 w-24 md:-right-12 md:-top-14 md:h-32 md:w-32" />
         </div>
       </div>
     </section>

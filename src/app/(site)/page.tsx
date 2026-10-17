@@ -19,7 +19,6 @@ import {
 import { container, sectionY } from "@/components/ui";
 import { faqs } from "@/lib/content";
 import { photos } from "@/lib/photos";
-import { properties } from "@/lib/properties";
 import { inr, prices, site } from "@/lib/site";
 
 const frames = [photos.rooftopSunset, photos.loungeTeal, photos.diningFamily, photos.rooftopDusk, photos.workspace];
@@ -56,7 +55,7 @@ export default function Home() {
         frames={frames}
         left={{ inner: [{ photo: photos.partyFriends, grow: 1.25 }, { photo: photos.loungeBright }], outer: { photo: photos.diwali } }}
         right={{ inner: [{ photo: photos.poolGame }, { photo: photos.diningHall, grow: 1.25 }], outer: { photo: photos.holi } }}
-        homes={properties.length}
+        founded={site.founded}
         from={inr(prices.twinFrom)}
       />
 
@@ -86,7 +85,7 @@ export default function Home() {
           eyebrow="The homes"
           title={
             <>
-              Ten homes across <Accent>Bangalore</Accent>.
+              A <Accent>home</Accent> near where you work.
             </>
           }
           lead="Every home comes furnished, with meals, WiFi, housekeeping and laundry in the rent. Pick an area, or let us match you."

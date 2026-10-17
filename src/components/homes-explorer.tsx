@@ -8,7 +8,7 @@ import { HomeCard } from "./home-card";
 import { roomIcons } from "./icons";
 import { button, chip, chipOff, chipOn } from "./ui";
 
-const kinds: RoomKind[] = ["twin", "private", "studio"];
+const kinds: RoomKind[] = ["twin", "private", "pod", "studio"];
 
 // Area tabs (each with a photo of a home there) and room filters over the grid.
 // On phones the home page shows the homes as a sideways row (phoneRail), so

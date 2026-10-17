@@ -9,7 +9,7 @@ export type Room = {
 };
 
 export type Zone = "whitefield" | "marathahalli" | "mahadevapura" | "hbr" | "koramangala" | "sarjapur";
-export type RoomKind = "twin" | "private" | "studio";
+export type RoomKind = "twin" | "private" | "pod" | "studio";
 
 export type Property = {
   code: string;
@@ -37,6 +37,7 @@ export type Property = {
 const twin: Room = { name: "Twin room", description: "One room, two beds. Bring a friend or meet a new one." };
 const privateRoom: Room = { name: "Private room", description: "A room to yourself for calls, focus and quiet." };
 const studio: Room = { name: "Studio", description: "Twin beds or a double bed, with a dry kitchenette." };
+const pod: Room = { name: "Pod", description: "A compact private pod of your own." };
 
 export const properties: Property[] = [
   {
@@ -51,6 +52,7 @@ export const properties: Property[] = [
     nearby: ["Whitefield", "ITPL", "EPIP Zone", "AECS Layout", "Brookefield", "Hope Farm", "Nallurahalli", "Prestige Shantiniketan"],
     rooms: [
       { ...twin, price: 12000 },
+      privateRoom,
       { ...studio, price: 18500 },
     ],
     hero: photos.loungeTeal,
@@ -109,8 +111,9 @@ export const properties: Property[] = [
     tagline: "Private pods near Bellandur and Ecospace",
     nearby: ["Ecospace", "Embassy Tech Village", "Cessna Business Park", "Bellandur", "Brigade Tech Gardens", "Kundanahalli", "Brookefield"],
     rooms: [
-      { name: "Single pod", description: "A private pod of your own, food included.", price: 14000 },
+      twin,
       { name: "King size room", description: "A larger private room with a king size bed." },
+      { name: "Single pod", description: "A private pod of your own, food included.", price: 14000 },
     ],
     hero: px("489126_f2f32b80515b40a78d51021588423adb~mv2.jpg", "Pod door with a large 'hi' print"),
     gallery: [
@@ -183,8 +186,9 @@ export const properties: Property[] = [
     nearby: ["Phoenix Marketcity", "Bagmane Tech Park", "Mahadevapura", "Whitefield Road"],
     rooms: [
       { ...twin, price: 16450 },
-      { ...studio, price: 19800 },
       { ...privateRoom, price: 29900 },
+      pod,
+      { ...studio, price: 19800 },
     ],
     hero: photos.rooftopDeck,
     gallery: [
@@ -228,8 +232,10 @@ export const properties: Property[] = [
     tagline: "Studios in the middle of Koramangala",
     nearby: ["Koramangala", "Ejipura", "HSR Layout", "BTM Layout", "Madiwala", "Domlur", "Indiranagar"],
     rooms: [
+      twin,
       { name: "Studio deluxe", description: "Twin beds, a work desk and a teal feature wall." },
       { name: "Premium studio", description: "A larger studio with more storage." },
+      privateRoom,
     ],
     hero: px("489126_71de0460d90d4d83bf8af43f848e76d4~mv2.jpg", "Studio deluxe with twin beds and a teal wall"),
     gallery: [
@@ -249,7 +255,7 @@ export const properties: Property[] = [
     highlight: "Sarjapur Road",
     tagline: "Coliving off Sarjapur Road",
     nearby: ["Sarjapur Road", "Kodathi", "Chikkakannelli"],
-    rooms: [],
+    rooms: [twin, privateRoom, studio],
     // The current SJR page reuses the KORA photo set. Replace with SJR photos.
     hero: px("489126_432061723ae546ac8165bb59bc994bb4~mv2.jpg", "Studio with twin beds and a wardrobe"),
     gallery: [px("489126_3472b420775d42ca91ae8a5161cca48e~mv2.jpeg", "Indoor lawn with teal lounge chairs")],
@@ -278,15 +284,28 @@ export const zones: { id: Zone; label: string }[] = [
 export const roomKindLabels: Record<RoomKind, string> = {
   twin: "Twin",
   private: "Private",
+  pod: "Pod",
   studio: "Studio",
 };
+
+// The kind of one room, read from its name ("Twin and pod rooms" counts as
+// twin; roomKinds below finds every kind a home has).
+export function roomKindOf(name: string): RoomKind | undefined {
+  const n = name.toLowerCase();
+  if (/studio/.test(n)) return "studio";
+  if (/twin|double|bunk/.test(n)) return "twin";
+  if (/pod/.test(n)) return "pod";
+  if (/private|single|king/.test(n)) return "private";
+  return undefined;
+}
 
 // Room kinds a home offers, read from its room names.
 export function roomKinds(p: Property): RoomKind[] {
   const names = p.rooms.map((r) => r.name.toLowerCase()).join(" ");
   const kinds: RoomKind[] = [];
   if (/twin|double|bunk/.test(names)) kinds.push("twin");
-  if (/private|single|pod|king/.test(names)) kinds.push("private");
+  if (/private|single room|single studio|king/.test(names)) kinds.push("private");
+  if (/pod/.test(names)) kinds.push("pod");
   if (/studio/.test(names)) kinds.push("studio");
   return kinds;
 }
@@ -294,6 +313,12 @@ export function roomKinds(p: Property): RoomKind[] {
 // Every workplace, college area and neighbourhood the homes are close to.
 export const places = Array.from(new Set(properties.flatMap((p) => [p.area, ...p.nearby]))).sort((a, b) => a.localeCompare(b));
 
+// A home is near a place if it's in that area or lists it nearby; an area
+// name from zones (like "Marathahalli") covers every home in that area.
+export function nearPlace(p: Property, place: string) {
+  return p.area === place || p.nearby.includes(place) || zones.some((z) => z.label === place && z.id === p.zone);
+}
+
 export function homesNear(place: string) {
-  return properties.filter((p) => p.area === place || p.nearby.includes(place));
+  return properties.filter((p) => nearPlace(p, place));
 }

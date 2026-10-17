@@ -4,7 +4,7 @@ export const site = {
   name: "FF21 Coliving",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.ff21.in",
   description:
-    "Furnished coliving rooms with food, WiFi and housekeeping in 10 homes across Bangalore. Zero deposit option. Visits every day, 9am to 8pm.",
+    "Furnished coliving rooms with food, WiFi and housekeeping across Bangalore. Zero deposit option. Visits every day, 9am to 8pm.",
   email: "sales@ff21.in",
   phone: "+919353162534",
   phoneDisplay: "+91 93531 62534",
@@ -13,7 +13,7 @@ export const site = {
   facebook: "https://www.facebook.com/FF21INDIA",
   owner: "Sherwood Longstay Services LLP",
   address: "672, Ferns Paradise, Bangalore 560037",
-  founded: 2016,
+  founded: 2017,
   visitHours: "9am to 8pm, every day",
   logo: "c1f9d0_adae4a63e583428c9cfe78a39927a566~mv2.png",
 };
