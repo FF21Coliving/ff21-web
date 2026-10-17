@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "reac
 import { readAttribution } from "@/lib/attribution";
 import { genders, inferSource, istDay, normalizePhone, stays, visitLabel, visitWindowHours, visitWindows, type Gender, type LeadErrors, type Source, type Stay, type VisitType, type VisitWindow } from "@/lib/lead";
 import { photos, type Photo } from "@/lib/photos";
-import { fromPrice, getProperty, homesNear, nearPlace, places, properties, roomKindLabels, roomKinds, zones, type RoomKind } from "@/lib/properties";
+import { fromPrice, getProperty, homesNear, isCollege, nearPlace, places, properties, roomKindLabels, roomKinds, searchNames, zones, type RoomKind } from "@/lib/properties";
 import { isFullPincode, isPincodeQuery, pincodes } from "@/lib/pincodes";
 import { inr, site, whatsappLink } from "@/lib/site";
 import { track } from "@/lib/track";
@@ -113,7 +113,7 @@ const roomChoices: { id: RoomChoice; title: string; body: string; photo?: Photo 
 ];
 
 const copy: Record<StepId, { title: string; lead: string }> = {
-  where: { title: "Where do you work or study?", lead: "Search an area, tech park or pincode. Pick up to three places." },
+  where: { title: "Where do you work or study?", lead: "Search an area, tech park, college or pincode. Pick up to three places." },
   movein: { title: "When would you like to move in?", lead: "Our team will check which rooms are free around then." },
   stay: { title: "How long will you stay?", lead: "Our minimum stay is three months. Staying less? Choose it anyway and our team will tell you what's possible." },
   budget: { title: "What's your monthly budget?", lead: "Per person, with meals, taxes and charges included." },
@@ -539,7 +539,7 @@ export function FindMyHome() {
     ? popular.filter((p) => places.includes(p) && !areaNames.includes(p))
     : isPincodeQuery(q)
       ? places.filter((p) => pincodes[p]?.startsWith(q)).slice(0, 12)
-      : places.filter((p) => p.toLowerCase().includes(q.toLowerCase()) || pincodes[p] === q).slice(0, 12);
+      : places.filter((p) => searchNames(p).some((n) => n.toLowerCase().includes(q.toLowerCase())) || pincodes[p] === q).slice(0, 12);
   // A full pincode we have no home near is still worth keeping for the team.
   const pincodePlace = isFullPincode(q) && shownPlaces.length === 0 ? `Pincode ${q}` : null;
 
@@ -696,7 +696,7 @@ export function FindMyHome() {
                   {step === "where" && (
                     <div>
                       <label htmlFor="place-search" className="sr-only">
-                        Search areas, tech parks or pincodes
+                        Search areas, tech parks, colleges or pincodes
                       </label>
                       <div className="relative">
                         <Search aria-hidden className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-3" />
@@ -704,7 +704,7 @@ export function FindMyHome() {
                           id="place-search"
                           value={query}
                           onChange={(e) => setQuery(e.target.value)}
-                          placeholder="Search an area, tech park or pincode"
+                          placeholder="Search an area, tech park, college or pincode"
                           autoComplete="off"
                           className="h-13 w-full rounded-lg border border-line-strong bg-surface py-3.5 pl-12 pr-4 text-[16px] text-ink placeholder:text-ink-3 focus:border-blue-ink focus:outline-none focus:ring-2 focus:ring-blue-100"
                         />
@@ -758,7 +758,7 @@ export function FindMyHome() {
                                 <span>
                                   <span className="block">{pl}</span>
                                   <span className="block text-[13px] font-normal text-ink-3">
-                                    {pincodes[pl] ? `${pincodes[pl]} · ` : ""}
+                                    {isCollege(pl) ? "College · " : pincodes[pl] ? `${pincodes[pl]} · ` : ""}
                                     {count} {count === 1 ? "home" : "homes"} close by
                                   </span>
                                 </span>

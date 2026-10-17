@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { AreaMap } from "@/components/area-map";
 import { BookingCard } from "@/components/booking-card";
 import { HomeCard } from "@/components/home-card";
 import { PhotoGrid } from "@/components/photo-grid";
@@ -262,6 +263,7 @@ async function PropertyContent({ params }: Pick<PageProps<"/properties/[slug]">,
                 <MapPin aria-hidden className="h-4 w-4" />
                 {p.area}, {zone.label === p.area ? "" : `${zone.label}, `}Bangalore
               </p>
+              <AreaMap home={p} />
               <h3 className="mt-6 font-sans text-[16px] font-semibold text-ink">Close to</h3>
               <ul className="mt-3 flex flex-wrap gap-2">
                 {p.nearby.map((place) => (

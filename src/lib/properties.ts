@@ -311,12 +311,41 @@ export function roomKinds(p: Property): RoomKind[] {
 }
 
 // Every workplace, college area and neighbourhood the homes are close to.
-export const places = Array.from(new Set(properties.flatMap((p) => [p.area, ...p.nearby]))).sort((a, b) => a.localeCompare(b));
+// Bigger colleges near our homes, for students searching Find my home. Only
+// in search, never shown as buttons. From general knowledge (17 Oct 2026):
+// worth a check by the team, like the pincodes.
+export const colleges: Record<string, { homes: string[]; aliases?: string[] }> = {
+  "CMR Institute of Technology": { homes: ["ITP", "KDH"], aliases: ["CMRIT"] },
+  "Vydehi Institute of Medical Sciences": { homes: ["ITP", "WFD"], aliases: ["Vydehi"] },
+  "MVJ College of Engineering": { homes: ["ITP", "WFD"], aliases: ["MVJCE", "MVJ"] },
+  "New Horizon College of Engineering": { homes: ["LIT", "KDH", "PODS"], aliases: ["NHCE", "New Horizon"] },
+  "Cambridge Institute of Technology": { homes: ["PMC", "BGM"], aliases: ["CIT"] },
+  "Kristu Jayanti College": { homes: ["HBR"], aliases: ["Kristu Jayanti", "KJC"] },
+  "CMR University": { homes: ["HBR"], aliases: ["CMRU"] },
+  "Christ University": { homes: ["KORA"], aliases: ["Christ"] },
+  "St. John's Medical College": { homes: ["KORA"], aliases: ["St Johns", "SJMC"] },
+  "Jyoti Nivas College": { homes: ["KORA"], aliases: ["JNC"] },
+  "St. Francis College": { homes: ["KORA"], aliases: ["St Francis"] },
+  "NIFT Bengaluru": { homes: ["KORA"], aliases: ["NIFT", "National Institute of Fashion Technology"] },
+  "Azim Premji University": { homes: ["SJR"], aliases: ["APU", "Azim Premji"] },
+};
+
+export const isCollege = (place: string) => place in colleges;
+
+// What a search box should match a place on: its name and any short forms.
+export const searchNames = (place: string) => [place, ...(colleges[place]?.aliases ?? [])];
+
+export const places = Array.from(new Set([...properties.flatMap((p) => [p.area, ...p.nearby]), ...Object.keys(colleges)])).sort((a, b) => a.localeCompare(b));
 
 // A home is near a place if it's in that area or lists it nearby; an area
 // name from zones (like "Marathahalli") covers every home in that area.
 export function nearPlace(p: Property, place: string) {
-  return p.area === place || p.nearby.includes(place) || zones.some((z) => z.label === place && z.id === p.zone);
+  return (
+    p.area === place ||
+    p.nearby.includes(place) ||
+    zones.some((z) => z.label === place && z.id === p.zone) ||
+    Boolean(colleges[place]?.homes.includes(p.code))
+  );
 }
 
 export function homesNear(place: string) {
