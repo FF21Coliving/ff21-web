@@ -1,0 +1,107 @@
+import { ArrowLeft } from "lucide-react";
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { FindHomeBand } from "@/components/sections";
+import { container } from "@/components/ui";
+import { WixCopy } from "@/components/wix-copy";
+import { site } from "@/lib/site";
+import { articles, getArticle, type Article } from "@/lib/wix-content";
+
+// Blog articles carried over from the Wix site, at the same /blog/… and
+// /post/… URLs, with the same titles and words.
+
+type Prefix = "blog" | "post";
+
+export const articleParams = (prefix: Prefix) =>
+  articles.filter((a) => a.path.startsWith(`/${prefix}/`)).map((a) => ({ slug: a.path.slice(prefix.length + 2) }));
+
+// Unknown URLs must answer 404 before anything streams, so look up first.
+export async function findArticle(prefix: Prefix, params: Promise<{ slug: string }>) {
+  const a = getArticle(prefix, (await params).slug);
+  if (!a) notFound();
+  return a;
+}
+
+export function articleMetadata(prefix: Prefix, slug: string): Metadata {
+  const a = getArticle(prefix, slug);
+  if (!a) return {};
+  return {
+    title: { absolute: a.title },
+    description: a.description ?? undefined,
+    alternates: { canonical: a.url },
+    openGraph: { type: "article", title: a.title, description: a.description ?? undefined, ...(a.date ? { modifiedTime: a.date } : {}) },
+  };
+}
+
+export const formatDate = (d?: string | null) =>
+  d ? new Date(`${d}T00:00:00Z`).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }) : undefined;
+
+function jsonLd(a: Article) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: a.heading,
+    description: a.description ?? undefined,
+    dateModified: a.date ?? undefined,
+    mainEntityOfPage: `${site.url}${a.url}`,
+    publisher: { "@type": "Organization", name: site.name, url: site.url },
+  };
+}
+
+export function ArticleContent({ article: a }: { article: Article }) {
+  // The first picture leads the article; the rest stay where the writer put them.
+  const lead = a.blocks.findIndex((b) => b.t === "img");
+  const cover = lead >= 0 && lead < 4 ? a.blocks[lead] : undefined;
+  const body = cover ? a.blocks.filter((_, i) => i !== lead) : a.blocks;
+  const more = articles.filter((x) => x.path !== a.path).slice(0, 3);
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd(a)).replace(/</g, "\\u003c") }} />
+      <article className={`${container} pb-20 pt-10 md:pb-28 md:pt-14`}>
+        <div className="mx-auto max-w-3xl">
+          <Link href="/blog" className="inline-flex items-center gap-2 text-[14.5px] font-semibold text-blue-ink transition-colors hover:text-ink">
+            <ArrowLeft aria-hidden className="h-4 w-4" />
+            The FF21 blog
+          </Link>
+          <h1 className="mt-6 font-display text-[34px] font-extrabold leading-[40px] tracking-[-0.03em] text-ink md:text-[48px] md:leading-[54px]">{a.heading}</h1>
+          {a.date && <p className="mt-4 text-[15px] text-ink-3">Updated {formatDate(a.date)}</p>}
+          {cover && cover.t === "img" && (
+            <Image src={cover.id} alt="" width={1200} height={760} priority sizes="(min-width: 768px) 768px, 100vw" className="mt-8 h-auto w-full rounded-2xl bg-mist" />
+          )}
+          <WixCopy blocks={body} className="mt-10" />
+        </div>
+      </article>
+
+      {more.length > 0 && (
+        <section aria-labelledby="more-title" className={`${container} pb-20 md:pb-28`}>
+          <h2 id="more-title" className="font-display text-[24px] font-bold tracking-[-0.02em] text-ink md:text-[28px]">More from the blog</h2>
+          <ul className="mt-6 grid gap-6 md:grid-cols-3">
+            {more.map((m) => (
+              <li key={m.path}>
+                <ArticleCard article={m} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      <FindHomeBand />
+    </>
+  );
+}
+
+export function ArticleCard({ article: a }: { article: Article }) {
+  return (
+    <Link href={a.url} className="group block">
+      <span className="relative block aspect-[16/10] overflow-hidden rounded-xl bg-mist">
+        {a.image && (
+          <Image src={a.image} alt="" fill sizes="(min-width: 768px) 30vw, 100vw" className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+        )}
+      </span>
+      <span className="mt-3 block font-display text-[18px] font-bold leading-[24px] tracking-[-0.01em] text-ink transition-colors group-hover:text-blue-ink">{a.heading}</span>
+      {a.date && <span className="mt-1 block text-[13.5px] text-ink-3">{formatDate(a.date)}</span>}
+    </Link>
+  );
+}

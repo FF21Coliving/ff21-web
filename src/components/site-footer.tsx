@@ -78,6 +78,7 @@ export function SiteFooter() {
             <h2 className={heading}>FF21</h2>
             <ul className="mt-5 space-y-3">
               <li><Link href="/about" className={item}>About us</Link></li>
+              <li><Link href="/blog" className={item}>Blog</Link></li>
               <li><a href={site.instagram} target="_blank" rel="noopener noreferrer" className={item}>Instagram</a></li>
               <li><a href={site.facebook} target="_blank" rel="noopener noreferrer" className={item}>Facebook</a></li>
             </ul>

@@ -1,0 +1,30 @@
+{
+ "/": {
+  "title": "FF21 | PGs in Bangalore | Bengaluru, Karnataka, India",
+  "description": "FF21 is a community centric accommodation space for young working professionals in Bangalore. Forget PGs and rental flats and come uplift your life."
+ },
+ "/blog": {
+  "title": "Blogs",
+  "description": null
+ },
+ "/blog-1": {
+  "title": "Blog | FF21",
+  "description": null
+ },
+ "/privacypolicy": {
+  "title": "Privacy Policy | FF21",
+  "description": null
+ },
+ "/properties": {
+  "title": "Properties (List) | FF21",
+  "description": null
+ },
+ "/team-ff21": {
+  "title": "Team FF21",
+  "description": "FF21 is a co-living community-based in Bangalore providing chic living spaces to young professionals! Trendy, classy, and upbeat, FF21 is the perfect home! We're opening our doors for all your different shooting needs with our variety of spaces!"
+ },
+ "/terms-and-conditions": {
+  "title": "T&C | FF21",
+  "description": null
+ }
+}

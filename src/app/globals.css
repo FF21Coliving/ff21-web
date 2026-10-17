@@ -671,3 +671,78 @@ dialog.page {
 .xh[data-final="off"] .xh-final {
   visibility: hidden;
 }
+
+/* Copy carried over from the Wix site (landing pages and the blog). */
+.wix-copy {
+  color: var(--color-ink-2);
+  font-size: 17px;
+  line-height: 29px;
+}
+.wix-copy > * + * {
+  margin-top: 1.1em;
+}
+.wix-copy h2 {
+  margin-top: 2.2em;
+  font-family: var(--font-display);
+  font-size: 26px;
+  line-height: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+.wix-copy h3 {
+  margin-top: 1.8em;
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 27px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--color-ink);
+}
+.wix-copy h2 + *,
+.wix-copy h3 + * {
+  margin-top: 0.6em;
+}
+.wix-copy strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.wix-copy a {
+  color: var(--color-blue-ink);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 150ms;
+}
+.wix-copy a:hover {
+  color: var(--color-ink);
+}
+.wix-copy ul {
+  display: grid;
+  gap: 0.45em;
+  padding-left: 0;
+  list-style: none;
+}
+.wix-copy li {
+  position: relative;
+  padding-left: 1.4em;
+}
+.wix-copy li::before {
+  content: "";
+  position: absolute;
+  left: 0.2em;
+  top: 0.62em;
+  height: 0.42em;
+  width: 0.42em;
+  border-radius: 999px;
+  background: var(--color-blue);
+}
+@media (min-width: 768px) {
+  .wix-copy {
+    font-size: 18px;
+    line-height: 31px;
+  }
+  .wix-copy h2 {
+    font-size: 30px;
+    line-height: 36px;
+  }
+}

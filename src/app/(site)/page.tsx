@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { HomesExplorer } from "@/components/homes-explorer";
 import { ScrollExpandHero } from "@/components/scroll-expand-hero";
 import {
@@ -20,6 +21,7 @@ import { container, sectionY } from "@/components/ui";
 import { faqs } from "@/lib/content";
 import { photos } from "@/lib/photos";
 import { inr, prices, site } from "@/lib/site";
+import { wixMeta } from "@/lib/wix-content";
 
 const frames = [photos.rooftopSunset, photos.loungeTeal, photos.diningFamily, photos.rooftopDusk, photos.workspace];
 
@@ -44,6 +46,14 @@ const jsonLd = {
       mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
     },
   ],
+};
+
+
+// The home page keeps the title and description it ranks with on Wix.
+export const metadata: Metadata = {
+  title: { absolute: wixMeta["/"]?.title ?? "FF21 Coliving" },
+  description: wixMeta["/"]?.description ?? site.description,
+  alternates: { canonical: "/" },
 };
 
 export default function Home() {
