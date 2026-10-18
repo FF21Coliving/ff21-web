@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { HomesExplorer } from "@/components/homes-explorer";
 import { ScrollExpandHero } from "@/components/scroll-expand-hero";
+import { ValueProps } from "@/components/value-props";
 import {
   Accent,
   AmenitiesBento,
@@ -68,6 +69,8 @@ export default function Home() {
         founded={site.founded}
         from={inr(prices.twinFrom)}
       />
+
+      <ValueProps />
 
       <IncludedBand />
 
