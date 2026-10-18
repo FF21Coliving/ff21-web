@@ -4,7 +4,7 @@ import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, LoaderCircle, Play
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { fromPrice, type Property } from "@/lib/properties";
+import { fromPrice, tourCover, type Property } from "@/lib/properties";
 import { inr } from "@/lib/site";
 import { track } from "@/lib/track";
 import { highlightIcons, included } from "./icons";
@@ -178,7 +178,7 @@ function TourStage({ home }: { home: Property }) {
   const [ready, setReady] = useState(false);
   return (
     <div className="tour-frame">
-      <Image src={home.hero.id} alt="" fill sizes="480px" className="scale-110 object-cover opacity-50 blur-2xl" />
+      <Image src={tourCover(home).id} alt="" fill sizes="480px" className="scale-110 object-cover opacity-50 blur-2xl" />
       {!ready && (
         <div className="absolute inset-0 grid place-items-center">
           <span className="flex flex-col items-center gap-3 text-[14px] font-medium text-white/85">
@@ -216,7 +216,7 @@ export function TourRail({ homes, header }: { homes: Property[]; header: React.R
               className="group w-[68vw] shrink-0 snap-start text-left sm:w-[250px] md:w-[272px]"
             >
               <span className="relative block aspect-[9/16] overflow-hidden rounded-2xl bg-mist">
-                <Image src={p.hero.id} alt="" fill sizes="(min-width: 640px) 272px, 68vw" className="object-cover transition-transform duration-700 ease-[var(--ease-standard)] group-hover:scale-105" />
+                <Image src={tourCover(p).id} alt="" fill sizes="(min-width: 640px) 272px, 68vw" className="object-cover transition-transform duration-700 ease-[var(--ease-standard)] group-hover:scale-105" />
                 <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-[rgb(12_24_26/0.85)] via-[rgb(12_24_26/0.1)] to-[rgb(12_24_26/0.3)]" />
                 <Tag tone="glass" size="sm" className="absolute left-4 top-4">
                   FF21 {p.code}

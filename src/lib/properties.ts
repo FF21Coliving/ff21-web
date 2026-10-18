@@ -20,6 +20,8 @@ export type Property = {
   highlight: string;
   // FF21's own YouTube property tour, where one exists.
   tour?: string;
+  // The tour's cover, when the main photo doesn't match how the video opens.
+  tourCover?: Photo;
   tagline: string;
   nearby: string[];
   rooms: Room[];
@@ -132,6 +134,8 @@ export const properties: Property[] = [
     zone: "marathahalli",
     highlight: "Reasonable private rooms",
     tour: "035a0goKxnY",
+    // The tour opens in this corridor; the lounge photo looked like another home.
+    tourCover: px("489126_fe94b1d8d6ea4d21a48f13eea7198520~mv2.jpg", "Long corridor with arched teal doors"),
     tagline: "Near Bellandur, Ecospace and Embassy Tech Village",
     nearby: ["Ecospace", "Embassy Tech Village", "Cessna Business Park", "Bellandur", "Brigade Tech Gardens", "Kundanahalli", "Brookefield"],
     rooms: [
@@ -303,6 +307,9 @@ export const properties: Property[] = [
     oldPath: "/best-pg-in-sarjapur",
   },
 ];
+
+// The picture shown on a home's tour before it plays.
+export const tourCover = (p: Property) => p.tourCover ?? p.hero;
 
 export function getProperty(slug: string) {
   return properties.find((p) => p.slug === slug);
