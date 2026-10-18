@@ -1,0 +1,21 @@
+{
+  "_about": "Site photos from the FF21 Image Library (Drive, madhvik@wagwanworld.in). Key = file name under public/photos, value = row in the library's picking sheet (Inventory tab). og = also make a 1200x630 link-preview JPEG.",
+  "photos": {
+    "itp-lounge-fireplace": 45, "itp-room-twin": 42, "itp-room-private": 41, "itp-room-loft": 46, "itp-lounge-long": 38,
+    "itp-pool-library": 40, "itp-work-table": 39, "itp-lounge-lamps": 43, "itp-rooftop-night": 35, "itp-home-sign": 44,
+    "kdh-rooftop-dusk": 68, "kdh-room-twin": 80, "kdh-room-twin-window": 82, "kdh-room-private": 79, "kdh-rooftop-night": 70,
+    "kdh-lounge-posters": 71, "kdh-dining-lounge": 77, "kdh-pod-chairs": 78,
+    "lit-atrium": 60, "lit-lawn-firepit": 61, "lit-lawn-chairs": 63, "lit-window-seat": 64, "lit-room-twin": 52,
+    "pmc-rooftop-deck": 104, "pmc-rooftop-night": 98, "pmc-dining": 99, "pmc-friend-poster": 97, "pmc-room-twin": 101,
+    "pmc-room-private": 100, "pmc-studio": 136,
+    "wfd-pool-turf": 2, "wfd-room-twin": 5, "wfd-room-private": 4, "wfd-table-tennis": 7, "wfd-foosball": 3,
+    "wfd-lobby": 174, "wfd-building-night": 173,
+    "pods-lounge-view": 228, "pods-room-twin": 233, "pods-room-king": 235, "pods-pod": 23, "pods-rooftop": 227,
+    "pods-game-room": 229, "pods-reception": 230, "pods-garden-swing": 27, "pods-indoor-lawn": 238, "pods-building": 240,
+    "hbr-dining": 93, "hbr-room": 96, "hbr-foosball": 91, "hbr-pool": 92, "hbr-lounge-swings": 90, "hbr-cafe-corner": 94,
+    "hbr-lounge-wall": 95,
+    "comm-festive-friends": 269, "comm-diwali-night": 271, "comm-dance-night": 328, "comm-park-outing": 326,
+    "comm-working": 194, "comm-swing-chair": 197
+  },
+  "og": ["itp-lounge-fireplace", "kdh-rooftop-dusk", "lit-atrium", "pmc-rooftop-deck", "wfd-pool-turf", "pods-lounge-view", "hbr-dining"]
+}

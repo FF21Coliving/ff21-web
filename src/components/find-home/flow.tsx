@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { readAttribution } from "@/lib/attribution";
 import { genders, inferSource, istDay, normalizePhone, stays, visitLabel, visitWindowHours, visitWindows, type Gender, type LeadErrors, type Source, type Stay, type VisitType, type VisitWindow } from "@/lib/lead";
-import { photos, type Photo } from "@/lib/photos";
+import { own, photos, type Photo } from "@/lib/photos";
 import { fromPrice, getProperty, homesNear, isCollege, nearPlace, places, properties, roomKindLabels, roomKinds, searchNames, zones, type RoomKind } from "@/lib/properties";
 import { isFullPincode, isPincodeQuery, pincodes } from "@/lib/pincodes";
 import { inr, site, whatsappLink } from "@/lib/site";
@@ -107,7 +107,7 @@ const budgets: Budget[] = [
 const roomChoices: { id: RoomChoice; title: string; body: string; photo?: Photo }[] = [
   { id: "twin", title: "Twin", body: "Share a room with one person", photo: photos.roomTwin },
   { id: "private", title: "Private", body: "A room to yourself", photo: photos.roomPrivate },
-  { id: "pod", title: "Pod", body: "A compact private pod, at a lower rent", photo: getProperty("pods-marathahalli")?.hero },
+  { id: "pod", title: "Pod", body: "A compact private pod, at a lower rent", photo: own("pods-pod", "Pod with a single bed and an abstract print") },
   { id: "studio", title: "Studio", body: "More space, with a kitchenette", photo: photos.roomStudio },
   { id: "unsure", title: "Not sure yet", body: "We'll show you options on the visit" },
 ];
