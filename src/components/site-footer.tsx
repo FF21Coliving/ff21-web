@@ -88,7 +88,7 @@ export function SiteFooter() {
             <ul className="mt-5 space-y-3">
               <li>
                 <TrackedLink event="whatsapp_click" params={{ placement: "footer" }} href={whatsappLink("Hi FF21! I'd like to know more about your homes.")} className={item}>
-                  WhatsApp {site.phoneDisplay}
+                  WhatsApp {site.whatsappDisplay}
                 </TrackedLink>
               </li>
               <li>

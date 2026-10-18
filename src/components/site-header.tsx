@@ -112,7 +112,7 @@ export function SiteHeader() {
           <div className="space-y-2 px-4 pt-8 text-[15px] text-ink-2">
             <TrackedLink event="whatsapp_click" params={{ placement: "menu" }} href={whatsappLink("Hi FF21! I'd like to know more about your homes.")} className="inline-flex items-center gap-2 font-semibold text-blue-ink">
               <MessageCircle aria-hidden className="h-4 w-4" />
-              WhatsApp {site.phoneDisplay}
+              WhatsApp {site.whatsappDisplay}
             </TrackedLink>
             <p>Visits {site.visitHours}</p>
           </div>

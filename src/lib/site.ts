@@ -6,8 +6,10 @@ export const site = {
   description:
     "Furnished coliving rooms with food, WiFi and housekeeping across Bangalore. Zero deposit option. Visits every day, 9am to 8pm.",
   email: "sales@ff21.in",
-  phone: "+919353162534",
-  phoneDisplay: "+91 93531 62534",
+  // Calls go to the office line; WhatsApp is a separate number.
+  phone: "+918031338880",
+  phoneDisplay: "+91 80313 38880",
+  whatsappDisplay: "+91 93531 62534",
   whatsapp: "919353162534",
   instagram: "https://www.instagram.com/ff21_in/",
   facebook: "https://www.facebook.com/FF21INDIA",

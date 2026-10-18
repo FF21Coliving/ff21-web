@@ -10,6 +10,7 @@ import {
   Gamepad2,
   KeyRound,
   Laptop,
+  type LucideIcon,
   MapPin,
   PartyPopper,
   PenLine,
@@ -21,12 +22,12 @@ import {
   Sparkles,
   Sprout,
   Sunset,
+  TrainFront,
   Users,
   UtensilsCrossed,
   Wallet,
   WashingMachine,
   Wifi,
-  type LucideIcon,
 } from "lucide-react";
 import type { AmenityIcon } from "@/lib/content";
 import type { RoomKind } from "@/lib/properties";
@@ -62,10 +63,10 @@ export const highlightIcons: Record<string, LucideIcon> = {
   "kdh-kundanahalli": Sunset,
   "pods-marathahalli": BedSingle,
   "lit-thubarahalli": Sprout,
-  "bgm-doddanekundi": Building2,
-  "pmc-mahadevapura": Sunset,
+  "bgm-doddanekundi": Footprints,
+  "pmc-mahadevapura": TrainFront,
   "hbr-hennur": Building2,
-  "kora-koramangala": DoorOpen,
+  "kora-koramangala": Footprints,
   "sjr-sarjapur": MapPin,
 };
 

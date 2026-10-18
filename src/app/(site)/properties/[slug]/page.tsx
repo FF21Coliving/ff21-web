@@ -91,7 +91,7 @@ async function PropertyContent({ params }: Pick<PageProps<"/properties/[slug]">,
     { icon: CalendarClock, title: "Visit any day", body: `${site.visitHours[0].toUpperCase()}${site.visitHours.slice(1)}, in person or on video.` },
     { icon: ShieldCheck, title: "Safe around the clock", body: "CCTV and security staff, 24 hours a day." },
   ];
-  const tourLink = "inline-flex h-10 items-center gap-2 rounded-full border border-line-soft px-4 text-[14.5px] font-semibold text-ink transition-colors hover:border-ink";
+  const tourLink = "inline-flex h-10 shrink-0 whitespace-nowrap items-center gap-2 rounded-full border border-line-soft px-4 text-[14.5px] font-semibold text-ink transition-colors hover:border-ink";
 
   return (
     <>
@@ -133,6 +133,10 @@ async function PropertyContent({ params }: Pick<PageProps<"/properties/[slug]">,
                 Watch the tour
               </TourTrigger>
             )}
+            <a href={p.maps} target="_blank" rel="noopener noreferrer" className={tourLink}>
+              <MapPin aria-hidden className="h-4 w-4" />
+              Map
+            </a>
             <ShareButton title={title} />
           </div>
         </div>
@@ -259,10 +263,15 @@ async function PropertyContent({ params }: Pick<PageProps<"/properties/[slug]">,
 
             <section id="where" aria-labelledby="where-title" className="scroll-mt-40 py-12">
               <h2 id="where-title" className={listingTitle}>Where you&apos;ll be</h2>
-              <p className="mt-1 flex items-center gap-2 text-[15px] text-ink-2">
+              <a
+                href={p.maps}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 inline-flex items-center gap-2 text-[15px] font-medium text-blue-ink transition-colors hover:text-ink"
+              >
                 <MapPin aria-hidden className="h-4 w-4" />
-                {p.area}, {zone.label === p.area ? "" : `${zone.label}, `}Bangalore
-              </p>
+                {p.area}, {zone.label === p.area ? "" : `${zone.label}, `}Bangalore · Open in Google Maps
+              </a>
               <AreaMap home={p} />
               <h3 className="mt-6 font-sans text-[16px] font-semibold text-ink">Close to</h3>
               <ul className="mt-3 flex flex-wrap gap-2">
