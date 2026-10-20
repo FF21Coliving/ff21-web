@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { FindHomeBand } from "@/components/sections";
 import { container } from "@/components/ui";
 import { WixCopy } from "@/components/wix-copy";
+import { ogImage, photos } from "@/lib/photos";
 import { site } from "@/lib/site";
 import { articles, getArticle, type Article } from "@/lib/wix-content";
 
@@ -31,9 +32,22 @@ export function articleMetadata(prefix: Prefix, slug: string): Metadata {
     title: { absolute: a.title },
     description: a.description ?? undefined,
     alternates: { canonical: a.url },
-    openGraph: { type: "article", title: a.title, description: a.description ?? undefined, ...(a.date ? { modifiedTime: a.date } : {}) },
+    // Its own openGraph replaces the layout's, so it carries the site name and
+    // a picture too: the article's cover, else the site's.
+    openGraph: {
+      type: "article",
+      title: a.title,
+      description: a.description ?? undefined,
+      url: a.url,
+      siteName: site.name,
+      images: [{ url: shareImage(a), width: 1200, height: 630 }],
+      ...(a.date ? { modifiedTime: a.date } : {}),
+    },
+    twitter: { card: "summary_large_image", images: [shareImage(a)] },
   };
 }
+
+const shareImage = (a: Article) => ogImage(a.image ? { id: a.image, alt: a.title } : photos.rooftopSunset);
 
 export const formatDate = (d?: string | null) =>
   d ? new Date(`${d}T00:00:00Z`).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }) : undefined;
@@ -45,6 +59,8 @@ function jsonLd(a: Article) {
     headline: a.heading,
     description: a.description ?? undefined,
     dateModified: a.date ?? undefined,
+    image: shareImage(a).startsWith("http") ? shareImage(a) : `${site.url}${shareImage(a)}`,
+    author: { "@type": "Organization", name: site.name, url: site.url },
     mainEntityOfPage: `${site.url}${a.url}`,
     publisher: { "@type": "Organization", name: site.name, url: site.url },
   };

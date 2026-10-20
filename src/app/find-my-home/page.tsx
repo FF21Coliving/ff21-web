@@ -16,7 +16,7 @@ export default function FindMyHomePage() {
       fallback={
         <div className="mx-auto max-w-[600px] px-5 pt-28 md:px-0">
           <div className="h-1 rounded-full bg-line" />
-          <p className="mt-10 text-[30px] font-bold leading-[36px] tracking-[-0.02em] text-ink md:text-[36px] md:leading-[42px]">Find my home</p>
+          <h1 className="mt-10 text-[30px] font-bold leading-[36px] tracking-[-0.02em] text-ink md:text-[36px] md:leading-[42px]">Find my home</h1>
         </div>
       }
     >

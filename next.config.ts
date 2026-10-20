@@ -28,6 +28,9 @@ const nextConfig: NextConfig = {
         ["/team-ff21", "/about"],
         ["/blog-1", "/blog"],
         ["/post/____a", "/blog"],
+        // In the old site's menu (not in its sitemap), and its blog feed.
+        ["/best-coliving-spaces-bangalore", "/properties"],
+        ["/blog-feed.xml", "/blog"],
       ].map(([source, destination]) => ({ source, destination, permanent: true })),
     ];
   },

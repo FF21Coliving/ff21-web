@@ -32,7 +32,12 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image" },
   icons: { icon: "/brand/ff21-logo-192.png", apple: "/brand/ff21-logo-192.png" },
-  verification: { google: process.env.NEXT_PUBLIC_GSC_VERIFICATION },
+  // The same verification tags the Wix site had (20 Oct 2026), so Search
+  // Console and Meta keep trusting the domain after launch.
+  verification: {
+    google: process.env.NEXT_PUBLIC_GSC_VERIFICATION || "DG628EbCNA7nBDS9jJr9ex_ixnd5Ij9bMslU2lDo4NY",
+    other: { "facebook-domain-verification": "6jhvdw3potfqf0px1anm5sdfktq6ji" },
+  },
   robots: indexable ? { index: true, follow: true } : { index: false, follow: false },
 };
 
