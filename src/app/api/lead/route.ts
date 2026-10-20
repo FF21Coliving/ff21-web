@@ -59,7 +59,7 @@ export async function POST(request: Request) {
       attribution: lead.attribution,
       page: lead.page,
       zoho_status: delivery.ok ? delivery.mode : inZoho ? "created" : "failed",
-      zoho_detail: delivery.detail,
+      zoho_detail: delivery.ok ? "updated" : delivery.detail,
     });
   }
 
