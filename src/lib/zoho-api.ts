@@ -159,8 +159,9 @@ export const WEBSITE_TAG = "New FF21 Website 2026";
 
 // A new lead. Runs the same workflow rules a web-form lead would. If Zoho says
 // a unique field (phone or email) matches an existing lead, that lead is left
-// alone: the new lead is created without that field, and Description says
-// which existing value it matched, so the team can link them.
+// alone: the new lead is created without that field (a phone moves to Mobile),
+// and Description says which existing value it matched, so the team can link
+// them.
 export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> {
   const record = toZoho(input);
   const notes: string[] = [];
@@ -173,6 +174,9 @@ export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> 
     const field = result.duplicateField;
     if (field && record[field] && duplicateLabels[field]) {
       notes.push(`Same ${duplicateLabels[field]} as an existing lead: ${record[field]}`);
+      // Zoho allows one lead per Phone (and Email); Mobile has no such rule,
+      // so the number stays on the lead where the team can call it.
+      if (field === "Phone") record.Mobile = record.Phone;
       delete record[field];
       continue;
     }
