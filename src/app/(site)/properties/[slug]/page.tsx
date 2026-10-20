@@ -11,6 +11,7 @@ import { PhotoGrid } from "@/components/photo-grid";
 import { highlightIcons, included, roomIcons, termIcons } from "@/components/icons";
 import { Accent, AmenityList, Reviews, SectionHeader } from "@/components/sections";
 import { SectionNav } from "@/components/section-nav";
+import { StoryVideos } from "@/components/story-videos";
 import { ShareButton } from "@/components/share-button";
 import { Tag } from "@/components/tag";
 import { TourTrigger } from "@/components/tour-player";
@@ -323,6 +324,9 @@ async function PropertyContent({ params }: Pick<PageProps<"/properties/[slug]">,
           }
         />
         <div className="mt-10">
+          <StoryVideos />
+        </div>
+        <div className="mt-5">
           <Reviews />
         </div>
       </section>

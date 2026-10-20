@@ -35,6 +35,16 @@ export const testimonials = [
   },
 ];
 
+// Video stories from the FF21 Drive "Testimonials" folder, trimmed and
+// re-encoded for the site (see StoryVideos). Names are what each resident
+// says on camera; the one interviewed is not named on the clip.
+export const stories = [
+  { id: "ribhav", name: "Ribhav", note: "FF21 resident", quote: "We chill a lot, we party a lot, we play a lot." },
+  { id: "a-year-in", name: "FFer", note: "a year at FF21", quote: "FF has been the home that I was hoping for when I moved to Bangalore." },
+  { id: "vanathi", name: "Vanathi", note: "FF21 resident", quote: "It's more of a big family rather than a community." },
+  { id: "two-years", name: "Siri", note: "almost two years at FF21", quote: "It's always something new to learn every day." },
+];
+
 export const faqs = [
   {
     q: "What's included in the rent?",

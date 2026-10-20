@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { HomesExplorer } from "@/components/homes-explorer";
 import { ScrollExpandHero } from "@/components/scroll-expand-hero";
+import { StoryVideos } from "@/components/story-videos";
 import { ValueProps } from "@/components/value-props";
 import {
   Accent,
@@ -157,6 +158,9 @@ export default function Home() {
             }
           />
           <div className="mt-12 md:mt-14">
+            <StoryVideos />
+          </div>
+          <div className="mt-5">
             <ReviewsFeature />
           </div>
         </div>
