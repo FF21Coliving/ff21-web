@@ -1,6 +1,6 @@
 """Makes the site's photo files from the FF21 Image Library.
 
-    python3 scripts/photos/build.py <folder of r<row>.jpg exports>
+    python3 scripts/photos/build.py <folder of r<row>.jpg and <file id>.jpg exports>
 
 Each photo becomes three WebP widths (640, 1080, 1600) in public/photos, so a
 phone downloads the small one and a big screen the large one (the image
@@ -24,7 +24,9 @@ manifest = json.load(open(os.path.join(HERE, "manifest.json")))
 os.makedirs(OUT, exist_ok=True)
 total = 0
 for name, row in manifest["photos"].items():
-    im = ImageOps.exif_transpose(Image.open(os.path.join(src, f"r{row}.jpg"))).convert("RGB")
+    # A row number on the Inventory tab, or a Drive file id from a later tab.
+    file = f"r{row}.jpg" if isinstance(row, int) else f"{row}.jpg"
+    im = ImageOps.exif_transpose(Image.open(os.path.join(src, file))).convert("RGB")
     for w in WIDTHS:
         out = os.path.join(OUT, f"{name}-{w}.webp")
         scaled = im if im.width <= w else im.resize((w, round(im.height * w / im.width)), Image.LANCZOS)

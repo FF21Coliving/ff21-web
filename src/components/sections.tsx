@@ -236,7 +236,7 @@ const personas: Persona[] = [
     title: "Three months? Perfect.",
     body: "Stays start at three months, so an internship fits. Everything you need is already in the room.",
     rooms: ["twin", "private"],
-    photo: photos.partyProps,
+    photo: photos.podChairs,
     href: "/find-my-home?step=stay",
   },
   {

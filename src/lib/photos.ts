@@ -8,11 +8,11 @@ const p = (id: string, alt: string): Photo => ({ id, alt });
 export const own = (name: string, alt: string): Photo => p(`/photos/${name}`, alt);
 
 export const photos = {
-  rooftopSunset: p("c1f9d0_9c964604b1a8430ab0136cf49a046a35~mv2.jpg", "Rooftop lounge at sunset with the Bangalore skyline behind it"),
+  rooftopSunset: own("pmc-rooftop-dusk", "Rooftop lounge at dusk with the Bangalore skyline behind it"),
   rooftopDusk: own("kdh-rooftop-dusk", "Rooftop garden at dusk with benches and city lights"),
   rooftopDeck: own("pmc-rooftop-deck", "Deck chairs on a rooftop lawn at sunset"),
   rooftopNight: own("pmc-rooftop-night", "Rooftop lawn lit up at night above the city"),
-  rooftopTables: p("c1f9d0_7aed1bb4b5384f6db403d3d916e77815~mv2.jpg", "Long rooftop lawn with planters and seating"),
+  rooftopTables: own("hbr-rooftop-seating", "Long rooftop lawn with benches and teal cushions"),
   rooftopLawn: p("c1f9d0_9c154045130548e98bbccffae589df3e~mv2.jpg", "Rooftop lawn with tables, seen from above"),
   loungeTeal: own("itp-lounge-long", "Long lounge with teal sofas and tall windows"),
   loungeBright: own("pods-lounge-view", "Sunlit lounge with long built-in seating and a city view"),
@@ -35,7 +35,7 @@ export const photos = {
   diwali: own("comm-diwali-night", "Residents dressed up for Diwali under string lights"),
   holi: p("c1f9d0_6cdcdd0be0b34b8298e5ec005238a547~mv2.jpg", "Residents covered in colour after Holi"),
   christmas: p("c1f9d0_9a212518a62547cca79f2f0aee77ce05~mv2.jpg", "Residents decorating a Christmas tree"),
-  partyProps: p("c1f9d0_1380152a074d446db1e18e6f50995614~mv2.jpg", "Residents posing with party props"),
+  podChairs: own("comm-pod-chairs", "Residents together in teal pod chairs"),
   partyNight: own("comm-dance-night", "Residents dancing at a party night"),
   groupOutdoor: own("comm-park-outing", "A group of residents on an outing in the park"),
   partyFriends: own("comm-festive-friends", "Friends dressed up for a festival"),
@@ -46,7 +46,7 @@ export const px = (id: string, alt: string) => p(id, alt);
 // 1200x630 JPEG for link previews (WhatsApp, Facebook, X, LinkedIn).
 // Our own photos have one only where scripts/photos/manifest.json lists it
 // under "og" (the home heroes); others fall back to the large WebP.
-const ownOg = new Set(["itp-lounge-fireplace", "kdh-rooftop-dusk", "lit-atrium", "pmc-rooftop-deck", "wfd-pool-turf", "pods-lounge-view", "hbr-dining"]);
+const ownOg = new Set(["itp-lounge-fireplace", "kdh-rooftop-dusk", "lit-atrium", "pmc-rooftop-deck", "wfd-pool-turf", "pods-lounge-view", "hbr-dining", "pmc-rooftop-dusk"]);
 export const ogImage = (photo: Photo) =>
   photo.id.startsWith("/photos/")
     ? `${photo.id}-${ownOg.has(photo.id.slice(8)) ? "og.jpg" : "1600.webp"}`
