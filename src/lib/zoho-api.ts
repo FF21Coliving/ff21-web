@@ -28,16 +28,23 @@ export const zohoApiEnabled = () =>
 const refKey = () => process.env.ZOHO_REF_SECRET || (process.env.ZOHO_CLIENT_SECRET ? createHmac("sha256", process.env.ZOHO_CLIENT_SECRET).update("ff21-lead-ref").digest("hex") : "");
 const sign = (id: string) => createHmac("sha256", refKey()).update(`ff21-lead:${id}`).digest("base64url");
 
-export const makeRef = (id: string) => `${id}.${sign(id)}`;
+// A lead created without its phone or email (another Zoho lead already has
+// it) carries a note saying so; the note rides in the reference so every
+// later update keeps it at the top of Description.
+export type ZohoRef = { id: string; note?: string };
 
-// The Zoho record id inside a reference, only if the site signed it.
-export function readRef(ref: unknown): string | undefined {
+export const makeRef = (id: string, note?: string) =>
+  note ? `${id}.${sign(`${id}\n${note}`)}.${Buffer.from(note).toString("base64url")}` : `${id}.${sign(id)}`;
+
+// The Zoho record (and its note) inside a reference, only if the site signed it.
+export function readRef(ref: unknown): ZohoRef | undefined {
   if (typeof ref !== "string" || !refKey()) return undefined;
-  const [id, sig] = ref.split(".");
+  const [id, sig, encoded] = ref.split(".");
   if (!id || !sig || !/^\d{6,25}$/.test(id)) return undefined;
-  const want = Buffer.from(sign(id));
+  const note = encoded ? Buffer.from(encoded, "base64url").toString("utf8") : undefined;
+  const want = Buffer.from(sign(note ? `${id}\n${note}` : id));
   const got = Buffer.from(sig);
-  return want.length === got.length && timingSafeEqual(want, got) ? id : undefined;
+  return want.length === got.length && timingSafeEqual(want, got) ? { id, note } : undefined;
 }
 
 // --- the record --------------------------------------------------------------
@@ -121,7 +128,7 @@ export async function accessToken() {
   return token.value;
 }
 
-type ZohoResult = { ok: true; id: string } | { ok: false; detail: string; duplicateField?: string };
+type ZohoResult = { ok: true; id: string; note?: string } | { ok: false; detail: string; duplicateField?: string };
 
 async function call(method: "POST" | "PUT", path: string, record: Record<string, unknown>, trigger: string[]): Promise<ZohoResult> {
   try {
@@ -162,7 +169,7 @@ export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> 
     const payload: Record<string, unknown> = notes.length ? { ...record, Description: [`Returning? ${notes.join("; ")}.`, record.Description].filter(Boolean).join(" | ") } : { ...record };
     if (tag) payload.Tag = [{ name: WEBSITE_TAG }];
     const result = await call("POST", "Leads", payload, ["workflow"]);
-    if (result.ok) return result;
+    if (result.ok) return notes.length ? { ...result, note: `Returning? ${notes.join("; ")}.` } : result;
     const field = result.duplicateField;
     if (field && record[field] && duplicateLabels[field]) {
       notes.push(`Same ${duplicateLabels[field]} as an existing lead: ${record[field]}`);
@@ -180,6 +187,15 @@ export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> 
   return { ok: false, detail: "could not create the lead" };
 }
 
-// More answers for a lead the site created (id from readRef only). No rules
-// re-run, so the sales team's automations fire once, on creation.
-export const updateZohoLead = (id: string, input: ZohoLeadInput) => call("PUT", `Leads/${id}`, toZoho(input), []);
+// More answers for a lead the site created (from readRef only). No rules
+// re-run, so the sales team's automations fire once, on creation. Phone and
+// email were set when the lead was made (or left out because another lead has
+// them, which sending them again would make Zoho refuse), so updates never
+// send them; the note about a returning visitor stays first in Description.
+export function updateZohoLead(ref: ZohoRef, input: ZohoLeadInput) {
+  const record = toZoho(input);
+  delete record.Phone;
+  delete record.Email;
+  if (ref.note) record.Description = [ref.note, record.Description].filter(Boolean).join(" | ");
+  return call("PUT", `Leads/${ref.id}`, record, []);
+}

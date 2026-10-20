@@ -109,14 +109,14 @@ export async function POST(request: Request) {
         page: row.page,
         utm: utmOf(row.attribution as Attribution | undefined),
       });
-      if (created.ok) zohoRef = makeRef(created.id);
+      if (created.ok) zohoRef = makeRef(created.id, created.note);
       else console.error("[lead:zoho] create failed", created.detail);
       row.zoho_status = created.ok ? "created" : "failed";
       row.zoho_detail = created.ok ? created.id : created.detail;
     } else {
-      const id = readRef(b.zohoRef);
-      if (id) {
-        const updated = await updateZohoLead(id, { ...zohoAnswers, source: row.source });
+      const ref = readRef(b.zohoRef);
+      if (ref) {
+        const updated = await updateZohoLead(ref, { ...zohoAnswers, source: row.source });
         if (!updated.ok) console.error("[lead:zoho] update failed", updated.detail);
       }
     }

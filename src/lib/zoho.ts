@@ -60,8 +60,8 @@ export const zohoInput = (lead: Lead): ZohoLeadInput => ({
 // it doesn't check out), a new lead is created. Never anything else.
 export async function deliverToZoho(lead: Lead, zohoRef?: unknown): Promise<DeliveryResult> {
   if (zohoApiEnabled()) {
-    const id = readRef(zohoRef);
-    const result = id ? await updateZohoLead(id, zohoInput(lead)) : await createZohoLead(zohoInput(lead));
+    const ref = readRef(zohoRef);
+    const result = ref ? await updateZohoLead(ref, zohoInput(lead)) : await createZohoLead(zohoInput(lead));
     return result.ok ? { ok: true, mode: "zoho-api" } : { ok: false, mode: "zoho-api", detail: result.detail };
   }
   const fields = zohoFields(lead);
