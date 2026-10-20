@@ -1,5 +1,7 @@
 "use client";
 
+import { logEvent } from "./site-log";
+
 type Params = Record<string, string | number | undefined>;
 
 export type TrackEvent = "generate_lead" | "form_start" | "find_home_step" | "whatsapp_click" | "call_click" | "view_property" | "video_play";
@@ -23,12 +25,15 @@ const metaEvents: Partial<Record<TrackEvent, string>> = {
   view_property: "ViewContent",
 };
 
-// Every event goes to the dataLayer. In "gtm" mode the GTM container decides
+// Every event goes to the dataLayer and FF21's own log. In "gtm" mode the GTM container decides
 // where it goes; in "direct" mode we also call GA4, Google Ads and Meta here.
 export function track(event: TrackEvent, params: Params = {}) {
   if (typeof window === "undefined") return;
   window.dataLayer = window.dataLayer ?? [];
   window.dataLayer.push({ event, ...params });
+  // FF21's own log (the dashboard's Website tab) gets every event too.
+  const detail = params.step ?? params.placement ?? params.video ?? params.property;
+  logEvent(event, detail === undefined ? undefined : String(detail));
 
   if (mode !== "direct") return;
   window.gtag?.("event", event, params);

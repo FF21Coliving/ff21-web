@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Inter, Instrument_Serif } from "next/font/google";
 import { Analytics } from "@/components/analytics";
 import { AttributionCapture } from "@/components/attribution-capture";
+import { SiteTracker } from "@/components/site-tracker";
 import { ogImage, photos } from "@/lib/photos";
 import { site } from "@/lib/site";
 import "./globals.css";
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-dvh bg-surface text-ink">
         {children}
         <AttributionCapture />
+        <SiteTracker />
         <Analytics />
       </body>
     </html>

@@ -629,7 +629,8 @@ export function FindMyHome() {
           </Link>
         </div>
 
-        <div className="mx-auto w-full max-w-[660px] flex-1 px-5 pb-36 pt-4 md:px-10 md:pt-8">
+        {/* Taps inside the form aren't logged (the steps are, as events): its buttons can show what the visitor typed. */}
+        <div data-notrack className="mx-auto w-full max-w-[660px] flex-1 px-5 pb-36 pt-4 md:px-10 md:pt-8">
           {status === "done" && done ? (
             <div className="rise" role="status">
               <span className="grid h-12 w-12 place-items-center rounded-full bg-blue text-on-blue">
