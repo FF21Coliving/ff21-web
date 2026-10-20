@@ -23,7 +23,7 @@ import Link from "next/link";
 import { amenities, faqs, steps, testimonials, type AmenityIcon } from "@/lib/content";
 import { photos, type Photo as PhotoType } from "@/lib/photos";
 import { properties, roomKindLabels, type RoomKind } from "@/lib/properties";
-import { inr, prices, site, terms, whatsappLink } from "@/lib/site";
+import { inrK, prices, site, terms, whatsappLink } from "@/lib/site";
 import { amenityIcons, included, roomIcons, stepIcons, termIcons } from "./icons";
 import { Splash, Stamp } from "./splash";
 import { Tag } from "./tag";
@@ -168,10 +168,10 @@ export function IncludedBand() {
             </ul>
             <div className="mt-5 flex items-end justify-between gap-4 rounded-xl bg-mist px-4 py-3.5 md:mt-6 md:px-5 md:py-4">
               <span className="text-[14px] leading-5 text-ink-2">
-                From, per person
-                <br />a month
+                Starts from, per
+                <br />person a month
               </span>
-              <span className="tabular font-display text-[30px] font-extrabold leading-none tracking-[-0.02em] text-ink md:text-[36px]">{inr(prices.twinFrom)}</span>
+              <span className="tabular font-display text-[30px] font-extrabold leading-none tracking-[-0.02em] text-ink md:text-[36px]">{inrK(prices.twinFrom)}</span>
             </div>
           </div>
           <Stamp id="stamp-rent" text={`ALL-INCLUSIVE RENT · SINCE ${site.founded} · `} className="absolute -right-3 -top-10 h-24 w-24 md:-right-12 md:-top-14 md:h-32 md:w-32" />

@@ -41,6 +41,9 @@ export function whatsappLink(message: string) {
   return `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(message)}`;
 }
 
+// "₹12K": short rupees for headline prices, as the team writes them.
+export const inrK = (n: number) => `₹${Number((n / 1000).toFixed(2))}K`;
+
 export function inr(amount: number) {
   return `₹${amount.toLocaleString("en-IN")}`;
 }

@@ -166,7 +166,7 @@ export function ScrollExpandHero({ frames, left, right, founded, from }: Props) 
                 Your <em className="accent">home</em> in Bangalore.
               </h2>
               <p className="mt-3 max-w-xl text-[15px] leading-[23px] text-white/85 md:mt-5 md:text-[19px] md:leading-[30px]">
-                Furnished rooms near the city&apos;s tech parks, with meals, WiFi and housekeeping in one rent. From {from} a month.
+                Furnished rooms near the city&apos;s tech parks, with meals, WiFi and housekeeping in one rent. Starts from {from} a month.
               </p>
               <div className="mt-5 flex gap-3 md:mt-8">
                 <Link href="/find-my-home" className={`${button.primary} group flex-1 md:flex-none`}>

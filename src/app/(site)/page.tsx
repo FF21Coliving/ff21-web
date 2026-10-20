@@ -21,7 +21,7 @@ import {
 import { container, sectionY } from "@/components/ui";
 import { faqs } from "@/lib/content";
 import { photos } from "@/lib/photos";
-import { inr, prices, site } from "@/lib/site";
+import { inrK, prices, site } from "@/lib/site";
 import { wixMeta } from "@/lib/wix-content";
 
 const frames = [photos.rooftopSunset, photos.loungeTeal, photos.diningFamily, photos.rooftopDusk, photos.workspace];
@@ -67,7 +67,7 @@ export default function Home() {
         left={{ inner: [{ photo: photos.partyFriends, grow: 1.25 }, { photo: photos.loungeBright }], outer: { photo: photos.diwali } }}
         right={{ inner: [{ photo: photos.poolGame }, { photo: photos.diningHall, grow: 1.25 }], outer: { photo: photos.holi } }}
         founded={site.founded}
-        from={inr(prices.twinFrom)}
+        from={inrK(prices.twinFrom)}
       />
 
       <ValueProps />
@@ -137,7 +137,7 @@ export default function Home() {
               More than a room, and it&apos;s all in the <Accent>rent</Accent>.
             </>
           }
-          lead="Chef-made meals, game rooms, places to work and security around the clock. Prices include taxes and charges."
+          lead="Home-like meals, game rooms, places to work and security around the clock. Prices include taxes and charges."
         />
         <div className="mt-12 md:mt-14">
           <AmenitiesBento />

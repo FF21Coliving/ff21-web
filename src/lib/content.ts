@@ -3,7 +3,7 @@
 export type AmenityIcon = "meals" | "wifi" | "housekeeping" | "work" | "play" | "security" | "community" | "app";
 
 export const amenities: { icon: AmenityIcon; title: string; body: string }[] = [
-  { icon: "meals", title: "Meals included", body: "Chef-made food every day, in the rent." },
+  { icon: "meals", title: "Meals included", body: "Home-like meals every day, in the rent." },
   { icon: "wifi", title: "High-speed WiFi", body: "Fast enough for calls, streaming and working from home." },
   { icon: "housekeeping", title: "Housekeeping and laundry", body: "Rooms cleaned and laundry done for you." },
   { icon: "work", title: "Places to work", body: "Work spots around the home, away from your bed." },
