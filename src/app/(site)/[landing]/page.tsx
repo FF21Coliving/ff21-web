@@ -9,7 +9,7 @@ import { button, container, pageTitle, sectionTitle } from "@/components/ui";
 import { WixCopy } from "@/components/wix-copy";
 import { whatsappLink } from "@/lib/site";
 import { breadcrumbs, homesList, ldScript } from "@/lib/schema";
-import { getLanding, homesFor, landingName, landingPages, type Landing } from "@/lib/wix-content";
+import { getLanding, homesFor, landingName, landingPages, nearbyAreaPages, type Landing } from "@/lib/wix-content";
 
 // The "PG near X" and "coliving in Y" pages from the Wix site, at the same
 // URLs and with the same titles, descriptions and copy, so their search
@@ -45,6 +45,7 @@ export default async function LandingPage({ params }: PageProps<"/[landing]">) {
 
 function LandingContent({ l }: { l: Landing }) {
   const homes = homesFor(l.path).slice(0, 4);
+  const nearby = nearbyAreaPages(l.path);
   const name = landingName(l);
 
   return (
@@ -85,6 +86,23 @@ function LandingContent({ l }: { l: Landing }) {
       <article className={`${container} pb-20 pt-14 md:pb-28 md:pt-20`}>
         <WixCopy blocks={l.blocks} className="max-w-3xl" />
       </article>
+
+      {nearby.length > 0 && (
+        <nav aria-labelledby="nearby-areas" className={`${container} pb-20 md:pb-28`}>
+          <h2 id="nearby-areas" className="font-display text-[22px] font-bold tracking-[-0.02em] text-ink md:text-[26px]">
+            Nearby areas
+          </h2>
+          <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-3">
+            {nearby.map((n) => (
+              <li key={n.path}>
+                <Link href={n.url} className="text-[15px] text-blue-ink transition-colors hover:text-ink">
+                  {landingName(n)}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
 
       <FindHomeBand />
     </>

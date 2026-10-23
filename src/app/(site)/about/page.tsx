@@ -8,7 +8,7 @@ import { properties } from "@/lib/properties";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "About FF21",
+  title: `About FF21: coliving in Bangalore since ${site.founded}`,
   description: `FF21 opened in ${site.founded} with 33 rooms. Today it runs coliving homes across Bangalore for young professionals and students.`,
   alternates: { canonical: "/about" },
 };

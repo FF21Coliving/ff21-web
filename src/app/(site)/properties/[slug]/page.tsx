@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 import { AreaMap } from "@/components/area-map";
 import { BookingCard } from "@/components/booking-card";
 import { HomeCard } from "@/components/home-card";
@@ -21,9 +20,17 @@ import { ogImage } from "@/lib/photos";
 import { pins } from "@/lib/schema";
 import { fromPrice, getProperty, properties, roomKindLabels, roomKindOf, roomKinds, tourCover, zones, type Property } from "@/lib/properties";
 import { inr, site, terms } from "@/lib/site";
+import { areaPagesFor, landingName } from "@/lib/wix-content";
 
 export function generateStaticParams() {
   return properties.map((p) => ({ slug: p.slug }));
+}
+
+// The home's area, and the wider area people search for when it differs:
+// "Whiterose Layout, Whitefield", "Kundanahalli, Marathahalli".
+function placeName(p: Property) {
+  const zone = zones.find((z) => z.id === p.zone)?.label;
+  return zone && zone !== p.area && !p.area.includes(zone) ? `${p.area}, ${zone}` : p.area;
 }
 
 export async function generateMetadata({ params }: PageProps<"/properties/[slug]">): Promise<Metadata> {
@@ -32,7 +39,7 @@ export async function generateMetadata({ params }: PageProps<"/properties/[slug]
   if (!p) return {};
   const from = fromPrice(p);
   return {
-    title: `FF21 ${p.code}: coliving in ${p.area}`,
+    title: `FF21 ${p.code}: coliving in ${placeName(p)}`,
     description: `${p.tagline}. Furnished rooms with meals, WiFi and housekeeping${from ? ` from ${inr(from)} a month` : ""}. Visit any day, 9am to 8pm.`,
     alternates: { canonical: `/properties/${p.slug}` },
     openGraph: { images: [{ url: ogImage(p.hero), width: 1200, height: 630, alt: p.hero.alt }] },
@@ -70,17 +77,13 @@ function jsonLd(p: Property) {
   };
 }
 
-// The App Shell is shared by every home, so the URL-specific content sits
-// behind Suspense. Home cards prefetch it, so it is ready before the click.
-export default function PropertyPage({ params }: PageProps<"/properties/[slug]">) {
-  return (
-    <Suspense fallback={<div aria-hidden className={`${container} pt-8`}><div className="h-[460px] rounded-lg bg-mist" /></div>}>
-      <PropertyContent params={params} />
-    </Suspense>
-  );
-}
+// Every home is built ahead of time (generateStaticParams), so the page comes
+// in one piece: its rooms, prices and photos are in the HTML itself, which
+// search engines and AI crawlers that don't run scripts read directly.
+// Unknown addresses answer a real 404.
+export const instant = false;
 
-async function PropertyContent({ params }: Pick<PageProps<"/properties/[slug]">, "params">) {
+export default async function PropertyPage({ params }: PageProps<"/properties/[slug]">) {
   const { slug } = await params;
   const p = getProperty(slug);
   if (!p) notFound();
@@ -89,6 +92,7 @@ async function PropertyContent({ params }: Pick<PageProps<"/properties/[slug]">,
   const kinds = roomKinds(p);
   const zone = zones.find((z) => z.id === p.zone)!;
   const title = `FF21 ${p.code} · ${p.area}`;
+  const areas = areaPagesFor(p.code);
   const others = [...properties.filter((o) => o.slug !== p.slug && o.zone === p.zone), ...properties.filter((o) => o.zone !== p.zone)].slice(0, 4);
   const highlights = [
     { icon: Wallet, title: "Zero deposit option", body: "Or pay two months' rent as deposit. Your choice." },
@@ -285,6 +289,20 @@ async function PropertyContent({ params }: Pick<PageProps<"/properties/[slug]">,
                   </li>
                 ))}
               </ul>
+              {areas.length > 0 && (
+                <>
+                  <h3 className="mt-6 font-sans text-[16px] font-semibold text-ink">PGs and coliving around {p.area}</h3>
+                  <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
+                    {areas.map((l) => (
+                      <li key={l.path}>
+                        <Link href={l.url} className="text-[15px] text-blue-ink transition-colors hover:text-ink">
+                          {landingName(l)}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </section>
 
             <section id="know" aria-labelledby="know-title" className="scroll-mt-40 py-12">
@@ -293,14 +311,14 @@ async function PropertyContent({ params }: Pick<PageProps<"/properties/[slug]">,
                 {terms.map((t) => {
                   const Icon = termIcons[t.label];
                   return (
-                    <div key={t.label} className="flex gap-4">
-                      <span className="pebble grid h-11 w-11 shrink-0 place-items-center bg-mist text-ink">
-                        <Icon aria-hidden className="h-5 w-5" strokeWidth={1.75} />
-                      </span>
-                      <div>
-                        <dt className="text-[15px] font-semibold text-ink">{t.label}</dt>
-                        <dd className="mt-0.5 text-[15px] text-ink-2">{t.value}</dd>
-                      </div>
+                    <div key={t.label}>
+                      <dt className="flex items-center gap-4 text-[15px] font-semibold text-ink">
+                        <span className="pebble grid h-11 w-11 shrink-0 place-items-center bg-mist text-ink">
+                          <Icon aria-hidden className="h-5 w-5" strokeWidth={1.75} />
+                        </span>
+                        {t.label}
+                      </dt>
+                      <dd className="-mt-3 pl-[60px] text-[15px] text-ink-2">{t.value}</dd>
                     </div>
                   );
                 })}

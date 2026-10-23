@@ -646,14 +646,15 @@ export function MovingIn() {
           {terms.map((t) => {
             const Icon = termIcons[t.label];
             return (
-              <div key={t.label} className="flex flex-col gap-2 sm:flex-row sm:gap-4">
-                <span className="pebble grid h-9 w-9 shrink-0 place-items-center bg-surface text-ink sm:h-11 sm:w-11">
-                  <Icon aria-hidden className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
-                </span>
-                <div>
-                  <dt className="text-[13.5px] font-semibold text-ink sm:text-[14px]">{t.label}</dt>
-                  <dd className="mt-0.5 text-[14px] leading-5 text-ink-2 sm:text-[16px] sm:leading-6">{t.value}</dd>
-                </div>
+              // The icon sits inside <dt> so the list is a valid definition list.
+              <div key={t.label}>
+                <dt className="flex flex-col gap-2 text-[13.5px] font-semibold text-ink sm:flex-row sm:items-center sm:gap-4 sm:text-[14px]">
+                  <span className="pebble grid h-9 w-9 shrink-0 place-items-center bg-surface text-ink sm:h-11 sm:w-11">
+                    <Icon aria-hidden className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
+                  </span>
+                  {t.label}
+                </dt>
+                <dd className="mt-0.5 text-[14px] leading-5 text-ink-2 sm:-mt-2.5 sm:pl-[60px] sm:text-[16px] sm:leading-6">{t.value}</dd>
               </div>
             );
           })}

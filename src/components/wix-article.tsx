@@ -3,13 +3,14 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { HomeCard } from "@/components/home-card";
 import { FindHomeBand } from "@/components/sections";
 import { container } from "@/components/ui";
 import { WixCopy } from "@/components/wix-copy";
 import { ogImage, photos } from "@/lib/photos";
 import { breadcrumbs } from "@/lib/schema";
 import { site } from "@/lib/site";
-import { articles, getArticle, type Article } from "@/lib/wix-content";
+import { articles, getArticle, homesForArticle, relatedArticles, type Article } from "@/lib/wix-content";
 
 // Blog articles carried over from the Wix site, at the same /blog/… and
 // /post/… URLs, with the same titles and words.
@@ -78,7 +79,8 @@ export function ArticleContent({ article: a }: { article: Article }) {
   const lead = a.blocks.findIndex((b) => b.t === "img");
   const cover = lead >= 0 && lead < 4 ? a.blocks[lead] : undefined;
   const body = cover ? a.blocks.filter((_, i) => i !== lead) : a.blocks;
-  const more = articles.filter((x) => x.path !== a.path).slice(0, 3);
+  const more = relatedArticles(a);
+  const near = homesForArticle(a);
 
   return (
     <>
@@ -92,15 +94,28 @@ export function ArticleContent({ article: a }: { article: Article }) {
           <h1 className="mt-6 font-display text-[34px] font-extrabold leading-[40px] tracking-[-0.03em] text-ink md:text-[48px] md:leading-[54px]">{a.heading}</h1>
           {a.date && <p className="mt-4 text-[15px] text-ink-3">Updated {formatDate(a.date)}</p>}
           {cover && cover.t === "img" && (
-            <Image src={cover.id} alt="" width={1200} height={760} priority sizes="(min-width: 768px) 768px, 100vw" className="mt-8 h-auto w-full rounded-2xl bg-mist" />
+            <Image src={cover.id} alt={cover.alt || a.heading} width={1200} height={760} priority sizes="(min-width: 768px) 768px, 100vw" className="mt-8 h-auto w-full rounded-2xl bg-mist" />
           )}
           <WixCopy blocks={body} className="mt-10" />
         </div>
       </article>
 
+      {near && (
+        <section aria-labelledby="near-title" className={`${container} pb-16 md:pb-20`}>
+          <h2 id="near-title" className="font-display text-[24px] font-bold tracking-[-0.02em] text-ink md:text-[28px]">
+            {near.homes.length === 1 ? "The FF21 home" : "FF21 homes"} near {near.place}
+          </h2>
+          <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+            {near.homes.map((p) => (
+              <HomeCard key={p.slug} property={p} sizes="(min-width: 1024px) 30vw, (min-width: 640px) 46vw, 92vw" />
+            ))}
+          </div>
+        </section>
+      )}
+
       {more.length > 0 && (
         <section aria-labelledby="more-title" className={`${container} pb-20 md:pb-28`}>
-          <h2 id="more-title" className="font-display text-[24px] font-bold tracking-[-0.02em] text-ink md:text-[28px]">More from the blog</h2>
+          <h2 id="more-title" className="font-display text-[24px] font-bold tracking-[-0.02em] text-ink md:text-[28px]">Related reads</h2>
           <ul className="mt-6 grid gap-6 md:grid-cols-3">
             {more.map((m) => (
               <li key={m.path}>

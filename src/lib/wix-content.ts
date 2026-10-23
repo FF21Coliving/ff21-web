@@ -2,7 +2,7 @@ import "server-only";
 import blogData from "@/content/wix/blog.json";
 import landingData from "@/content/wix/landing.json";
 import metaData from "@/content/wix/meta.json";
-import { properties, roomKinds, type Property } from "./properties";
+import { homesNear, places, properties, roomKinds, type Property } from "./properties";
 
 // Everything below was carried over from the Wix site (www.ff21.in, read 17
 // Oct 2026) so the SEO it built keeps working: the same URLs, titles,
@@ -149,3 +149,65 @@ export const landingName = (l: Landing) =>
     )
     .join(" ")
     .replace(/^PG Coliving/, "PG and coliving");
+
+// --- Internal links ------------------------------------------------------------
+// Google finds and weighs pages by the links between them. Each area page
+// links to the other areas served by the same homes, each home lists its
+// area pages, and each post links to related posts and the homes near the
+// places it names, so no page hangs off a single link.
+
+const codesOf = (path: string) => {
+  const pick = homesByPage[path];
+  return Array.isArray(pick) ? pick : [];
+};
+
+// Area pages whose main home is this one (first in its list), so each area
+// page is linked from exactly one home page; city-wide pages are left out.
+export function areaPagesFor(code: string): Landing[] {
+  return landingPages.filter((l) => codesOf(l.path)[0] === code).sort((a, b) => landingName(a).localeCompare(landingName(b)));
+}
+
+// Other area pages served by the same homes, most homes in common first.
+export function nearbyAreaPages(path: string, limit = 12): Landing[] {
+  const mine = codesOf(path);
+  if (mine.length === 0) return [];
+  return landingPages
+    .filter((l) => l.path !== path)
+    .map((l) => ({ l, shared: codesOf(l.path).filter((c) => mine.includes(c)).length }))
+    .filter((x) => x.shared > 0)
+    .sort((a, b) => b.shared - a.shared || landingName(a.l).localeCompare(landingName(b.l)))
+    .slice(0, limit)
+    .map((x) => x.l);
+}
+
+const STOP = new Set("a an and are at bangalore bengaluru best by for from guide how in is it its near of on or the to top what with you your ff21 2024 2025 2026 complete things".split(" "));
+const wordsOf = (s: string) => new Set(s.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").split(" ").filter((w) => w.length > 2 && !STOP.has(w)));
+
+// The posts that share the most words with this one (title and heading);
+// ties go to the newer post. Never the same three for every post.
+export function relatedArticles(a: Article, limit = 3): Article[] {
+  const mine = wordsOf(`${a.title} ${a.heading}`);
+  return articles
+    .filter((x) => x.path !== a.path)
+    .map((x) => {
+      const theirs = wordsOf(`${x.title} ${x.heading}`);
+      let shared = 0;
+      for (const w of theirs) if (mine.has(w)) shared++;
+      return { x, shared };
+    })
+    .sort((p, q) => q.shared - p.shared || (q.x.date ?? "").localeCompare(p.x.date ?? ""))
+    .slice(0, limit)
+    .map((s) => s.x);
+}
+
+// FF21 homes near the places a post names in its title ("Best Cafes in
+// Whitefield" → the Whitefield homes), so readers can see where to live.
+export function homesForArticle(a: Article, limit = 3): { place: string; homes: Property[] } | null {
+  const text = ` ${a.title} ${a.heading} `.toLowerCase();
+  const named = places.filter((p) => text.includes(` ${p.toLowerCase()}`)).sort((x, y) => y.length - x.length);
+  for (const place of named) {
+    const homes = homesNear(place);
+    if (homes.length) return { place, homes: homes.slice(0, limit) };
+  }
+  return null;
+}

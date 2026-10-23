@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { Eyebrow } from "@/components/sections";
 import { container, lead, pageTitle } from "@/components/ui";
 import { ArticleCard } from "@/components/wix-article";
-import { articles, wixMeta } from "@/lib/wix-content";
+import { articles } from "@/lib/wix-content";
 
 export const metadata: Metadata = {
-  title: { absolute: `${wixMeta["/blog"]?.title ?? "Blog"} | FF21` },
-  description: wixMeta["/blog"]?.description ?? "Guides to PGs, coliving and life in Bangalore, from the FF21 team.",
+  title: { absolute: "Coliving & PG Living Guides for Bangalore | FF21 Blog" },
+  description: "Guides to PGs and coliving in Bangalore: neighbourhoods, rent, food, events and what to know before you move, from the FF21 team.",
   alternates: { canonical: "/blog" },
 };
 

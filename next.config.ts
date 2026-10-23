@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
     loader: "custom",
     loaderFile: "./src/lib/wix-image-loader.ts",
     qualities: [70, 80, 90],
+    // Fewer widths than Next's default (8 + 7): our own photos come in 640,
+    // 1080 and 1600 anyway, and every width is repeated in every <img> and in
+    // the page data, which made the homepage's HTML about 60 KB heavier.
+    deviceSizes: [640, 828, 1080, 1600, 2048],
+    imageSizes: [96, 256, 384],
   },
   async redirects() {
     // The old register page now opens Find my home (query string kept).
