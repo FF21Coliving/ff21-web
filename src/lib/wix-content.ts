@@ -1,4 +1,5 @@
 import "server-only";
+import altData from "@/content/wix/alt-text.json";
 import blogData from "@/content/wix/blog.json";
 import landingData from "@/content/wix/landing.json";
 import metaData from "@/content/wix/meta.json";
@@ -28,8 +29,13 @@ const tidy = <T extends { title: string; description?: string | null }>(x: T): T
   title: x.title.replace(/\s+/g, " ").trim(),
   description: x.description?.replace(/\s+/g, " ").trim() || null,
 });
+// Wix left most blog photos without alt text; alt-text.json describes each
+// one by its Wix image id, and fills in wherever Wix had none.
+const altText = altData as Record<string, string>;
+const withAlts = (blocks: Block[]): Block[] =>
+  blocks.map((b) => (b.t === "img" && !b.alt.trim() && altText[b.id] ? { ...b, alt: altText[b.id] } : b));
 export const landingPages = (landingData as unknown as Landing[]).map(tidy);
-export const articles = (blogData as unknown as Article[]).map(tidy);
+export const articles = (blogData as unknown as Article[]).map((a) => ({ ...tidy(a), blocks: withAlts(a.blocks) }));
 // Titles and descriptions of Wix pages the new site has its own version of.
 export const wixMeta = metaData as unknown as Record<string, { title: string; description?: string | null }>;
 
