@@ -23,10 +23,11 @@ export type Landing = { path: string; url: string; title: string; description?: 
 export type Article = { path: string; url: string; title: string; heading: string; description?: string | null; date?: string | null; image?: string | null; blocks: Block[] };
 
 // Some Wix titles and descriptions carry line breaks or doubled spaces, which
-// crawlers read as broken tags; the words stay exactly as Wix had them.
+// crawlers read as broken tags, and three titles end "| FF21 | FF21"; the
+// words otherwise stay exactly as Wix had them.
 const tidy = <T extends { title: string; description?: string | null }>(x: T): T => ({
   ...x,
-  title: x.title.replace(/\s+/g, " ").trim(),
+  title: x.title.replace(/\s+/g, " ").trim().replace(/(\s*\|\s*FF21)+$/, " | FF21"),
   description: x.description?.replace(/\s+/g, " ").trim() || null,
 });
 // Wix left most blog photos without alt text; alt-text.json describes each
