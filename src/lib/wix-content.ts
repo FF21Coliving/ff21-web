@@ -35,8 +35,16 @@ const tidy = <T extends { title: string; description?: string | null }>(x: T): T
 const altText = altData as Record<string, string>;
 const withAlts = (blocks: Block[]): Block[] =>
   blocks.map((b) => (b.t === "img" && !b.alt.trim() && altText[b.id] ? { ...b, alt: altText[b.id] } : b));
+// Wix's ITP banner still says "Pay 11200/-", and ITP starts at ₹12,000 now,
+// so it stays out of the seven posts that carry it until there's a new one.
+// The two posts that used it as their cover take their next photo instead.
+const retired = new Set(["3a848c_cd0a5381b37143ed89554cbe4a3ac550~mv2.png"]);
+const firstPhoto = (blocks: Block[]) => blocks.flatMap((b) => (b.t === "img" ? [b.id] : []))[0] ?? null;
 export const landingPages = (landingData as unknown as Landing[]).map(tidy);
-export const articles = (blogData as unknown as Article[]).map((a) => ({ ...tidy(a), blocks: withAlts(a.blocks) }));
+export const articles = (blogData as unknown as Article[]).map((a) => {
+  const blocks = withAlts(a.blocks.filter((b) => !(b.t === "img" && retired.has(b.id))));
+  return { ...tidy(a), blocks, image: a.image && retired.has(a.image) ? firstPhoto(blocks) : a.image };
+});
 // Titles and descriptions of Wix pages the new site has its own version of.
 export const wixMeta = metaData as unknown as Record<string, { title: string; description?: string | null }>;
 
