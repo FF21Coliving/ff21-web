@@ -183,22 +183,62 @@ export function nearbyAreaPages(path: string, limit = 12): Landing[] {
 const STOP = new Set("a an and are at bangalore bengaluru best by for from guide how in is it its near of on or the to top what with you your ff21 2024 2025 2026 complete things".split(" "));
 const wordsOf = (s: string) => new Set(s.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").split(" ").filter((w) => w.length > 2 && !STOP.has(w)));
 
-// The posts that share the most words with this one (title and heading);
-// ties go to the newer post. Never the same three for every post.
-export function relatedArticles(a: Article, limit = 3): Article[] {
-  const mine = wordsOf(`${a.title} ${a.heading}`);
-  return articles
-    .filter((x) => x.path !== a.path)
-    .map((x) => {
-      const theirs = wordsOf(`${x.title} ${x.heading}`);
-      let shared = 0;
-      for (const w of theirs) if (mine.has(w)) shared++;
-      return { x, shared };
-    })
-    .sort((p, q) => q.shared - p.shared || (q.x.date ?? "").localeCompare(p.x.date ?? ""))
-    .slice(0, limit)
-    .map((s) => s.x);
-}
+// Related reads, worked out once for all posts: each post's three closest
+// (most shared words in title and heading; ties go to the newer post), then
+// every post linked from fewer than two others is added, as a further link, to
+// the posts closest to it. So no post hangs off the blog list alone.
+const RELATED = 3;
+const EXTRA_MAX = 2;
+const related: Map<string, { cards: Article[]; more: Article[] }> = (() => {
+  const words = articles.map((a) => wordsOf(`${a.title} ${a.heading}`));
+  const shared = (i: number, j: number) => {
+    let n = 0;
+    for (const w of words[j]) if (words[i].has(w)) n++;
+    return n;
+  };
+  const byCloseness = (i: number) =>
+    articles
+      .map((_, j) => j)
+      .filter((j) => j !== i)
+      .map((j) => ({ j, n: shared(i, j) }))
+      .sort((p, q) => q.n - p.n || (articles[q.j].date ?? "").localeCompare(articles[p.j].date ?? ""));
+  const ranked = articles.map((_, i) => byCloseness(i));
+  const cards = ranked.map((r) => r.slice(0, RELATED).map((x) => x.j));
+  const more: number[][] = articles.map(() => []);
+  const inbound = articles.map(() => 0);
+  for (const list of cards) for (const j of list) inbound[j]++;
+  for (let j = 0; j < articles.length; j++) {
+    // The posts closest to j that don't already link it and have room.
+    for (const { j: i } of ranked[j]) {
+      if (inbound[j] >= 2) break;
+      if (cards[i].includes(j) || more[i].includes(j) || more[i].length >= EXTRA_MAX) continue;
+      more[i].push(j);
+      inbound[j]++;
+    }
+  }
+  return new Map(articles.map((a, i) => [a.path, { cards: cards[i].map((j) => articles[j]), more: more[i].map((j) => articles[j]) }]));
+})();
+
+export const relatedArticles = (a: Article) => related.get(a.path) ?? { cards: [], more: [] };
+
+// The blog by topic, for the blog page's full list. Matched on the title, in
+// this order; whatever matches nothing is "Places and things to do".
+const TOPICS: [string, RegExp][] = [
+  ["Finding a PG or coliving home", /\b(pgs?|coliving|co-living|colive|co-live|hostels?|paying guest|accommodation|rent|rental|rooms?|roommates?|flats?|tenants?|stay|living|move|moving|relocat\w*|housing|deposit|lease|landlords?|students?|colleges?|university|campus)\b/],
+  ["Jobs and careers", /\b(jobs?|hiring|freshers?|careers?|interviews?|salary|recruit\w*|internships?|new hire)\b/],
+  ["Food, cafés and nightlife", /\b(cafes?|restaurants?|food|pubs?|bars?|brew\w*|nightlife|dining|biryani|desserts?|coffee)\b/],
+  ["Events and festivals", /\b(expo|festivals?|concerts?|marathons?|events?|diwali|holi|ganesh\w*|chaturthi|christmas|new year|ipl)\b/],
+];
+const plain = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+export const blogTopics: { name: string; posts: Article[] }[] = (() => {
+  const groups = new Map<string, Article[]>([...TOPICS.map(([name]) => [name, []] as [string, Article[]]), ["Places and things to do", []]]);
+  for (const a of articles) {
+    const t = plain(`${a.title} ${a.heading}`);
+    const hit = TOPICS.find(([, rx]) => rx.test(t));
+    groups.get(hit ? hit[0] : "Places and things to do")!.push(a);
+  }
+  return [...groups].map(([name, posts]) => ({ name, posts })).filter((g) => g.posts.length > 0);
+})();
 
 // FF21 homes near the places a post names in its title ("Best Cafes in
 // Whitefield" → the Whitefield homes), so readers can see where to live.

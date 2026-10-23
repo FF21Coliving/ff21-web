@@ -79,7 +79,7 @@ export function ArticleContent({ article: a }: { article: Article }) {
   const lead = a.blocks.findIndex((b) => b.t === "img");
   const cover = lead >= 0 && lead < 4 ? a.blocks[lead] : undefined;
   const body = cover ? a.blocks.filter((_, i) => i !== lead) : a.blocks;
-  const more = relatedArticles(a);
+  const related = relatedArticles(a);
   const near = homesForArticle(a);
 
   return (
@@ -113,16 +113,29 @@ export function ArticleContent({ article: a }: { article: Article }) {
         </section>
       )}
 
-      {more.length > 0 && (
+      {related.cards.length > 0 && (
         <section aria-labelledby="more-title" className={`${container} pb-20 md:pb-28`}>
           <h2 id="more-title" className="font-display text-[24px] font-bold tracking-[-0.02em] text-ink md:text-[28px]">Related reads</h2>
           <ul className="mt-6 grid gap-6 md:grid-cols-3">
-            {more.map((m) => (
+            {related.cards.map((m) => (
               <li key={m.path}>
                 <ArticleCard article={m} />
               </li>
             ))}
           </ul>
+          {related.more.length > 0 && (
+            <p className="mt-8 text-[15px] leading-6 text-ink-2">
+              Also worth a read:{" "}
+              {related.more.map((m, i) => (
+                <span key={m.path}>
+                  {i > 0 && " · "}
+                  <Link href={m.url} className="font-medium text-blue-ink transition-colors hover:text-ink">
+                    {m.heading}
+                  </Link>
+                </span>
+              ))}
+            </p>
+          )}
         </section>
       )}
       <FindHomeBand />
