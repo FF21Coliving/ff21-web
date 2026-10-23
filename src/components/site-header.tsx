@@ -39,8 +39,10 @@ export function SiteHeader() {
     document.documentElement.style.overflow = open ? "hidden" : "";
   }, [open]);
 
-  // The home page carries the big search bar in its hero.
-  const showPill = pathname !== "/";
+  // The home page carries the big search bar in its hero. Bots that get a
+  // fresh render see the home page's path as "/index" on the server, so that
+  // counts too, or the header wouldn't match once the page loads.
+  const showPill = pathname !== "/" && pathname !== "/index";
   const close = () => setOpen(false);
   const active = (href: string) => href === pathname;
 

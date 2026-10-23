@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
+  // Next's list of bots that can't run JavaScript, which get a fresh,
+  // uncached render, minus Chrome-Lighthouse: PageSpeed runs JavaScript and
+  // should measure the same cached page people get, not a slower one.
+  htmlLimitedBots:
+    /[\w-]+-Google|Google-[\w-]+|Slurp|DuckDuckBot|baiduspider|yandex|sogou|bitlybot|tumblr|vkShare|quora link preview|redditbot|ia_archiver|Bingbot|BingPreview|applebot|facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|Yeti|googleweblight/i,
   images: {
     // Photos are served and resized by Wix's image CDN until they move to our
     // own storage in scope 2. See src/lib/wix-image-loader.ts.
