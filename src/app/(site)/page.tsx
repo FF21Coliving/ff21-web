@@ -23,7 +23,7 @@ import { container, sectionY } from "@/components/ui";
 import { faqs } from "@/lib/content";
 import { photos } from "@/lib/photos";
 import { inrK, prices, site } from "@/lib/site";
-import { wixMeta } from "@/lib/wix-content";
+import { homesList } from "@/lib/schema";
 
 const frames = [photos.rooftopSunset, photos.loungeTeal, photos.diningFamily, photos.rooftopDusk, photos.workspace];
 
@@ -40,9 +40,14 @@ const jsonLd = {
       email: site.email,
       telephone: site.phone,
       foundingDate: String(site.founded),
+      description: `Coliving homes for young professionals and students in Bangalore since ${site.founded}: furnished rooms with meals, WiFi, housekeeping and laundry in one rent.`,
       sameAs: [site.instagram, site.facebook],
-      address: { "@type": "PostalAddress", streetAddress: "672, Ferns Paradise", addressLocality: "Bangalore", postalCode: "560037", addressCountry: "IN" },
+      areaServed: { "@type": "City", name: "Bangalore" },
+      contactPoint: { "@type": "ContactPoint", telephone: site.phone, email: site.email, contactType: "sales", areaServed: "IN", availableLanguage: ["en", "hi", "kn"] },
+      address: { "@type": "PostalAddress", streetAddress: "672, Ferns Paradise", addressLocality: "Bangalore", addressRegion: "Karnataka", postalCode: "560037", addressCountry: "IN" },
     },
+    { "@type": "WebSite", "@id": `${site.url}/#website`, name: site.name, url: site.url, publisher: { "@id": `${site.url}/#organization` }, inLanguage: "en-IN" },
+    homesList(),
     {
       "@type": "FAQPage",
       mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
@@ -51,10 +56,11 @@ const jsonLd = {
 };
 
 
-// The home page keeps the title and description it ranks with on Wix.
+// Title and description name what FF21 is and where (House of ALT's audit,
+// 23 Oct 2026); Wix's were brand-first and said "Forget PGs".
 export const metadata: Metadata = {
-  title: { absolute: wixMeta["/"]?.title ?? "FF21 Coliving" },
-  description: wixMeta["/"]?.description ?? site.description,
+  title: { absolute: "Coliving & PGs in Bangalore with Meals & WiFi | FF21" },
+  description: "Coliving rooms in Whitefield, Marathahalli, Mahadevapura, Koramangala, HBR Layout and Sarjapur from ₹12,000 a month, with meals, WiFi and housekeeping included.",
   alternates: { canonical: "/" },
 };
 

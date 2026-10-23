@@ -14,6 +14,20 @@ const heading = "text-[12.5px] font-semibold uppercase tracking-[0.14em] text-in
 // Links move and darken on hover; nothing is underlined.
 const item = "inline-flex text-[15px] text-ink-2 transition-[color,transform] duration-200 hover:translate-x-0.5 hover:text-ink";
 
+const areaPages: [string, string][] = [
+  ["PG near ITPL, Whitefield", "/coliving-pgs-near-itpl"],
+  ["PG in Marathahalli", "/coliving-pg-near-marathahalli"],
+  ["PG in Bellandur", "/coliving-pg-near-bellandur"],
+  ["PG near Bagmane Tech Park", "/coliving-pg-near-bagmane-tech-park"],
+  ["PG in Mahadevapura", "/coliving-pg-near-mahadevapura"],
+  ["PG in Kundanahalli", "/coliving-near-kundanahalli"],
+  ["PG in Kadubeesanahalli", "/coliving-near-kadubeesanahalli"],
+  ["PG near Manyata Tech Park", "/coliving-pg-near-manyata-tech-park"],
+  ["PG in HBR Layout", "/coliving-pgs-near-hbr-layout"],
+  ["PG in Koramangala", "/coliving-near-koramangala"],
+  ["PG in Sarjapur", "/best-pg-in-sarjapur"],
+];
+
 export function SiteFooter() {
   return (
     <footer className="relative overflow-hidden bg-mist">
@@ -52,7 +66,7 @@ export function SiteFooter() {
 
         <div className="mt-12 grid grid-cols-2 gap-x-6 gap-y-9 rounded-2xl bg-surface p-6 md:mt-16 md:gap-10 md:p-10 lg:grid-cols-[2fr_1fr_1fr_1.4fr]">
           <div className="col-span-2 lg:col-span-1">
-            <h2 className={heading}>Homes in Bangalore</h2>
+            <p className={heading}>Homes in Bangalore</p>
             <ul className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3">
               {properties.map((p) => (
                 <li key={p.slug}>
@@ -64,7 +78,7 @@ export function SiteFooter() {
             </ul>
           </div>
           <div>
-            <h2 className={heading}>Find a room</h2>
+            <p className={heading}>Find a room</p>
             <ul className="mt-5 space-y-3">
               <li><Link href="/find-my-home" className={item}>Find my home</Link></li>
               <li><Link href="/properties" className={item}>All homes</Link></li>
@@ -75,7 +89,7 @@ export function SiteFooter() {
             </ul>
           </div>
           <div>
-            <h2 className={heading}>FF21</h2>
+            <p className={heading}>FF21</p>
             <ul className="mt-5 space-y-3">
               <li><Link href="/about" className={item}>About us</Link></li>
               <li><Link href="/blog" className={item}>Blog</Link></li>
@@ -84,7 +98,7 @@ export function SiteFooter() {
             </ul>
           </div>
           <div className="col-span-2 sm:col-span-1">
-            <h2 className={heading}>Talk to us</h2>
+            <p className={heading}>Talk to us</p>
             <ul className="mt-5 space-y-3">
               <li>
                 <TrackedLink event="whatsapp_click" params={{ placement: "footer" }} href={whatsappLink("Hi FF21! I'd like to know more about your homes.")} className={item}>
@@ -100,6 +114,22 @@ export function SiteFooter() {
               <li className="text-[15px] text-ink-3">Visits {site.visitHours}</li>
             </ul>
           </div>
+        </div>
+
+        {/* One page per area, so search engines (and people) can reach the area
+            pages from every page; the pair pages that compete for one search
+            are settled after launch (FF21 SEO Plan). */}
+        <div className="mt-6 rounded-2xl bg-surface p-6 md:p-10">
+          <p className={heading}>PGs and coliving by area</p>
+          <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-3">
+            {areaPages.map(([label, href]) => (
+              <li key={href}>
+                <Link href={href} className={item}>
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div className="mt-8 flex flex-col gap-3 text-[14px] text-ink-3 md:flex-row md:items-center md:justify-between">

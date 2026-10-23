@@ -216,7 +216,7 @@ export function TourRail({ homes, header }: { homes: Property[]; header: React.R
               className="group w-[68vw] shrink-0 snap-start text-left sm:w-[250px] md:w-[272px]"
             >
               <span className="relative block aspect-[9/16] overflow-hidden rounded-2xl bg-mist">
-                <Image src={tourCover(p).id} alt="" fill sizes="(min-width: 640px) 272px, 68vw" className="object-cover transition-transform duration-700 ease-[var(--ease-standard)] group-hover:scale-105" />
+                <Image src={tourCover(p).id} alt={tourCover(p).alt} fill sizes="(min-width: 640px) 272px, 68vw" className="object-cover transition-transform duration-700 ease-[var(--ease-standard)] group-hover:scale-105" />
                 <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-[rgb(12_24_26/0.85)] via-[rgb(12_24_26/0.1)] to-[rgb(12_24_26/0.3)]" />
                 <Tag tone="glass" size="sm" className="absolute left-4 top-4">
                   FF21 {p.code}

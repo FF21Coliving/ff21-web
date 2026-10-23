@@ -44,7 +44,7 @@ export function HomeCard({ property: p, sizes, eager }: Props) {
                   <div key={photo.id} className="relative h-full w-full shrink-0 snap-center overflow-hidden">
                     <Image
                       src={photo.id}
-                      alt={i === 0 ? photo.alt : ""}
+                      alt={photo.alt}
                       fill
                       sizes={sizes}
                       quality={85}

@@ -23,7 +23,7 @@ const smooth = (t: number) => t * t * (3 - 2 * t);
 function CollageTile({ tile, sizes, className = "" }: { tile: Tile; sizes: string; className?: string }) {
   return (
     <div className={`xh-tile ${className}`} style={{ flexGrow: tile.grow ?? 1, flexBasis: 0 }}>
-      <Image src={tile.photo.id} alt="" fill sizes={sizes} quality={80} className="object-cover" />
+      <Image src={tile.photo.id} alt={tile.photo.alt} fill sizes={sizes} quality={80} className="object-cover" />
     </div>
   );
 }
@@ -120,7 +120,7 @@ export function ScrollExpandHero({ frames, left, right, founded, from }: Props) 
                 <div key={photo.id} className="film-frame absolute inset-0">
                   <Image
                     src={photo.id}
-                    alt=""
+                    alt={photo.alt}
                     fill
                     sizes="(max-width: 767px) 220vw, 100vw"
                     quality={90}
@@ -137,13 +137,15 @@ export function ScrollExpandHero({ frames, left, right, founded, from }: Props) 
           {/* The introduction: a short headline over a collage of real FF21 life */}
           <div className="xh-intro">
             <div className="xh-head">
-              <p className="xh-eyebrow">
+              {/* The page's one h1 says what FF21 is, for search; the brand line
+                  stays the big headline. */}
+              <h1 className="xh-eyebrow">
                 <span aria-hidden className="door" />
-                FF21 Coliving · Bangalore
-              </p>
-              <h1 className="xh-title">
-                Where friends become <em className="accent">family</em>.
+                Coliving &amp; PGs in Bangalore
               </h1>
+              <p className="xh-title">
+                Where friends become <em className="accent">family</em>.
+              </p>
             </div>
             <div className="xh-collage" aria-hidden>
               {side(left, "l")}

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { HomesExplorer } from "@/components/homes-explorer";
 import { Accent, Eyebrow, FindHomeBand, IncludedTags, WhoLivesHere } from "@/components/sections";
 import { container, lead, listingTitle, pageTitle } from "@/components/ui";
+import { breadcrumbs, homesList, ldScript } from "@/lib/schema";
 import { landingName, landingPages } from "@/lib/wix-content";
 
 export const metadata: Metadata = {
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
 export default function PropertiesPage() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={ldScript({ "@graph": [breadcrumbs([["FF21", "/"], ["Homes", "/properties"]]), homesList()] })} />
       <section className={`${container} pb-20 pt-10 md:pb-28 md:pt-14`}>
         <Eyebrow>The homes</Eyebrow>
         <h1 className={`rise mt-5 ${pageTitle}`}>

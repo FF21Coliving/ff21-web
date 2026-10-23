@@ -7,6 +7,7 @@ import { FindHomeBand } from "@/components/sections";
 import { container } from "@/components/ui";
 import { WixCopy } from "@/components/wix-copy";
 import { ogImage, photos } from "@/lib/photos";
+import { breadcrumbs } from "@/lib/schema";
 import { site } from "@/lib/site";
 import { articles, getArticle, type Article } from "@/lib/wix-content";
 
@@ -55,6 +56,12 @@ export const formatDate = (d?: string | null) =>
 function jsonLd(a: Article) {
   return {
     "@context": "https://schema.org",
+    "@graph": [breadcrumbs([["FF21", "/"], ["Blog", "/blog"], [a.heading, a.url]]), blogPosting(a)],
+  };
+}
+
+function blogPosting(a: Article) {
+  return {
     "@type": "BlogPosting",
     headline: a.heading,
     description: a.description ?? undefined,

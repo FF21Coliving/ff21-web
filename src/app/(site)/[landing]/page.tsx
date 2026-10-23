@@ -8,6 +8,7 @@ import { TrackedLink } from "@/components/tracked-link";
 import { button, container, pageTitle, sectionTitle } from "@/components/ui";
 import { WixCopy } from "@/components/wix-copy";
 import { whatsappLink } from "@/lib/site";
+import { breadcrumbs, homesList, ldScript } from "@/lib/schema";
 import { getLanding, homesFor, landingName, landingPages, type Landing } from "@/lib/wix-content";
 
 // The "PG near X" and "coliving in Y" pages from the Wix site, at the same
@@ -48,6 +49,10 @@ function LandingContent({ l }: { l: Landing }) {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={ldScript({ "@graph": [breadcrumbs([["FF21", "/"], [name, l.url]]), homesList(homes, homes.length === 1 ? `The FF21 home close to ${name}` : `FF21 homes close to ${name}`)] })}
+      />
       <section className={`${container} pt-10 md:pt-14`}>
         <Eyebrow>FF21 Coliving · Bangalore</Eyebrow>
         <h1 className={`rise mt-5 max-w-4xl ${pageTitle}`}>{l.h1 ?? name}</h1>

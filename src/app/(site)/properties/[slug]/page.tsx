@@ -18,6 +18,7 @@ import { TourTrigger } from "@/components/tour-player";
 import { TrackView } from "@/components/track-view";
 import { button, container, listingTitle } from "@/components/ui";
 import { ogImage } from "@/lib/photos";
+import { pins } from "@/lib/schema";
 import { fromPrice, getProperty, properties, roomKindLabels, roomKindOf, roomKinds, tourCover, zones, type Property } from "@/lib/properties";
 import { inr, site, terms } from "@/lib/site";
 
@@ -54,6 +55,8 @@ function jsonLd(p: Property) {
         telephone: site.phone,
         ...(from ? { priceRange: `From ${inr(from)} per month` } : {}),
         address: { "@type": "PostalAddress", addressLocality: `${p.area}, Bangalore`, addressRegion: "Karnataka", addressCountry: "IN" },
+        ...(pins[p.slug] ? { geo: { "@type": "GeoCoordinates", latitude: pins[p.slug][0], longitude: pins[p.slug][1] }, hasMap: p.maps } : {}),
+        amenityFeature: included.map((i) => ({ "@type": "LocationFeatureSpecification", name: i.label, value: true })),
         parentOrganization: { "@type": "Organization", name: site.name, url: site.url },
       },
       {
@@ -240,7 +243,7 @@ async function PropertyContent({ params }: Pick<PageProps<"/properties/[slug]">,
               <section id="tour" aria-labelledby="tour-title" className="scroll-mt-40 py-12">
                 <div className="grid items-center gap-8 rounded-2xl bg-ink p-5 sm:grid-cols-[220px_minmax(0,1fr)] md:p-6">
                   <TourTrigger home={p} className="group relative block aspect-[4/5] w-full overflow-hidden rounded-xl bg-mist text-left sm:aspect-[9/16]">
-                    <Image src={tourCover(p).id} alt="" fill sizes="220px" className="object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <Image src={tourCover(p).id} alt={tourCover(p).alt} fill sizes="220px" className="object-cover transition-transform duration-700 group-hover:scale-105" />
                     <span aria-hidden className="absolute inset-0 bg-[rgb(12_24_26/0.3)]" />
                     <span className="absolute left-1/2 top-1/2 grid h-14 w-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-blue text-on-blue shadow-lg transition-transform duration-300 group-hover:scale-110">
                       <Play aria-hidden className="ml-1 h-6 w-6 fill-current" />

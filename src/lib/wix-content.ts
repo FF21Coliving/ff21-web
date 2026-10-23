@@ -21,8 +21,15 @@ export type Block =
 export type Landing = { path: string; url: string; title: string; description?: string | null; h1?: string | null; image?: string | null; blocks: Block[] };
 export type Article = { path: string; url: string; title: string; heading: string; description?: string | null; date?: string | null; image?: string | null; blocks: Block[] };
 
-export const landingPages = landingData as unknown as Landing[];
-export const articles = blogData as unknown as Article[];
+// Some Wix titles and descriptions carry line breaks or doubled spaces, which
+// crawlers read as broken tags; the words stay exactly as Wix had them.
+const tidy = <T extends { title: string; description?: string | null }>(x: T): T => ({
+  ...x,
+  title: x.title.replace(/\s+/g, " ").trim(),
+  description: x.description?.replace(/\s+/g, " ").trim() || null,
+});
+export const landingPages = (landingData as unknown as Landing[]).map(tidy);
+export const articles = (blogData as unknown as Article[]).map(tidy);
 // Titles and descriptions of Wix pages the new site has its own version of.
 export const wixMeta = metaData as unknown as Record<string, { title: string; description?: string | null }>;
 
