@@ -15,6 +15,12 @@ const nextConfig: NextConfig = {
     deviceSizes: [640, 828, 1080, 1600, 2048],
     imageSizes: [96, 256, 384],
   },
+  // Our own photos, videos and logos change only with a new file name, so
+  // browsers keep them for 30 days instead of checking on every visit.
+  async headers() {
+    const cache = [{ key: "Cache-Control", value: "public, max-age=2592000, stale-while-revalidate=86400" }];
+    return ["/photos/:path*", "/videos/:path*", "/brand/:path*", "/maps/:path*"].map((source) => ({ source, headers: cache }));
+  },
   async redirects() {
     // The old register page now opens Find my home (query string kept).
     return [

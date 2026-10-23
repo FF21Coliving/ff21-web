@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { preconnect } from "react-dom";
 import { Bricolage_Grotesque, Inter, Instrument_Serif } from "next/font/google";
 import { Analytics } from "@/components/analytics";
 import { AttributionCapture } from "@/components/attribution-capture";
@@ -47,13 +46,6 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
-  // Open connections early to the servers every page needs: Wix's image CDN
-  // (blog and area photos) and, when tracking is on, Google's and Meta's tags.
-  preconnect("https://static.wixstatic.com");
-  if (process.env.NEXT_PUBLIC_TAG_MODE === "direct") {
-    preconnect("https://www.googletagmanager.com");
-    preconnect("https://connect.facebook.net");
-  }
   return (
     <html lang="en-IN" className={`${display.variable} ${text.variable} ${serif.variable}`}>
       <body className="min-h-dvh bg-surface text-ink">
