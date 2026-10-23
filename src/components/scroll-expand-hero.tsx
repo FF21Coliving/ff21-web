@@ -3,7 +3,7 @@
 import { ArrowDown, ArrowRight, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Photo } from "@/lib/photos";
 import { button } from "./ui";
 
@@ -35,6 +35,24 @@ function CollageTile({ tile, sizes, className = "" }: { tile: Tile; sizes: strin
 export function ScrollExpandHero({ frames, left, right, founded, from }: Props) {
   const root = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
+  // The film's later frames first show at 6, 12, 18 and 24 seconds, so their
+  // photos load once the page has finished loading instead of competing with
+  // the first one (about 330 KB on a phone). Their frames are there from the
+  // start, so the cross-fade timing stays in step.
+  const [later, setLater] = useState(false);
+  useEffect(() => {
+    let idle = 0;
+    const go = () => {
+      idle = window.requestIdleCallback ? window.requestIdleCallback(() => setLater(true), { timeout: 2500 }) : window.setTimeout(() => setLater(true), 300);
+    };
+    if (document.readyState === "complete") go();
+    else window.addEventListener("load", go, { once: true });
+    return () => {
+      window.removeEventListener("load", go);
+      if (window.cancelIdleCallback) window.cancelIdleCallback(idle);
+      else window.clearTimeout(idle);
+    };
+  }, []);
 
   useEffect(() => {
     const el = root.current;
@@ -118,16 +136,18 @@ export function ScrollExpandHero({ frames, left, right, founded, from }: Props) 
             <div className="xh-zoom">
               {frames.map((photo, i) => (
                 <div key={photo.id} className="film-frame absolute inset-0">
-                  <Image
-                    src={photo.id}
-                    alt={photo.alt}
-                    fill
-                    sizes="(max-width: 767px) 220vw, 100vw"
-                    quality={90}
-                    preload={i === 0}
-                    fetchPriority={i === 0 ? "high" : "low"}
-                    className="object-cover"
-                  />
+                  {(i === 0 || later) && (
+                    <Image
+                      src={photo.id}
+                      alt={photo.alt}
+                      fill
+                      sizes="(max-width: 767px) 220vw, 100vw"
+                      quality={90}
+                      preload={i === 0}
+                      fetchPriority={i === 0 ? "high" : "low"}
+                      className="object-cover"
+                    />
+                  )}
                 </div>
               ))}
             </div>

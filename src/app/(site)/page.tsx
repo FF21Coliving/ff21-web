@@ -112,7 +112,7 @@ export default function Home() {
           action={<ArrowLink href="/find-my-home">Find my home</ArrowLink>}
         />
         <div className="mt-10 md:mt-14">
-          <HomesExplorer phoneRail />
+          <HomesExplorer phoneRail eagerCount={0} />
         </div>
       </section>
 

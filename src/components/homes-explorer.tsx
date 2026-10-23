@@ -13,7 +13,9 @@ const kinds: RoomKind[] = ["twin", "private", "pod", "studio"];
 // Area tabs (each with a photo of a home there) and room filters over the grid.
 // On phones the home page shows the homes as a sideways row (phoneRail), so
 // ten cards don't stack into ten screens.
-export function HomesExplorer({ phoneRail = false }: { phoneRail?: boolean }) {
+// `eagerCount`: how many cards load their photo straight away (0 when the
+// explorer sits below the fold, as on the homepage).
+export function HomesExplorer({ phoneRail = false, eagerCount = 4 }: { phoneRail?: boolean; eagerCount?: number }) {
   const [zone, setZone] = useState<Zone | "all">("all");
   const [room, setRoom] = useState<RoomKind | null>(null);
 
@@ -78,7 +80,7 @@ export function HomesExplorer({ phoneRail = false }: { phoneRail?: boolean }) {
         >
           {shown.map((p, i) => (
             <div key={p.slug} className={phoneRail ? "w-[80vw] shrink-0 snap-start sm:w-auto" : undefined}>
-              <HomeCard property={p} eager={i < 4} sizes="(min-width: 1536px) 22vw, (min-width: 1024px) 30vw, (min-width: 640px) 46vw, 80vw" />
+              <HomeCard property={p} eager={i < eagerCount} sizes="(min-width: 1536px) 22vw, (min-width: 1024px) 30vw, (min-width: 640px) 46vw, 80vw" />
             </div>
           ))}
         </div>

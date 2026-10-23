@@ -1,15 +1,18 @@
 "use client";
 
 import { Play } from "lucide-react";
+import Image from "next/image";
 import { useRef, useState } from "react";
 import { stories } from "@/lib/content";
 import { track } from "@/lib/track";
 
-// Residents on video, filmed upright on a phone. Only the poster loads with
-// the page (about 25 KB each); a clip (about 2 MB, 720p) loads when tapped and
+// Residents on video, filmed upright on a phone. Only the cover picture loads
+// (about 25 KB each, and only as it scrolls near: a video's poster attribute
+// would load with the page); a clip (about 2 MB, 720p) loads when tapped and
 // plays with sound and captions. Files: public/videos/story-<id>.mp4|webp|vtt.
 export function StoryVideos() {
   const [playing, setPlaying] = useState<string | null>(null);
+  const [started, setStarted] = useState<string | null>(null);
   const videos = useRef<Record<string, HTMLVideoElement | null>>({});
 
   const play = (id: string) => {
@@ -28,15 +31,22 @@ export function StoryVideos() {
               videos.current[s.id] = el;
             }}
             className="block aspect-[9/16] w-full object-cover"
-            poster={`/videos/story-${s.id}.webp`}
             preload="none"
             playsInline
             controls={playing === s.id}
-            onEnded={() => setPlaying(null)}
+            onPlaying={() => setStarted(s.id)}
+            onEnded={() => {
+              setPlaying(null);
+              setStarted(null);
+            }}
           >
             <source src={`/videos/story-${s.id}.mp4`} type="video/mp4" />
             <track kind="captions" src={`/videos/story-${s.id}.vtt`} srcLang="en" label="English" default />
           </video>
+          {/* The cover stays until the clip actually plays, so a tap never shows black. */}
+          {started !== s.id && (
+            <Image src={`/videos/story-${s.id}.webp`} alt="" fill unoptimized sizes="(min-width: 768px) 25vw, 70vw" className="pointer-events-none object-cover" />
+          )}
           {playing !== s.id && (
             <button
               type="button"
