@@ -1,4 +1,5 @@
 import Script from "next/script";
+import { LoadScript } from "./load-script";
 
 // Tags are switched by NEXT_PUBLIC_TAG_MODE:
 //   off    – nothing loads (local development, previews)
@@ -26,11 +27,11 @@ export function Analytics() {
     <>
       {gtagId && (
         <>
-          {/* Google's own snippet: an async script fetched at low priority, so
-              it never competes with the page's main photo. (next/script adds
-              a high-priority preload for it, which cost phones about a second.)
-              The queue below works before the script arrives. */}
-          <script async src={`https://www.googletagmanager.com/gtag/js?id=${gtagId}`} />
+          {/* Google's tag loads once React has taken over the page. Loaded
+              from the HTML, it ran before the first photo painted, and
+              next/script adds a high-priority preload that competes with
+              that photo. The queue below holds everything until it arrives. */}
+          <LoadScript src={`https://www.googletagmanager.com/gtag/js?id=${gtagId}`} />
           <script
             dangerouslySetInnerHTML={{
               __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}window.gtag=gtag;gtag('js',new Date());${ga4Id ? `gtag('config','${ga4Id}');` : ""}${adsId ? `gtag('config','${adsId}');` : ""}`,
