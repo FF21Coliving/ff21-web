@@ -78,7 +78,7 @@ function LandingContent({ l }: { l: Landing }) {
         </h2>
         <div className="mt-8 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
           {homes.map((p, i) => (
-            <HomeCard key={p.slug} property={p} eager={i < 2} sizes="(min-width: 1024px) 22vw, (min-width: 640px) 46vw, 92vw" />
+            <HomeCard key={p.slug} property={p} eager={i < 2} priority={i === 0} sizes="(min-width: 1024px) 22vw, (min-width: 640px) 46vw, 92vw" />
           ))}
         </div>
       </section>

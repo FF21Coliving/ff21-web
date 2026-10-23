@@ -9,13 +9,20 @@ import { inr } from "@/lib/site";
 import { highlightIcons, roomIcons } from "./icons";
 import { Tag } from "./tag";
 
-type Props = { property: Property; sizes: string; eager?: boolean };
+// `eager`: the first photo loads straight away (cards near the top).
+// `priority`: the page's main image, fetched before everything else.
+type Props = { property: Property; sizes: string; eager?: boolean; priority?: boolean };
 
 // A home at a glance: swipe through its photos, then the facts people compare.
-export function HomeCard({ property: p, sizes, eager }: Props) {
+// Only the first photo comes with the page; the other four load when someone
+// reaches for them (hover, touch, focus, a swipe), so a page of cards doesn't
+// fetch twenty photos nobody has looked at.
+export function HomeCard({ property: p, sizes, eager, priority }: Props) {
   const photos = [p.hero, ...p.gallery].slice(0, 5);
   const scroller = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
+  const [more, setMore] = useState(false);
+  const wake = () => setMore(true);
   const from = fromPrice(p);
   const kinds = roomKinds(p);
   const href = `/properties/${p.slug}`;
@@ -23,34 +30,40 @@ export function HomeCard({ property: p, sizes, eager }: Props) {
   const go = (dir: 1 | -1) => {
     const el = scroller.current;
     if (!el) return;
+    setMore(true);
     el.scrollTo({ left: (index + dir) * el.clientWidth, behavior: "smooth" });
   };
 
   return (
-    <article className="group">
+    <article className="group" onPointerEnter={wake} onFocus={wake}>
       <div className="relative">
         <Link href={href} prefetch={true} tabIndex={-1} aria-hidden className="block">
           <ViewTransition name={`home-${p.slug}`} share="morph" default="none">
             <div className="relative aspect-[20/19] overflow-hidden rounded-2xl bg-mist">
               <div
                 ref={scroller}
+                onTouchStart={wake}
                 onScroll={(e) => {
                   const el = e.currentTarget;
+                  setMore(true);
                   setIndex(Math.round(el.scrollLeft / el.clientWidth));
                 }}
                 className="no-scrollbar flex h-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain"
               >
                 {photos.map((photo, i) => (
                   <div key={photo.id} className="relative h-full w-full shrink-0 snap-center overflow-hidden">
-                    <Image
-                      src={photo.id}
-                      alt={photo.alt}
-                      fill
-                      sizes={sizes}
-                      quality={85}
-                      loading={eager && i === 0 ? "eager" : "lazy"}
-                      className="object-cover transition-transform duration-[900ms] ease-[var(--ease-standard)] group-hover:scale-105"
-                    />
+                    {(i === 0 || more) && (
+                      <Image
+                        src={photo.id}
+                        alt={photo.alt}
+                        fill
+                        sizes={sizes}
+                        quality={85}
+                        loading={(eager || priority) && i === 0 ? "eager" : "lazy"}
+                        {...(priority && i === 0 ? { preload: true, fetchPriority: "high" as const } : {})}
+                        className="object-cover transition-transform duration-[900ms] ease-[var(--ease-standard)] group-hover:scale-105"
+                      />
+                    )}
                   </div>
                 ))}
               </div>
