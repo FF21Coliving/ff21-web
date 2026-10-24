@@ -34,10 +34,15 @@ Push the branch and open a pull request into `main`. Then:
 - **Vercel** builds a preview and comments its link. Open it on a phone and
   a laptop. Previews are hidden from search, keep the tags off, and never
   send leads to Zoho.
-- **A reviewer** approves. One approval is needed, from a code owner
-  (`.github/CODEOWNERS`).
+- **The review agent** (Claude, `.github/workflows/review.yml`) reads the
+  change, comments on problems line by line, and posts a verdict. A
+  blocking verdict fails its check.
 
 ## 4. Merge
+
+Only Madhvik merges into `main`. GitHub allows nobody else, and the merge
+button stays locked until CI, Vercel's build and the review agent pass.
+Claude never merges: it opens the pull request and asks.
 
 Squash and merge. Vercel deploys to production within about two minutes.
 The *Production check* workflow then runs the read-only `@smoke` tests
@@ -54,8 +59,8 @@ A failed *Production check* emails the repo's admins. Its log names the
 page and the problem; the `test-results` artifact has a trace you can open
 with `npx playwright show-trace`.
 
-Admins can merge without a review in an emergency. Use that only to undo a
-broken change, and say so in the pull request.
+The checks apply to admins too: the way out of an emergency is the
+rollback above, never a merge that skips the checks.
 
 ## Rules the tests enforce
 
@@ -65,8 +70,9 @@ broken change, and say so in the pull request.
 - **Facts come from the team.** Prices, meals, the FFer count and policies
   live in `src/lib/site.ts`, `properties.ts` and `content.ts`, with the date
   they were confirmed.
-- **No secrets in the code.** Keys live in Vercel's environment variables.
-  The repository is public.
+- **No secrets in the code.** Keys live in Vercel's environment variables
+  (and the review agent's in GitHub's Actions secrets). The repository is
+  public.
 - **Tests never post leads or load the tags against the live site.**
 
 ## Launch (once)

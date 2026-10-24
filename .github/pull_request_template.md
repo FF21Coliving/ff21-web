@@ -10,4 +10,4 @@
 - [ ] If prices, meals or other facts changed: the team confirmed them
 - [ ] No keys, tokens or personal data in the code
 
-CI must be green and one reviewer must approve before this can merge.
+CI, Vercel's build and the review agent must pass. Madhvik merges.
