@@ -2,7 +2,7 @@ import { expect, test } from "./fixtures";
 import { keyPages, openClean } from "./helpers";
 
 // @smoke tests are read-only and also run against the live site after every
-// production deploy and every hour (.github/workflows/production-check.yml).
+// production deploy and every morning (.github/workflows/production-check.yml).
 
 for (const path of keyPages) {
   test(`${path} loads cleanly @smoke`, async ({ page }) => {
