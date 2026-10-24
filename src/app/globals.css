@@ -101,6 +101,23 @@
   }
 }
 
+/* Long pages: whatever sits below the first screen skips style, layout and
+   paint until it comes near the viewport, so the first frame renders only
+   what's on screen. Rendering the whole homepage first held its first paint
+   back by about a second in PageSpeed's phone test. The height is a
+   placeholder until a section has rendered once. Paint containment clips
+   anything drawn outside the element, so use it on full-width blocks. */
+@utility cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+@utility cv-children {
+  & > * {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 900px;
+  }
+}
+
 /* Motion: quiet and slow. Everything rests visible; motion is decoration. */
 @media (prefers-reduced-motion: no-preference) {
   .rise {

@@ -30,7 +30,7 @@ const areaPages: [string, string][] = [
 
 export function SiteFooter() {
   return (
-    <footer className="relative overflow-hidden bg-mist">
+    <footer className="cv-auto relative overflow-hidden bg-mist">
       <span aria-hidden className="pebble absolute -right-32 -top-24 h-[420px] w-[460px] bg-blue-50" />
       <Splash className="absolute right-[30%] top-20 hidden h-20 w-20 rotate-12 lg:block" />
       <div className={`${container} relative pb-28 pt-16 md:pb-12 md:pt-28`}>

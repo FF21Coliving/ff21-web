@@ -239,7 +239,7 @@ export default async function PropertyPage({ params }: PageProps<"/properties/[s
               )}
             </section>
 
-            <section id="offers" aria-labelledby="offers-title" className="scroll-mt-40 py-12">
+            <section id="offers" aria-labelledby="offers-title" className="cv-auto scroll-mt-40 py-12">
               <h2 id="offers-title" className={listingTitle}>What every FF21 home offers</h2>
               <div className="mt-7">
                 <AmenityList />
@@ -272,7 +272,7 @@ export default async function PropertyPage({ params }: PageProps<"/properties/[s
               </section>
             )}
 
-            <section id="where" aria-labelledby="where-title" className="scroll-mt-40 py-12">
+            <section id="where" aria-labelledby="where-title" className="cv-auto scroll-mt-40 py-12">
               <h2 id="where-title" className={listingTitle}>Where you&apos;ll be</h2>
               <a
                 href={p.maps}
@@ -308,7 +308,7 @@ export default async function PropertyPage({ params }: PageProps<"/properties/[s
               )}
             </section>
 
-            <section id="know" aria-labelledby="know-title" className="scroll-mt-40 py-12">
+            <section id="know" aria-labelledby="know-title" className="cv-auto scroll-mt-40 py-12">
               <h2 id="know-title" className={listingTitle}>Things to know</h2>
               <dl className="mt-7 grid gap-x-10 gap-y-7 sm:grid-cols-2">
                 {terms.map((t) => {
@@ -337,7 +337,7 @@ export default async function PropertyPage({ params }: PageProps<"/properties/[s
         </div>
       </div>
 
-      <section aria-labelledby="reviews" className={`${container} py-16 md:py-24`}>
+      <section aria-labelledby="reviews" className={`cv-auto ${container} py-16 md:py-24`}>
         <SectionHeader
           id="reviews"
           eyebrow="FFers on FF21"
@@ -355,7 +355,7 @@ export default async function PropertyPage({ params }: PageProps<"/properties/[s
         </div>
       </section>
 
-      <section aria-labelledby="more" className={`${container} pb-28 md:pb-24`}>
+      <section aria-labelledby="more" className={`cv-auto ${container} pb-28 md:pb-24`}>
         <SectionHeader id="more" eyebrow="Keep exploring" title={`More homes near ${zone.label}.`} lead="And across Bangalore." />
         <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
           {others.map((o) => (

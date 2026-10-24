@@ -78,121 +78,124 @@ export default function Home() {
         from={inrK(prices.twinFrom)}
       />
 
-      <ValueProps />
+      {/* Below the opening, each block renders as it scrolls near (cv-children). */}
+      <div className="cv-children">
+        <ValueProps />
 
-      <IncludedBand />
+        <IncludedBand />
 
-      <section id="how" aria-labelledby="how-title" className={`scroll-mt-24 ${sectionY}`}>
-        <div className={container}>
-          <SectionHeader
-            id="how-title"
-            eyebrow="Moving in"
-            title={
-              <>
-                Four steps, and you&apos;re <Accent>home</Accent>.
-              </>
-            }
-            lead={`Visits ${site.visitHours}, in person or on video.`}
-          />
-          <div className="mt-12 md:mt-14">
-            <MovingIn />
-          </div>
-        </div>
-      </section>
-
-      <section aria-labelledby="homes" className={`${container} ${sectionY}`}>
-        <SectionHeader
-          id="homes"
-          eyebrow="The homes"
-          title={
-            <>
-              A <Accent>home</Accent> near where you work.
-            </>
-          }
-          lead="Every home comes furnished, with meals, WiFi, housekeeping and laundry in the rent. Pick an area, or let us match you."
-          action={<ArrowLink href="/find-my-home">Find my home</ArrowLink>}
-        />
-        <div className="mt-10 md:mt-14">
-          <HomesExplorer phoneRail eagerCount={0} />
-        </div>
-      </section>
-
-      <WhoLivesHere />
-
-      <FindHomeBand />
-
-      <PhotoMoment
-        photo={photos.rooftopNight}
-        eyebrow="Life at FF21"
-        title={
-          <>
-            Rooftops, festivals and <Accent tone="light">friends for life</Accent>.
-          </>
-        }
-        body="Game rooms, lounges and rooftops to end the day on, with the people you live with."
-      />
-
-      <ToursSection />
-
-      <LifeSection />
-
-      <section aria-labelledby="inside-title" className={`${container} ${sectionY}`}>
-        <SectionHeader
-          id="inside-title"
-          eyebrow="Inside every home"
-          title={
-            <>
-              More than a room, and it&apos;s all in the <Accent>rent</Accent>.
-            </>
-          }
-          lead="Home-like meals, game rooms, places to work and security around the clock. Prices include taxes and charges."
-        />
-        <div className="mt-12 md:mt-14">
-          <AmenitiesBento />
-        </div>
-      </section>
-
-
-      <section aria-labelledby="reviews-title" className={`bg-blue-50 ${sectionY}`}>
-        <div className={container}>
-          <SectionHeader
-            id="reviews-title"
-            eyebrow="FFers on FF21"
-            title={
-              <>
-                In their own <Accent>words</Accent>.
-              </>
-            }
-          />
-          <Numbers className="mt-10 md:mt-12" />
-          <div className="mt-5 md:mt-6">
-            <StoryVideos />
-          </div>
-          <div className="mt-5">
-            <ReviewsFeature />
-          </div>
-        </div>
-      </section>
-
-      <section id="faq" aria-labelledby="faq-title" className={`${container} scroll-mt-24 ${sectionY}`}>
-        <div className="grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20">
-          <div className="lg:sticky lg:top-32 lg:self-start">
+        <section id="how" aria-labelledby="how-title" className={`scroll-mt-24 ${sectionY}`}>
+          <div className={container}>
             <SectionHeader
-              id="faq-title"
-              eyebrow="Questions"
+              id="how-title"
+              eyebrow="Moving in"
               title={
                 <>
-                  Rent, food, booking and <Accent>moving out</Accent>.
+                  Four steps, and you&apos;re <Accent>home</Accent>.
                 </>
               }
-              lead="In plain words. Anything else, ask us on WhatsApp."
+              lead={`Visits ${site.visitHours}, in person or on video.`}
             />
+            <div className="mt-12 md:mt-14">
+              <MovingIn />
+            </div>
           </div>
-          <Faq />
-        </div>
-      </section>
+        </section>
 
-      <VisitInvite />
+        <section aria-labelledby="homes" className={`${container} ${sectionY}`}>
+          <SectionHeader
+            id="homes"
+            eyebrow="The homes"
+            title={
+              <>
+                A <Accent>home</Accent> near where you work.
+              </>
+            }
+            lead="Every home comes furnished, with meals, WiFi, housekeeping and laundry in the rent. Pick an area, or let us match you."
+            action={<ArrowLink href="/find-my-home">Find my home</ArrowLink>}
+          />
+          <div className="mt-10 md:mt-14">
+            <HomesExplorer phoneRail eagerCount={0} />
+          </div>
+        </section>
+
+        <WhoLivesHere />
+
+        <FindHomeBand />
+
+        <PhotoMoment
+          photo={photos.rooftopNight}
+          eyebrow="Life at FF21"
+          title={
+            <>
+              Rooftops, festivals and <Accent tone="light">friends for life</Accent>.
+            </>
+          }
+          body="Game rooms, lounges and rooftops to end the day on, with the people you live with."
+        />
+
+        <ToursSection />
+
+        <LifeSection />
+
+        <section aria-labelledby="inside-title" className={`${container} ${sectionY}`}>
+          <SectionHeader
+            id="inside-title"
+            eyebrow="Inside every home"
+            title={
+              <>
+                More than a room, and it&apos;s all in the <Accent>rent</Accent>.
+              </>
+            }
+            lead="Home-like meals, game rooms, places to work and security around the clock. Prices include taxes and charges."
+          />
+          <div className="mt-12 md:mt-14">
+            <AmenitiesBento />
+          </div>
+        </section>
+
+
+        <section aria-labelledby="reviews-title" className={`bg-blue-50 ${sectionY}`}>
+          <div className={container}>
+            <SectionHeader
+              id="reviews-title"
+              eyebrow="FFers on FF21"
+              title={
+                <>
+                  In their own <Accent>words</Accent>.
+                </>
+              }
+            />
+            <Numbers className="mt-10 md:mt-12" />
+            <div className="mt-5 md:mt-6">
+              <StoryVideos />
+            </div>
+            <div className="mt-5">
+              <ReviewsFeature />
+            </div>
+          </div>
+        </section>
+
+        <section id="faq" aria-labelledby="faq-title" className={`${container} scroll-mt-24 ${sectionY}`}>
+          <div className="grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20">
+            <div className="lg:sticky lg:top-32 lg:self-start">
+              <SectionHeader
+                id="faq-title"
+                eyebrow="Questions"
+                title={
+                  <>
+                    Rent, food, booking and <Accent>moving out</Accent>.
+                  </>
+                }
+                lead="In plain words. Anything else, ask us on WhatsApp."
+              />
+            </div>
+            <Faq />
+          </div>
+        </section>
+
+        <VisitInvite />
+      </div>
     </>
   );
 }

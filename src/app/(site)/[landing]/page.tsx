@@ -83,28 +83,31 @@ function LandingContent({ l }: { l: Landing }) {
         </div>
       </section>
 
-      <article className={`${container} pb-20 pt-14 md:pb-28 md:pt-20`}>
-        <WixCopy blocks={l.blocks} className="max-w-3xl" />
-      </article>
+      {/* Below the homes, each block renders as it scrolls near (cv-children). */}
+      <div className="cv-children">
+        <article className={`${container} pb-20 pt-14 md:pb-28 md:pt-20`}>
+          <WixCopy blocks={l.blocks} className="max-w-3xl" />
+        </article>
 
-      {nearby.length > 0 && (
-        <nav aria-labelledby="nearby-areas" className={`${container} pb-20 md:pb-28`}>
-          <h2 id="nearby-areas" className="font-display text-[22px] font-bold tracking-[-0.02em] text-ink md:text-[26px]">
-            Nearby areas
-          </h2>
-          <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-3">
-            {nearby.map((n) => (
-              <li key={n.path}>
-                <Link href={n.url} className="text-[15px] text-blue-ink transition-colors hover:text-ink">
-                  {landingName(n)}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      )}
+        {nearby.length > 0 && (
+          <nav aria-labelledby="nearby-areas" className={`${container} pb-20 md:pb-28`}>
+            <h2 id="nearby-areas" className="font-display text-[22px] font-bold tracking-[-0.02em] text-ink md:text-[26px]">
+              Nearby areas
+            </h2>
+            <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-3">
+              {nearby.map((n) => (
+                <li key={n.path}>
+                  <Link href={n.url} className="text-[15px] text-blue-ink transition-colors hover:text-ink">
+                    {landingName(n)}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
 
-      <FindHomeBand />
+        <FindHomeBand />
+      </div>
     </>
   );
 }
