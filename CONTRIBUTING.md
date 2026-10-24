@@ -46,7 +46,7 @@ Claude never merges: it opens the pull request and asks.
 
 Squash and merge. Vercel deploys to production within about two minutes.
 The *Production check* workflow then runs the read-only `@smoke` tests
-against the live site. They run again every hour.
+against the live site. They run again every morning at 9:00 India time.
 
 ## If production breaks
 
@@ -82,4 +82,4 @@ When www.ff21.in points at Vercel:
   and `NEXT_PUBLIC_SITE_URL=https://www.ff21.in`, then redeploy.
 - In GitHub → Settings → Variables → Actions, set the repository variables
   `PRODUCTION_URL=https://www.ff21.in` and `EXPECT_INDEXABLE=1`, so the
-  hourly check watches the real domain and expects it to be indexable.
+  daily check watches the real domain and expects it to be indexable.
