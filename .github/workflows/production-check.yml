@@ -24,7 +24,7 @@ jobs:
       BASE_URL: ${{ vars.PRODUCTION_URL || 'https://ff21-web.vercel.app' }}
       EXPECT_INDEXABLE: ${{ vars.EXPECT_INDEXABLE || '0' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.deployment.sha || github.sha }}
       - uses: actions/setup-node@v4
