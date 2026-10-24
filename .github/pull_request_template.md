@@ -10,4 +10,4 @@
 - [ ] If prices, meals or other facts changed: the team confirmed them
 - [ ] No keys, tokens or personal data in the code
 
-CI, Vercel's build and the review agent must pass. Madhvik merges.
+CI and Vercel's build must pass, and the change is reviewed. Madhvik merges.
