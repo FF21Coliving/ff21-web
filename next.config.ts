@@ -47,6 +47,32 @@ const nextConfig: NextConfig = {
         // In the old site's menu (not in its sitemap), and its blog feed.
         ["/best-coliving-spaces-bangalore", "/properties"],
         ["/blog-feed.xml", "/blog"],
+        // Old pages and misspellings Search Console still shows (24 Oct
+        // 2026), some with clicks, that aren't in Wix's sitemap.
+        ["/sjr-sarjapur", "/properties/sjr-sarjapur"],
+        ["/ff21-indiranagar-kora-koramangala", "/properties/kora-koramangala"],
+        ["/ff21-btm-layout-area-kora-kora", "/properties/kora-koramangala"],
+        ["/pg-in-indiranager-layout", "/pg-in-indiranagar"],
+        ["/pg-in-madiwala-layout", "/pg-in-madiwala"],
+        ["/coliving-pg-near-mahadevpura", "/coliving-pg-near-mahadevapura"],
+        ["/coliving-pg-near-itpl", "/coliving-pgs-near-itpl"],
+        ["/pg-near-hoodi-bangalore", "/pg-near-hoodi"],
+        ["/near-marathahalli", "/pg-near-marathahalli"],
+        ["/monthly-stay", "/monthly-stay-in-bangalore"],
+        ["/monthly-stay-bangalore", "/monthly-stay-in-bangalore"],
+        ["/luxury-pg-in-bangarkalore", "/luxury-pg-in-bangalore"],
+        ["/things-to-do-in-indiranagar-bangalore", "/blog/things-to-do-in-indiranagar-bangalore"],
+        ["/blog/best-go-karting-tracks-bangalore", "/blog/best-go-karting-tracks-in-bangalore"],
+        ["/blog/instagrammable-spots-in-bangalore", "/blog/instagrammable-places-in-bangalore"],
+        ["/blog/what-is-the-difference-between-hostel-and-pg", "/blog/what-is-the-difference-between-pg-and-hostel"],
+        ["/blog/upcoming-top-concerts-in-india", "/blog/upcoming-top-concerts-in-india-2025"],
+        ["/careers", "/about"],
+        // Wix's sitemaps, still listed in Search Console, point to ours.
+        ["/dynamic-blog-sitemap.xml", "/sitemap.xml"],
+        ["/blog-posts-sitemap.xml", "/sitemap.xml"],
+        ["/blog-categories-sitemap.xml", "/sitemap.xml"],
+        ["/pages-sitemap.xml", "/sitemap.xml"],
+        ["/dynamic-blog_p_9fb3b4ab_3c51_48c8_863a_7de194fdf1dd_0_5000-sitemap.xml", "/sitemap.xml"],
       ].map(([source, destination]) => ({ source, destination, permanent: true })),
     ];
   },
