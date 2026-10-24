@@ -1,0 +1,48 @@
+# Watches the live site: after every production deploy (all @smoke tests,
+# including every old URL) and every hour (pages, facts and robots.txt).
+# Read-only: no form is submitted and the ad and analytics tags are blocked.
+# A failure emails the repo's admins; see CONTRIBUTING.md for what to do.
+name: Production check
+
+on:
+  deployment_status:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Live site
+    if: github.event_name != 'deployment_status' || (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Repository variables, changed at launch (CONTRIBUTING.md, "Launch").
+      BASE_URL: ${{ vars.PRODUCTION_URL || 'https://ff21-web.vercel.app' }}
+      EXPECT_INDEXABLE: ${{ vars.EXPECT_INDEXABLE || '0' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Smoke tests
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            npx playwright test --grep @smoke --grep-invert @after-deploy
+          else
+            npx playwright test --grep @smoke
+          fi
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: test-results
+          retention-days: 7

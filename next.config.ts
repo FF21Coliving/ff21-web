@@ -67,6 +67,7 @@ const nextConfig: NextConfig = {
         ["/blog/what-is-the-difference-between-hostel-and-pg", "/blog/what-is-the-difference-between-pg-and-hostel"],
         ["/blog/upcoming-top-concerts-in-india", "/blog/upcoming-top-concerts-in-india-2025"],
         ["/careers", "/about"],
+        ["/blank", "/"],
         // Posts taken down on 24 Oct 2026 (see takenDown in wix-content.ts).
         ["/blog/pg-near-bagmane-tech-park-for-ladies-under-12000", "/coliving-pg-near-bagmane-tech-park"],
         ["/blog/pg-near-manyata-tech-park-under-12000-bangalore", "/coliving-pg-near-manyata-tech-park"],

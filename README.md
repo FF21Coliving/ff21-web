@@ -13,6 +13,12 @@ cp .env.example .env.local   # then set SITE_ENV=development
 npm run dev                  # http://localhost:3000
 ```
 
+## Changing the site
+
+Every change goes through a pull request, tests and a review before it reaches
+production: see [CONTRIBUTING.md](CONTRIBUTING.md). `npm run check` runs
+everything CI runs.
+
 ## Where things live
 
 | What | Where |
