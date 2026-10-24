@@ -12,6 +12,7 @@ import {
   IncludedBand,
   LifeSection,
   MovingIn,
+  Numbers,
   PhotoMoment,
   ReviewsFeature,
   SectionHeader,
@@ -41,7 +42,7 @@ const jsonLd = {
       telephone: site.phone,
       foundingDate: String(site.founded),
       description: `Coliving homes for young professionals and students in Bangalore since ${site.founded}: furnished rooms with meals, WiFi, housekeeping and laundry in one rent.`,
-      sameAs: [site.instagram, site.facebook],
+      sameAs: [site.instagram, site.facebook, site.linkedin, site.youtube],
       areaServed: { "@type": "City", name: "Bangalore" },
       contactPoint: { "@type": "ContactPoint", telephone: site.phone, email: site.email, contactType: "sales", areaServed: "IN", availableLanguage: ["en", "hi", "kn"] },
       address: { "@type": "PostalAddress", streetAddress: "672, Ferns Paradise", addressLocality: "Bangalore", addressRegion: "Karnataka", postalCode: "560037", addressCountry: "IN" },
@@ -163,7 +164,8 @@ export default function Home() {
               </>
             }
           />
-          <div className="mt-12 md:mt-14">
+          <Numbers className="mt-10 md:mt-12" />
+          <div className="mt-5 md:mt-6">
             <StoryVideos />
           </div>
           <div className="mt-5">
@@ -180,7 +182,7 @@ export default function Home() {
               eyebrow="Questions"
               title={
                 <>
-                  Booking, deposits and <Accent>moving out</Accent>.
+                  Rent, food, booking and <Accent>moving out</Accent>.
                 </>
               }
               lead="In plain words. Anything else, ask us on WhatsApp."

@@ -28,6 +28,9 @@ export type Property = {
   // The lowest rent at this home, per person per month, all-inclusive.
   // Confirmed by Madhvik on 17 Oct 2026.
   from: number;
+  // Every home serves breakfast and dinner Monday to Friday; these two serve
+  // weekend meals too (confirmed 24 Oct 2026).
+  weekendMeals?: boolean;
   hero: Photo;
   gallery: Photo[];
   // The home's own Google Maps listing (looked up 17 Oct 2026).
@@ -46,6 +49,7 @@ const pod: Room = { name: "Pod", description: "A compact private pod of your own
 export const properties: Property[] = [
   {
     code: "ITP",
+    weekendMeals: true,
     from: 12000,
     slug: "itp-whitefield",
     area: "Whiterose Layout",
@@ -77,6 +81,7 @@ export const properties: Property[] = [
   },
   {
     code: "WFD",
+    weekendMeals: true,
     from: 14000,
     slug: "wfd-whitefield",
     area: "Whitefield",
@@ -411,3 +416,7 @@ export function nearPlace(p: Property, place: string) {
 export function homesNear(place: string) {
   return properties.filter((p) => nearPlace(p, place));
 }
+
+// What a home serves, in one line.
+export const mealsAt = (p: Property) =>
+  p.weekendMeals ? "Breakfast and dinner every day, weekends included." : "Breakfast and dinner, Monday to Friday.";

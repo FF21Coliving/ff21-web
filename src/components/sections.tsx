@@ -117,7 +117,7 @@ export function IncludedBand() {
             One rent. <Accent>Everything</Accent> in it.
           </h2>
           <p className={`mt-5 max-w-xl ${lead}`}>
-            Your furnished room, meals, WiFi, housekeeping, laundry and utilities come in one monthly rent, with taxes and charges included. No bills to split and no cooking.
+            Your furnished room, meals, WiFi, housekeeping, laundry and utilities come in one monthly rent, with taxes and charges included. No bills to split, and weekday breakfast and dinner are made for you.
           </p>
           <ul className="mt-7 grid max-w-xl grid-cols-2 gap-3 md:mt-8">
             {[
@@ -705,6 +705,26 @@ export function ReviewsFeature() {
         </div>
       </div>
     </div>
+  );
+}
+
+// FF21 in numbers: how many people have lived here, and the basics.
+export function Numbers({ className = "" }: { className?: string }) {
+  const stats = [
+    { value: site.residents.toLocaleString("en-IN"), label: "FFers so far, and counting" },
+    { value: String(properties.length), label: "homes across Bangalore" },
+    { value: String(site.founded), label: "the year FF21 opened" },
+    { value: inrK(prices.twinFrom), label: "starting rent, everything included" },
+  ];
+  return (
+    <dl className={`grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5 ${className}`}>
+      {stats.map((s) => (
+        <div key={s.label} className="flex flex-col-reverse rounded-2xl bg-surface p-5 md:p-7">
+          <dt className="mt-2 text-[14.5px] leading-5 text-ink-2 md:text-[15.5px]">{s.label}</dt>
+          <dd className="tabular font-display text-[34px] font-extrabold leading-none tracking-[-0.03em] text-ink md:text-[48px]">{s.value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 

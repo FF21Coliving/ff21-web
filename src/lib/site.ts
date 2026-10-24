@@ -13,6 +13,10 @@ export const site = {
   whatsapp: "919353162534",
   instagram: "https://www.instagram.com/ff21_in/",
   facebook: "https://www.facebook.com/FF21INDIA",
+  linkedin: "https://www.linkedin.com/company/sherwood-longstay-pvt-ltd/",
+  youtube: "https://www.youtube.com/@ff21india",
+  // FFers who have lived at FF21 so far, from the team on 24 Oct 2026.
+  residents: 12559,
   owner: "Sherwood Longstay Services LLP",
   address: "672, Ferns Paradise, Bangalore 560037",
   founded: 2017,
@@ -23,6 +27,7 @@ export const site = {
 export const prices = {
   // The lowest rent across all homes (FF21 ITP), confirmed 17 Oct 2026.
   twinFrom: 12000,
+  // The lowest rent for a space of your own: FF21 PODS' single pod.
   privateFrom: 14000,
   bookingAmount: 6000,
   moveOutCharge: 2999,

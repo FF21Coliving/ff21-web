@@ -9,10 +9,10 @@ type Prop = { icon: LucideIcon; title: string; body: string };
 // care of, and what living with people gives you.
 const functional: Prop[] = [
   { icon: LampFloor, title: "Aesthetic Rooms", body: "Designed, furnished rooms you'll want to come home to." },
-  { icon: UtensilsCrossed, title: "Food Included", body: "Home-like meals every day, in the rent." },
+  { icon: UtensilsCrossed, title: "Food Included", body: "Breakfast and dinner on weekdays, in the rent." },
   { icon: Sparkles, title: "Daily Housekeeping", body: "Your room cleaned every day." },
   { icon: Wifi, title: "WiFi and Laundry", body: "Fast WiFi for work, and laundry taken care of." },
-  { icon: Coffee, title: "Zero Chores", body: "No cooking, no cleaning, no bills to split." },
+  { icon: Coffee, title: "Zero Chores", body: "No cleaning, no bills to split, no cooking on weekdays." },
 ];
 
 const community: Prop[] = [

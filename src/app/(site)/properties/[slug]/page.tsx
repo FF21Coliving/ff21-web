@@ -18,7 +18,7 @@ import { TrackView } from "@/components/track-view";
 import { button, container, listingTitle } from "@/components/ui";
 import { ogImage } from "@/lib/photos";
 import { pins } from "@/lib/schema";
-import { fromPrice, getProperty, properties, roomKindLabels, roomKindOf, roomKinds, tourCover, zones, type Property } from "@/lib/properties";
+import { fromPrice, getProperty, mealsAt, properties, roomKindLabels, roomKindOf, roomKinds, tourCover, zones, type Property } from "@/lib/properties";
 import { inr, site, terms } from "@/lib/site";
 import { areaPagesFor, landingName } from "@/lib/wix-content";
 
@@ -185,6 +185,9 @@ export default async function PropertyPage({ params }: PageProps<"/properties/[s
                     </li>
                   ))}
                 </ul>
+                <p className="mt-6 text-[15px] text-ink-2">
+                  <span className="font-semibold text-ink">Meals at FF21 {p.code}:</span> {mealsAt(p)}
+                </p>
               </div>
 
               <ul className="mt-10 space-y-6">

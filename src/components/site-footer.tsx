@@ -95,6 +95,8 @@ export function SiteFooter() {
               <li><Link href="/blog" className={item}>Blog</Link></li>
               <li><a href={site.instagram} target="_blank" rel="noopener noreferrer" className={item}>Instagram</a></li>
               <li><a href={site.facebook} target="_blank" rel="noopener noreferrer" className={item}>Facebook</a></li>
+              <li><a href={site.linkedin} target="_blank" rel="noopener noreferrer" className={item}>LinkedIn</a></li>
+              <li><a href={site.youtube} target="_blank" rel="noopener noreferrer" className={item}>YouTube</a></li>
             </ul>
           </div>
           <div className="col-span-2 sm:col-span-1">

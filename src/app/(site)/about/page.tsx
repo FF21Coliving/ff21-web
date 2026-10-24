@@ -9,7 +9,7 @@ import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `About FF21: coliving in Bangalore since ${site.founded}`,
-  description: `FF21 opened in ${site.founded} with 33 rooms. Today it runs coliving homes across Bangalore for young professionals and students.`,
+  description: `FF21 opened in ${site.founded} with 33 rooms. Today it runs ${properties.length} coliving homes across Bangalore, and ${site.residents.toLocaleString("en-IN")} FFers have lived in them.`,
   alternates: { canonical: "/about" },
 };
 
@@ -17,6 +17,7 @@ const milestones = [
   { value: String(site.founded), label: "FF21 opens in one building" },
   { value: "33", label: "rooms in that first home" },
   { value: String(properties.length), label: "homes across Bangalore today" },
+  { value: site.residents.toLocaleString("en-IN"), label: "FFers so far, and counting" },
 ];
 
 export default function AboutPage() {
@@ -32,7 +33,7 @@ export default function AboutPage() {
             In {site.founded}, people moving to Bangalore for a new job had two choices: a PG, or a flat of their own. Our founder, Ajay Nemani, saw room for a third. FF21 opened that year in one building with 33 rooms.
           </p>
           <p>
-            Today there are {properties.length} FF21 homes across the city, for young professionals and students who want a place that comes with friends. The idea hasn&apos;t changed: good rooms, good food, and people who turn into family.
+            Today there are {properties.length} FF21 homes across the city, and {site.residents.toLocaleString("en-IN")} FFers have lived in them: young professionals and students who wanted a place that comes with friends. The idea hasn&apos;t changed: good rooms, good food, and people who turn into family.
           </p>
         </div>
       </section>
@@ -41,11 +42,11 @@ export default function AboutPage() {
         <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-mist md:aspect-[21/9]">
           <Image src={photos.loungeBright.id} alt={photos.loungeBright.alt} fill preload sizes="(min-width: 1440px) 1280px, 100vw" quality={90} className="object-cover" />
         </div>
-        <dl className="mt-5 grid gap-5 sm:grid-cols-3">
+        <dl className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {milestones.map((m) => (
             <div key={m.label} className="flex flex-col-reverse rounded-2xl bg-mist p-7 md:p-8">
               <dt className="mt-3 text-[16px] text-ink-2">{m.label}</dt>
-              <dd className="font-display text-[56px] font-extrabold leading-none tracking-[-0.04em] text-ink md:text-[76px]">{m.value}</dd>
+              <dd className="tabular font-display text-[56px] font-extrabold leading-none tracking-[-0.04em] text-ink md:text-[64px]">{m.value}</dd>
             </div>
           ))}
         </dl>

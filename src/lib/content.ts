@@ -1,9 +1,11 @@
 // Copy carried over from ff21.in and tightened. Facts only.
+import { properties } from "./properties";
+import { inr, prices, site } from "./site";
 
 export type AmenityIcon = "meals" | "wifi" | "housekeeping" | "work" | "play" | "security" | "community" | "app";
 
 export const amenities: { icon: AmenityIcon; title: string; body: string }[] = [
-  { icon: "meals", title: "Meals included", body: "Home-like meals every day, in the rent." },
+  { icon: "meals", title: "Meals included", body: "Breakfast and dinner on weekdays, in the rent." },
   { icon: "wifi", title: "High-speed WiFi", body: "Fast enough for calls, streaming and working from home." },
   { icon: "housekeeping", title: "Housekeeping and laundry", body: "Rooms cleaned and laundry done for you." },
   { icon: "work", title: "Places to work", body: "Work spots around the home, away from your bed." },
@@ -45,10 +47,28 @@ export const stories = [
   { id: "two-years", name: "Siri", note: "almost two years at FF21", quote: "It's always something new to learn every day." },
 ];
 
+// Twelve, in the order people ask them. Meals, genders and the resident count
+// confirmed by the team on 24 Oct 2026.
 export const faqs = [
   {
     q: "What's included in the rent?",
-    a: "Your furnished room, meals, WiFi, housekeeping, laundry, utilities and access to the common spaces. Prices include taxes and charges.",
+    a: "Your furnished room, breakfast and dinner on weekdays, WiFi, housekeeping, laundry, utilities and access to the common spaces. Prices include taxes and charges.",
+  },
+  {
+    q: "How much is the rent?",
+    a: `A bed in a twin room starts at ${inr(prices.twinFrom)} a month, and a pod of your own at ${inr(prices.privateFrom)}, with meals, taxes and charges included. Each home's page lists its rooms and prices.`,
+  },
+  {
+    q: "Which meals are included?",
+    a: "Breakfast and dinner, Monday to Friday, at every FF21 home. FF21 ITP and FF21 WFD serve meals on weekends too.",
+  },
+  {
+    q: "Are FF21 homes for men, women or both?",
+    a: "FF21 homes are open to all genders.",
+  },
+  {
+    q: "Where are FF21's homes?",
+    a: `${properties.length} homes across Bangalore: in Whitefield, Marathahalli, Mahadevapura, HBR Layout, Koramangala and Sarjapur, close to ITPL, EPIP Zone, Bagmane, Manyata and Ecospace.`,
   },
   {
     q: "Do I have to pay a deposit?",
@@ -63,12 +83,20 @@ export const faqs = [
     a: "Three months from your check-in date.",
   },
   {
-    q: "How do I move out?",
-    a: "Give 30 days' notice. Final billing runs 30 days from your notice. There is a move-out charge of ₹2,999 + GST, and refunds are made within 90 working days.",
+    q: "What is the notice period?",
+    a: "30 days. Final billing runs 30 days from your notice. There is a move-out charge of ₹2,999 + GST, and refunds are made within 90 working days.",
   },
   {
     q: "When can I visit?",
     a: "Any day between 9am and 8pm. If you're moving from another city, ask us for a video tour.",
+  },
+  {
+    q: "Is it safe?",
+    a: "Every home has CCTV and security staff around the clock.",
+  },
+  {
+    q: "Who lives at FF21?",
+    a: `Young working professionals and students. ${site.residents.toLocaleString("en-IN")} FFers have lived at FF21 since ${site.founded}, and counting.`,
   },
 ];
 
