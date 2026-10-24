@@ -41,7 +41,14 @@ const withAlts = (blocks: Block[]): Block[] =>
 const retired = new Set(["3a848c_cd0a5381b37143ed89554cbe4a3ac550~mv2.png"]);
 const firstPhoto = (blocks: Block[]) => blocks.flatMap((b) => (b.t === "img" ? [b.id] : []))[0] ?? null;
 export const landingPages = (landingData as unknown as Landing[]).map(tidy);
-export const articles = (blogData as unknown as Article[]).map((a) => {
+// Posts taken down on 24 Oct 2026: they listed made-up "FF21 … PG" homes at
+// rents below FF21's real ones. next.config.ts redirects each to its area.
+export const takenDown = new Set([
+  "/blog/pg-near-bagmane-tech-park-for-ladies-under-12000",
+  "/blog/pg-near-manyata-tech-park-under-12000-bangalore",
+  "/blog/top-10-affordable-pgs-near-brookefield-bangalore",
+]);
+export const articles = (blogData as unknown as Article[]).filter((a) => !takenDown.has(a.path)).map((a) => {
   const blocks = withAlts(a.blocks.filter((b) => !(b.t === "img" && retired.has(b.id))));
   return { ...tidy(a), blocks, image: a.image && retired.has(a.image) ? firstPhoto(blocks) : a.image };
 });

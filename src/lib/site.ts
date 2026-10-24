@@ -1,5 +1,5 @@
-// Facts carried over from ff21.in (checked 15 Oct 2026). Open questions in the
-// plan doc: which WhatsApp number is primary, and the owner's legal name.
+// Facts carried over from ff21.in (checked 15 Oct 2026). The owner's legal
+// name confirmed by Madhvik on 24 Oct 2026 (it matches the domain's records).
 export const site = {
   name: "FF21 Coliving",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.ff21.in",
@@ -17,7 +17,7 @@ export const site = {
   youtube: "https://www.youtube.com/@ff21india",
   // FFers who have lived at FF21 so far, from the team on 24 Oct 2026.
   residents: 12559,
-  owner: "Sherwood Longstay Services LLP",
+  owner: "Sherwood Longstay Pvt Ltd",
   address: "672, Ferns Paradise, Bangalore 560037",
   founded: 2017,
   visitHours: "9am to 8pm, every day",
