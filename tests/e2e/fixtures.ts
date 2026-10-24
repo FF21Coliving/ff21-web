@@ -6,7 +6,7 @@ export { expect } from "@playwright/test";
 // site don't show up as visits in GA4, Google Ads or Meta. Their requests
 // get an empty answer: aborting them would log "Failed to load resource"
 // errors that look like the site's own.
-const trackers = /googletagmanager\.com|google-analytics\.com|doubleclick\.net|googleadservices\.com|facebook\.(com|net)|connect\.facebook/;
+const trackers = /googletagmanager\.com|google-analytics\.com|analytics\.google\.com|doubleclick\.net|googleadservices\.com|google\.[a-z.]+\/(ccm|pagead|rmkt)\/|facebook\.(com|net)|connect\.facebook/;
 
 export const test = base.extend({
   page: async ({ page }, provide) => {

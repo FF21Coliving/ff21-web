@@ -1,6 +1,7 @@
 # Watches the live site: after every production deploy (all @smoke tests,
 # including every old URL) and every hour (pages, facts and robots.txt).
-# Read-only: no form is submitted and the ad and analytics tags are blocked.
+# Read-only: no form is submitted, and the ad and analytics tags get an
+# empty answer, so the checks never count as visits.
 # A failure emails the repo's admins; see CONTRIBUTING.md for what to do.
 name: Production check
 
