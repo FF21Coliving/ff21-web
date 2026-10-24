@@ -1,0 +1,62 @@
+# Every pull request (and every push to main) must pass both jobs before it
+# can merge; main's branch protection requires them. See CONTRIBUTING.md.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Lint, types, build and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      # No secrets here: LEADS_MODE is unset, so the lead tests never reach
+      # Zoho or Supabase, and the tags stay off.
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: test-results
+          retention-days: 7
+
+  launch:
+    name: Launch settings
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # The settings the live site runs with on ff21.in: it must be indexable,
+    # and every URL in its sitemap must answer.
+    env:
+      SITE_ENV: production
+      NEXT_PUBLIC_SITE_URL: https://www.ff21.in
+      EXPECT_INDEXABLE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test tests/e2e/urls.spec.ts --project=desktop
