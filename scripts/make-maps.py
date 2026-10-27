@@ -1,4 +1,4 @@
-"""Builds the static neighbourhood map for each home (public/maps/<slug>.webp).
+"""Builds the static neighbourhood map for each home (public/maps/<slug>-1200.webp).
 
 The maps are pictures, not live maps: OpenStreetMap tiles around the home's
 Google Maps pin, stitched once and tinted in FF21's colours. The pin itself
@@ -35,7 +35,8 @@ HOMES = {
 }
 
 ZOOM = 15  # the neighbourhood: main roads, lakes, the nearest tech park
-WIDTH, HEIGHT = 1600, 1000  # shown at half size, sharp on phones and retina
+WIDTH, HEIGHT = 1600, 1000  # the area stitched from tiles
+SAVE_WIDTH = 1200  # shown at most 680 px wide: sharp on phones and retina, about 115 KB
 DARK, MID, LIGHT = (96, 150, 154), (190, 214, 215), (247, 250, 250)  # FF21 teal-grey to mist
 TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
 HEADERS = {"User-Agent": "ff21-web static map builder/1.0 (+https://ff21-web.vercel.app)"}
@@ -72,8 +73,9 @@ def build(slug, lat, lng):
     gray = ImageOps.autocontrast(ImageOps.grayscale(img), cutoff=2)
     tinted = ImageOps.colorize(gray, black=DARK, white=LIGHT, mid=MID)
     os.makedirs(OUT, exist_ok=True)
-    path = os.path.join(OUT, f"{slug}.webp")
-    tinted.save(path, "WEBP", quality=82, method=6)
+    path = os.path.join(OUT, f"{slug}-{SAVE_WIDTH}.webp")
+    small = tinted.resize((SAVE_WIDTH, round(HEIGHT * SAVE_WIDTH / WIDTH)), Image.LANCZOS)
+    small.save(path, "WEBP", quality=65, method=6)
     return path
 
 

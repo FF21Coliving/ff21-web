@@ -1,5 +1,5 @@
 {
-  "_about": "Site photos from the FF21 Image Library (Drive, madhvik@wagwanworld.in). Key = file name under public/photos, value = row in the library's picking sheet (Inventory tab), or a Drive file id for photos from folders shared later (Inventory 2 and 3 tabs). og = also make a 1200x630 link-preview JPEG.",
+  "_about": "Site photos from the FF21 Image Library (Drive, madhvik@wagwanworld.in). Key = file name under public/photos, value = row in the library's picking sheet (Inventory tab), or a Drive file id for photos from folders shared later (Inventory 2 and 3 tabs). og = also make a 1200x630 link-preview JPEG. A Wix media id (\"...~mv2.jpg\") is a photo copied off the old Wix site on 27 Oct 2026; its file is saved under that id.",
   "photos": {
     "itp-lounge-fireplace": 45,
     "itp-room-twin": 42,
@@ -74,7 +74,19 @@
     "bgm-room-twin": "13Zz-_PT3thjSNQuf2Clc2J6LEOg3W4J6",
     "bgm-room-twin-side": "18TmK1eHkOn1jggLT1zSdFbKNdk0lkqaB",
     "bgm-room-single": "1UYXvgZ1qxO4UZQBsgdA5qufM93APzLW4",
-    "bgm-entrance": "1_9nnq8rXqJT7os5hV-cEMrNaLzf0datB"
+    "bgm-entrance": "1_9nnq8rXqJT7os5hV-cEMrNaLzf0datB",
+    "pods-corridor": "489126_fe94b1d8d6ea4d21a48f13eea7198520~mv2.jpg",
+    "pods-room-teal-wall": "489126_1e7a26f8fdf049a89a7cd42b2f996f04~mv2.jpg",
+    "pods-photo-grid": "489126_bb6dd3340a59408a88b83dba1b3690c9~mv2.jpg",
+    "pods-cushions": "489126_daf968477f964f099b34a55396c24e61~mv2.jpg",
+    "pods-abstract-print": "489126_5da6ed1eec714615874657b2948c9150~mv2.jpg",
+    "kora-studio-deluxe": "489126_71de0460d90d4d83bf8af43f848e76d4~mv2.jpg",
+    "kora-studio-premium": "489126_432061723ae546ac8165bb59bc994bb4~mv2.jpg",
+    "kora-indoor-lawn": "489126_3472b420775d42ca91ae8a5161cca48e~mv2.jpeg",
+    "kora-cafe-table": "489126_de2b74e129014ecc90eedae631fab2d1~mv2.jpeg",
+    "comm-holi": "c1f9d0_6cdcdd0be0b34b8298e5ec005238a547~mv2.jpg",
+    "comm-christmas": "c1f9d0_9a212518a62547cca79f2f0aee77ce05~mv2.jpg",
+    "room-studio": "c1f9d0_6ef55ed51c4449e5ae8cf86a556856b3~mv2.jpg"
   },
   "og": [
     "itp-lounge-fireplace",
@@ -84,6 +96,9 @@
     "wfd-pool-turf",
     "pods-lounge-view",
     "hbr-dining",
-    "pmc-rooftop-dusk"
+    "pmc-rooftop-dusk",
+    "pods-room-teal-wall",
+    "kora-studio-deluxe",
+    "kora-studio-premium"
   ]
 }

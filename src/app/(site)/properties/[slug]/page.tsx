@@ -58,7 +58,8 @@ function jsonLd(p: Property) {
         name: `FF21 ${p.code}, ${p.area}`,
         description: `${p.tagline}. Coliving with meals, WiFi and housekeeping included.`,
         url,
-        image: ogImage(p.hero),
+        // Structured data needs a full URL; the site's own photos are paths.
+        image: new URL(ogImage(p.hero), site.url).href,
         telephone: site.phone,
         ...(from ? { priceRange: `From ${inr(from)} per month` } : {}),
         address: { "@type": "PostalAddress", addressLocality: `${p.area}, Bangalore`, addressRegion: "Karnataka", addressCountry: "IN" },
