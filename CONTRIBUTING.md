@@ -76,10 +76,30 @@ rollback above, never a merge that skips the checks.
 
 ## Launch (once)
 
-When www.ff21.in points at Vercel:
+In this order. The site must already be indexable when www.ff21.in first
+reaches Vercel: Google keeps a robots.txt for up to a day, so even a short
+spell of `Disallow: /` on the real domain would stop it crawling.
 
-- In Vercel's production environment variables, set `SITE_ENV=production`
-  and `NEXT_PUBLIC_SITE_URL=https://www.ff21.in`, then redeploy.
-- In GitHub → Settings → Variables → Actions, set the repository variables
-  `PRODUCTION_URL=https://www.ff21.in` and `EXPECT_INDEXABLE=1`, so the
-  daily check watches the real domain and expects it to be indexable.
+1. **Domains.** Add `www.ff21.in` and `ff21.in` to the Vercel project, with
+   `ff21.in` redirecting to `www`. Visitors see no change: DNS still points
+   at Wix.
+2. **vercel.app stays hidden.** `curl -sI https://ff21-web.vercel.app | grep -i x-robots`
+   shows `noindex, nofollow`.
+3. **Indexable.** In GitHub → Settings → Variables → Actions, set
+   `EXPECT_INDEXABLE=1`. In Vercel's production environment variables, set
+   `SITE_ENV=production` and `NEXT_PUBLIC_SITE_URL=https://www.ff21.in`,
+   then redeploy. The *Production check* still watches ff21-web.vercel.app
+   and should pass.
+4. **DNS.** At GoDaddy, point `ff21.in` (A `76.76.21.21`) and `www`
+   (CNAME `cname.vercel-dns.com`) at Vercel. Leave the MX and TXT records
+   alone (email and verification).
+5. **Check.** When Vercel shows both domains valid with certificates, set
+   `PRODUCTION_URL=https://www.ff21.in` and run *Production check* by hand.
+   `curl -sI https://www.ff21.in` shows no `x-robots-tag`, and
+   `https://ff21.in` redirects to `https://www.ff21.in`.
+6. **Search Console.** Submit `https://www.ff21.in/sitemap.xml` and ask for
+   the main pages to be indexed.
+
+To undo before step 4, put `SITE_ENV` back to `preview` and redeploy. After
+step 4, point the GoDaddy records back at Wix (A records `185.230.63.107`,
+`.171`, `.186`; `www` CNAME `gcdn0.wixdns.net`).

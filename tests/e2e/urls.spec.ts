@@ -55,4 +55,18 @@ test.describe("URLs", () => {
       expect(robots).toContain("Disallow: /");
     }
   });
+
+  // Only www.ff21.in is indexed: every *.vercel.app copy says noindex.
+  test("only www.ff21.in is indexable; vercel.app copies say noindex @smoke", async ({ request, baseURL }) => {
+    const robotsTag = async (url: string, host?: string) =>
+      (await request.get(url, { headers: host ? { host } : {} })).headers()["x-robots-tag"] ?? "";
+    if (!process.env.BASE_URL) {
+      // Locally, ask as each address would.
+      expect(await robotsTag("/", "ff21-web.vercel.app")).toContain("noindex");
+      expect(await robotsTag("/", "www.ff21.in")).not.toContain("noindex");
+      return;
+    }
+    expect(await robotsTag("https://ff21-web.vercel.app/")).toContain("noindex");
+    if (!new URL(baseURL!).host.endsWith(".vercel.app")) expect(await robotsTag("/")).not.toContain("noindex");
+  });
 });
