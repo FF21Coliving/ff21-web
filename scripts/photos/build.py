@@ -25,6 +25,9 @@ WIDTHS = (640, 1080, 1600)
 src = sys.argv[1]
 only = set(sys.argv[2:])
 manifest = json.load(open(os.path.join(HERE, "manifest.json")))
+unknown = sorted(only - set(manifest["photos"]))
+if unknown:
+    sys.exit(f"not in manifest.json: {', '.join(unknown)}")
 os.makedirs(OUT, exist_ok=True)
 total = 0
 built = 0

@@ -39,7 +39,6 @@ export const photos = {
   partyFriends: own("comm-festive-friends", "Friends dressed up for a festival"),
 } satisfies Record<string, Photo>;
 
-
 // 1200x630 JPEG for link previews (WhatsApp, Facebook, X, LinkedIn).
 // Our own photos have one only where scripts/photos/manifest.json lists it
 // under "og" (the home heroes); others fall back to the large WebP.

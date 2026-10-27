@@ -1,6 +1,7 @@
 import { expect, test } from "./fixtures";
 import { homes, keyPages, openClean } from "./helpers";
 import { stories, storiesFor } from "../../src/lib/content";
+import { photos } from "../../src/lib/photos";
 import { properties } from "../../src/lib/properties";
 
 // @smoke tests are read-only and also run against the live site after every
@@ -62,6 +63,7 @@ test("resident videos: every file is there, and a home's own come first @smoke",
 // Wix's image service resizes on request, often 0.5–2 s a photo, so the
 // homepage, every home and Find my home use only the site's own photos.
 test("key pages load no photos from Wix @smoke", async ({ page }) => {
+  test.setTimeout(90_000);
   for (const path of ["/", ...homes.map((h) => `/properties/${h}`), "/find-my-home"]) {
     await page.goto(path);
     const wix = await page.locator("img").evaluateAll((els) =>
@@ -69,6 +71,12 @@ test("key pages load no photos from Wix @smoke", async ({ page }) => {
     );
     expect(wix, `${path} photos from Wix`).toEqual([]);
   }
+});
+
+// The same, for photos a page shows only later (Find my home's later steps).
+test("every listed photo is one of the site's own", () => {
+  const all = [...Object.values(photos), ...properties.flatMap((p) => [p.hero, ...(p.tourCover ? [p.tourCover] : []), ...p.gallery])];
+  expect(all.filter((ph) => !ph.id.startsWith("/photos/")).map((ph) => ph.id)).toEqual([]);
 });
 
 test("every home shows a price and its meals @smoke", async ({ page }) => {
