@@ -69,6 +69,9 @@ export type ZohoLeadInput = {
   scoreNote?: string;
   page?: string;
   utm?: { source?: string; medium?: string; campaign?: string; term?: string; content?: string; gclid?: string };
+  // The Zoho user who should own the lead (lib/lead-owner.ts). Unset: the
+  // owner stays as it is (on a new lead, Zoho's own assignment rule).
+  ownerId?: string;
 };
 
 // Zoho's Minimum Stay picklist counts days.
@@ -163,10 +166,10 @@ export const WEBSITE_TAG = "New FF21 Website 2026";
 // and Description says which existing value it matched, so the team can link
 // them.
 export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> {
-  const record = toZoho(input);
+  const record: Record<string, unknown> = withOwner(toZoho(input), input.ownerId);
   const notes: string[] = [];
   let tag = true;
-  for (let attempt = 0; attempt < 4; attempt++) {
+  for (let attempt = 0; attempt < 6; attempt++) {
     const payload: Record<string, unknown> = notes.length ? { ...record, Description: [`Returning? ${notes.join("; ")}.`, record.Description].filter(Boolean).join(" | ") } : { ...record };
     if (tag) payload.Tag = [{ name: WEBSITE_TAG }];
     const result = await call("POST", "Leads", payload, ["workflow"]);
@@ -186,6 +189,14 @@ export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> 
       tag = false;
       continue;
     }
+    // So is the owner. Whatever Zoho says (a refused owner may come back as
+    // a permission error that never names it), try once more without one:
+    // Zoho's own rule then assigns the lead instead of the lead being lost.
+    if (record.Owner) {
+      console.error("[lead:zoho] saving without the owner after", result.detail);
+      delete record.Owner;
+      continue;
+    }
     return result;
   }
   return { ok: false, detail: "could not create the lead" };
@@ -196,10 +207,18 @@ export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> 
 // email were set when the lead was made (or left out because another lead has
 // them, which sending them again would make Zoho refuse), so updates never
 // send them; the note about a returning visitor stays first in Description.
-export function updateZohoLead(ref: ZohoRef, input: ZohoLeadInput) {
+export async function updateZohoLead(ref: ZohoRef, input: ZohoLeadInput) {
   const record = toZoho(input);
   delete record.Phone;
   delete record.Email;
   if (ref.note) record.Description = [ref.note, record.Description].filter(Boolean).join(" | ");
+  const result = await call("PUT", `Leads/${ref.id}`, withOwner(record, input.ownerId), []);
+  if (result.ok || !input.ownerId) return result;
+  console.error("[lead:zoho] updating without the owner after", result.detail);
   return call("PUT", `Leads/${ref.id}`, record, []);
+}
+
+// The lead's owner as Zoho wants it: a user lookup.
+function withOwner(record: Record<string, string>, ownerId?: string): Record<string, unknown> {
+  return ownerId ? { ...record, Owner: { id: ownerId } } : record;
 }

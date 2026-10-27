@@ -1,4 +1,5 @@
 import { genders, isLeadId, sources, stays, summarize, utmOf, validateContact, visitOf, type Attribution, type Stay, type VisitType, type VisitWindow } from "@/lib/lead";
+import { ownerForLead } from "@/lib/lead-owner";
 import { saveLead, saveOpen, type LeadRow } from "@/lib/lead-store";
 import { scoreFields, scoreLead } from "@/lib/lead-score";
 import { properties } from "@/lib/properties";
@@ -77,7 +78,15 @@ export async function POST(request: Request) {
   // Zoho: create the lead at the contact step, then update only that lead.
   let zohoRef: string | undefined;
   if (zohoApiEnabled()) {
+    // The lead goes to the associate for the home it's about (lib/lead-owner.ts):
+    // set when it's made (from the page the visit landed on), when they say
+    // where they're looking, and once a home is chosen. Not on the steps in
+    // between, so a reassignment made in Zoho meanwhile stays put.
+    const touch = row.attribution as Attribution | undefined;
+    const routes = step === "you" || step === "where" || Boolean(row.property);
+    const owner = routes ? ownerForLead({ property: row.property, places: row.places, page: touch?.last?.landing ?? touch?.first?.landing }, b.id) : undefined;
     const zohoAnswers = {
+      ownerId: owner?.id,
       ...scoreFields(score),
       property: row.property,
       gender: row.gender,
