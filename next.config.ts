@@ -71,6 +71,7 @@ const nextConfig: NextConfig = {
         ["/blog/best-go-karting-tracks-bangalore", "/blog/best-go-karting-tracks-in-bangalore"],
         ["/blog/instagrammable-spots-in-bangalore", "/blog/instagrammable-places-in-bangalore"],
         ["/blog/what-is-the-difference-between-hostel-and-pg", "/blog/what-is-the-difference-between-pg-and-hostel"],
+        ["/blog/what-is-the-difference-between-pg-and-coliving-and-hostel", "/blog/what-is-the-difference-between-pg-and-hostel"],
         ["/blog/upcoming-top-concerts-in-india", "/blog/upcoming-top-concerts-in-india-2025"],
         ["/careers", "/about"],
         ["/blank", "/"],
