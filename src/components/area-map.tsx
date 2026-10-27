@@ -16,7 +16,7 @@ export function AreaMap({ home }: { home: Property }) {
       className="group relative mt-6 block aspect-[4/3] overflow-hidden rounded-2xl border border-line bg-mist sm:aspect-[16/10]"
     >
       <Image
-        src={`/maps/${home.slug}.webp`}
+        src={`/maps/${home.slug}-1200.webp`}
         alt={`Map of the streets around FF21 ${home.code} in ${home.area}`}
         fill
         sizes="(min-width: 1024px) 680px, 100vw"

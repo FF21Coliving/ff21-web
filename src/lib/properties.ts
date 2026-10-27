@@ -1,4 +1,4 @@
-import { own, px, type Photo } from "./photos";
+import { own, type Photo } from "./photos";
 
 export type Room = {
   name: string;
@@ -140,7 +140,7 @@ export const properties: Property[] = [
     highlight: "Reasonable private rooms",
     tour: "035a0goKxnY",
     // The tour opens in this corridor; the lounge photo looked like another home.
-    tourCover: px("489126_fe94b1d8d6ea4d21a48f13eea7198520~mv2.jpg", "Long corridor with arched teal doors"),
+    tourCover: own("pods-corridor", "Long corridor with arched teal doors"),
     tagline: "Near Bellandur, Ecospace and Embassy Tech Village",
     nearby: ["Ecospace", "Embassy Tech Village", "Cessna Business Park", "Bellandur", "Brigade Tech Gardens", "Kundanahalli", "Brookefield"],
     rooms: [
@@ -148,16 +148,16 @@ export const properties: Property[] = [
       { name: "King size room", description: "A larger private room with a king size bed." },
       { name: "Single pod", description: "A private pod of your own, food included.", price: 14000 },
     ],
-    hero: px("489126_1e7a26f8fdf049a89a7cd42b2f996f04~mv2.jpg", "Bright room with a teal accent wall"),
+    hero: own("pods-room-teal-wall", "Bright room with a teal accent wall"),
     gallery: [
       own("pods-pod", "Pod with a single bed and an abstract print"),
       own("pods-room-twin", "Twin room with two beds and a teal wall"),
       own("pods-room-king", "Room with a king size bed and a padded teal headboard"),
       own("pods-garden-swing", "Garden with a swing bench and floor cushions"),
       own("pods-building", "The FF21 building among palm trees"),
-      px("489126_bb6dd3340a59408a88b83dba1b3690c9~mv2.jpg", "Grid wall with photos and fairy lights"),
-      px("489126_daf968477f964f099b34a55396c24e61~mv2.jpg", "Patterned cushions on a made bed"),
-      px("489126_5da6ed1eec714615874657b2948c9150~mv2.jpg", "Black and white abstract print on a teal wall"),
+      own("pods-photo-grid", "Grid wall with photos and fairy lights"),
+      own("pods-cushions", "Patterned cushions on a made bed"),
+      own("pods-abstract-print", "Black and white abstract print on a teal wall"),
     ],
     maps: "https://www.google.com/maps/place/FF21-PODS+%7C+Marathahalli/@12.9478046,77.7182353,17z/data=!4m6!3m5!1s0x3bae13c25f9bb447:0x200e93aa540e4bf8!8m2!3d12.9478046!4d77.7182353",
     zohoValue: "FF21-PODS - Thubarahalli / Kundanahalli",
@@ -297,11 +297,11 @@ export const properties: Property[] = [
       { name: "Premium studio", description: "A larger studio with more storage." },
       privateRoom,
     ],
-    hero: px("489126_71de0460d90d4d83bf8af43f848e76d4~mv2.jpg", "Studio deluxe with twin beds and a teal wall"),
+    hero: own("kora-studio-deluxe", "Studio deluxe with twin beds and a teal wall"),
     gallery: [
-      px("489126_432061723ae546ac8165bb59bc994bb4~mv2.jpg", "Premium studio with twin beds and a wardrobe"),
-      px("489126_3472b420775d42ca91ae8a5161cca48e~mv2.jpeg", "Indoor lawn with teal lounge chairs"),
-      px("489126_de2b74e129014ecc90eedae631fab2d1~mv2.jpeg", "Resident working at a café table"),
+      own("kora-studio-premium", "Premium studio with twin beds and a wardrobe"),
+      own("kora-indoor-lawn", "Indoor lawn with teal lounge chairs"),
+      own("kora-cafe-table", "Resident working at a café table"),
     ],
     maps: "https://www.google.com/maps/place/FF21-KORA+%7C+Coliving+PG+in+Koramangala/@12.9340807,77.618472,17z/data=!4m6!3m5!1s0x3bae153d7b14b053:0x7dea05ec32a60a3b!8m2!3d12.9340807!4d77.618472",
     zohoValue: "FF21-KORA - Koramangala",
@@ -318,8 +318,8 @@ export const properties: Property[] = [
     nearby: ["Sarjapur Road", "Kodathi", "Chikkakannelli"],
     rooms: [twin, privateRoom, studio],
     // The current SJR page reuses the KORA photo set. Replace with SJR photos.
-    hero: px("489126_432061723ae546ac8165bb59bc994bb4~mv2.jpg", "Studio with twin beds and a wardrobe"),
-    gallery: [px("489126_3472b420775d42ca91ae8a5161cca48e~mv2.jpeg", "Indoor lawn with teal lounge chairs")],
+    hero: own("kora-studio-premium", "Studio with twin beds and a wardrobe"),
+    gallery: [own("kora-indoor-lawn", "Indoor lawn with teal lounge chairs")],
     maps: "https://www.google.com/maps/place/FF21-SJR/@12.9096202,77.6810529,17z/data=!4m6!3m5!1s0x3bae13cc6c9c464f:0x21c38a09554de7e5!8m2!3d12.9096202!4d77.6810529",
     zohoValue: "FF21-SJR - Sarjapur",
     oldPath: "/best-pg-in-sarjapur",

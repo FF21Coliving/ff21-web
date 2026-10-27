@@ -1,5 +1,5 @@
 import { expect, test } from "./fixtures";
-import { keyPages, openClean } from "./helpers";
+import { homes, keyPages, openClean } from "./helpers";
 import { stories, storiesFor } from "../../src/lib/content";
 import { properties } from "../../src/lib/properties";
 
@@ -57,6 +57,18 @@ test("resident videos: every file is there, and a home's own come first @smoke",
   const first = page.locator("section[aria-labelledby=reviews] figure:has(video)").first();
   await expect(first.locator("source")).toHaveAttribute("src", `/videos/story-${storiesFor("SJR", 4)[0].id}.mp4`);
   await expect(page.locator("section[aria-labelledby=reviews] figure:has(video)")).toHaveCount(4);
+});
+
+// Wix's image service resizes on request, often 0.5–2 s a photo, so the
+// homepage, every home and Find my home use only the site's own photos.
+test("key pages load no photos from Wix @smoke", async ({ page }) => {
+  for (const path of ["/", ...homes.map((h) => `/properties/${h}`), "/find-my-home"]) {
+    await page.goto(path);
+    const wix = await page.locator("img").evaluateAll((els) =>
+      els.map((e) => `${e.getAttribute("src") ?? ""} ${e.getAttribute("srcset") ?? ""}`).filter((s) => s.includes("wixstatic.com")),
+    );
+    expect(wix, `${path} photos from Wix`).toEqual([]);
+  }
 });
 
 test("every home shows a price and its meals @smoke", async ({ page }) => {
