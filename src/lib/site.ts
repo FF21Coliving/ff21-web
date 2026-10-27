@@ -21,7 +21,6 @@ export const site = {
   address: "672, Ferns Paradise, Bangalore 560037",
   founded: 2017,
   visitHours: "9am to 8pm, every day",
-  logo: "c1f9d0_adae4a63e583428c9cfe78a39927a566~mv2.png",
 };
 
 export const prices = {
