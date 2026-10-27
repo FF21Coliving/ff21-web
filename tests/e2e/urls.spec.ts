@@ -57,17 +57,16 @@ test.describe("URLs", () => {
   });
 
   // Only www.ff21.in is indexed: every *.vercel.app copy says noindex.
-  test("vercel.app addresses stay out of search @smoke", async ({ request, baseURL }) => {
-    const host = new URL(baseURL!).host;
-    if (host.endsWith(".vercel.app") || !process.env.BASE_URL) {
-      // Locally, ask as if we were the vercel.app copy.
-      const headers: Record<string, string> = process.env.BASE_URL ? {} : { host: "ff21-web.vercel.app" };
-      const res = await request.get("/", { headers });
-      expect(res.headers()["x-robots-tag"]).toBe("noindex, nofollow");
+  test("only www.ff21.in is indexable; vercel.app copies say noindex @smoke", async ({ request, baseURL }) => {
+    const robotsTag = async (url: string, host?: string) =>
+      (await request.get(url, { headers: host ? { host } : {} })).headers()["x-robots-tag"] ?? "";
+    if (!process.env.BASE_URL) {
+      // Locally, ask as each address would.
+      expect(await robotsTag("/", "ff21-web.vercel.app")).toContain("noindex");
+      expect(await robotsTag("/", "www.ff21.in")).not.toContain("noindex");
+      return;
     }
-    if (process.env.BASE_URL && !host.endsWith(".vercel.app")) {
-      const res = await request.get("/");
-      expect(res.headers()["x-robots-tag"] ?? "").not.toContain("noindex");
-    }
+    expect(await robotsTag("https://ff21-web.vercel.app/")).toContain("noindex");
+    if (!new URL(baseURL!).host.endsWith(".vercel.app")) expect(await robotsTag("/")).not.toContain("noindex");
   });
 });
