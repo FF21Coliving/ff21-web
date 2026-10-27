@@ -36,6 +36,24 @@ test("homepage states the facts @smoke", async ({ page }) => {
   await expect(page.locator("#faq details")).toHaveCount(12);
 });
 
+test("resident videos: every file is there, and a home's own come first @smoke", async ({ page, request }) => {
+  await page.goto("/");
+  const ids = await page.locator("section[aria-labelledby=reviews-title] figure video source").evaluateAll((els) =>
+    els.map((e) => /story-(.+)\.mp4$/.exec(e.getAttribute("src") ?? "")?.[1]),
+  );
+  expect(ids).toHaveLength(8);
+  for (const id of ids) {
+    for (const ext of ["mp4", "webp", "vtt"]) {
+      const res = await request.head(`/videos/story-${id}.${ext}`);
+      expect(res.status(), `story-${id}.${ext}`).toBe(200);
+    }
+  }
+  await page.goto("/properties/sjr-sarjapur");
+  const first = page.locator("section[aria-labelledby=reviews] figure:has(video)").first();
+  await expect(first.locator("source")).toHaveAttribute("src", "/videos/story-naina.mp4");
+  await expect(page.locator("section[aria-labelledby=reviews] figure:has(video)")).toHaveCount(4);
+});
+
 test("every home shows a price and its meals @smoke", async ({ page }) => {
   await page.goto("/properties/itp-whitefield");
   await expect(page.locator("p", { hasText: "Meals at FF21 ITP:" })).toContainText("weekends included");

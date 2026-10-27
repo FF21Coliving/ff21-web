@@ -348,7 +348,7 @@ export default async function PropertyPage({ params }: PageProps<"/properties/[s
           }
         />
         <div className="mt-10">
-          <StoryVideos />
+          <StoryVideos home={p.code} limit={4} />
         </div>
         <div className="mt-5">
           <Reviews />
