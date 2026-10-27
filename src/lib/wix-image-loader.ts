@@ -2,11 +2,11 @@
 
 type LoaderArgs = { src: string; width: number; quality?: number };
 
-// `src` is a Wix media id such as "c1f9d0_18d1...~mv2.jpg".
-// Wix resizes on the fly and serves AVIF/WebP to browsers that accept them.
 // FF21's own photos live in public/photos as three WebP widths (see
 // scripts/photos/build.py): "/photos/kdh-rooftop-dusk" asks for the
-// smallest file at least as wide as the slot.
+// smallest file at least as wide as the slot. A bare Wix media id such as
+// "c1f9d0_18d1...~mv2.jpg" would still go to Wix's image service, which
+// resizes on request (slow); the tests keep every page off it.
 const ownWidths = [640, 1080, 1600];
 // Blog photos, copied off Wix (see scripts/photos/build-blog.py), come in two:
 // the blog's columns are at most 768 px wide.

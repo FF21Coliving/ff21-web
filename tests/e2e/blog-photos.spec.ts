@@ -25,7 +25,7 @@ test.describe("Blog photos", () => {
       const ids = p.blocks.flatMap((b) => (b.t === "img" && b.id && b.id !== retired ? [b.id] : []));
       for (const id of ids) for (const w of ["640.webp", "1080.webp"]) if (!existsSync(file(id, w))) missing.push(file(id, w));
       const cover = p.image === retired ? ids[0] : p.image;
-      if (cover && !existsSync(file(cover, "og.jpg"))) missing.push(file(cover, "og.jpg"));
+      if (cover) for (const end of ["640.webp", "1080.webp", "og.jpg"]) if (!existsSync(file(cover, end))) missing.push(file(cover, end));
     }
     expect(missing).toEqual([]);
   });

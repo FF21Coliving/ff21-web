@@ -9,8 +9,8 @@ const nextConfig: NextConfig = {
   htmlLimitedBots:
     /[\w-]+-Google|Google-[\w-]+|Slurp|DuckDuckBot|baiduspider|yandex|sogou|bitlybot|tumblr|vkShare|quora link preview|redditbot|ia_archiver|Bingbot|BingPreview|applebot|facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|Yeti|googleweblight/i,
   images: {
-    // Photos are served and resized by Wix's image CDN until they move to our
-    // own storage in scope 2. See src/lib/wix-image-loader.ts.
+    // Every photo is the site's own file in a few fixed widths (public/photos,
+    // public/blog-photos); the loader picks one. See src/lib/wix-image-loader.ts.
     loader: "custom",
     loaderFile: "./src/lib/wix-image-loader.ts",
     qualities: [70, 80, 90],
@@ -28,7 +28,7 @@ const nextConfig: NextConfig = {
   async headers() {
     const cache = [{ key: "Cache-Control", value: "public, max-age=2592000, stale-while-revalidate=86400" }];
     return [
-      ...["/photos/:path*", "/videos/:path*", "/brand/:path*", "/maps/:path*"].map((source) => ({ source, headers: cache })),
+      ...["/photos/:path*", "/blog-photos/:path*", "/videos/:path*", "/brand/:path*", "/maps/:path*"].map((source) => ({ source, headers: cache })),
       { source: "/:path*", has: [{ type: "host" as const, value: ".*\\.vercel\\.app" }], headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
     ];
   },
