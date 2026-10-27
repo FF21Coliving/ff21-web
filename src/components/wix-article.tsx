@@ -49,7 +49,8 @@ export function articleMetadata(prefix: Prefix, slug: string): Metadata {
   };
 }
 
-const shareImage = (a: Article) => ogImage(a.image ? { id: a.image, alt: a.title } : photos.rooftopSunset);
+// A post's cover has a 1200x630 JPEG beside it for link previews.
+const shareImage = (a: Article) => (a.image ? `${a.image}-og.jpg` : ogImage(photos.rooftopSunset));
 
 export const formatDate = (d?: string | null) =>
   d ? new Date(`${d}T00:00:00Z`).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }) : undefined;

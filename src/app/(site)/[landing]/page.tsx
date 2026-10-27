@@ -7,6 +7,7 @@ import { Eyebrow, FindHomeBand, IncludedTags } from "@/components/sections";
 import { TrackedLink } from "@/components/tracked-link";
 import { button, container, pageTitle, sectionTitle } from "@/components/ui";
 import { WixCopy } from "@/components/wix-copy";
+import { ogImage, photos } from "@/lib/photos";
 import { whatsappLink } from "@/lib/site";
 import { breadcrumbs, homesList, ldScript } from "@/lib/schema";
 import { getLanding, homesFor, landingName, landingPages, nearbyAreaPages, type Landing } from "@/lib/wix-content";
@@ -32,7 +33,14 @@ export async function generateMetadata({ params }: PageProps<"/[landing]">): Pro
     title: { absolute: l.title },
     description: l.description ?? undefined,
     alternates: { canonical: l.url },
-    openGraph: { title: l.title, description: l.description ?? undefined, url: l.url, ...(l.image ? { images: [{ url: l.image }] } : {}) },
+    // Wix gave every area page the same picture, on Wix's image service; the
+    // site's own link-preview photo replaces it.
+    openGraph: {
+      title: l.title,
+      description: l.description ?? undefined,
+      url: l.url,
+      images: [{ url: ogImage(photos.rooftopSunset), width: 1200, height: 630, alt: photos.rooftopSunset.alt }],
+    },
   };
 }
 
