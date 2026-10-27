@@ -1,5 +1,6 @@
 import "server-only";
 import { leadSummary, utmOf, type Lead } from "./lead";
+import { ownerForLead } from "./lead-owner";
 import { getProperty } from "./properties";
 import { createZohoLead, readRef, updateZohoLead, zohoApiEnabled, type ZohoLeadInput } from "./zoho-api";
 import { scoreLead, scoreFields } from "./lead-score";
@@ -53,6 +54,7 @@ export const zohoInput = (lead: Lead): ZohoLeadInput => ({
   ...scoreFields(scoreLead({ ...lead, finished: true })),
   page: lead.page,
   utm: utmOf(lead.attribution),
+  ownerId: ownerForLead({ property: lead.property, places: lead.places, page: lead.attribution?.last?.landing ?? lead.attribution?.first?.landing }, lead.id ?? lead.phone)?.id,
 });
 
 // zohoRef: the signed reference the site handed out when it created this

@@ -1,4 +1,5 @@
 import { genders, isLeadId, sources, stays, summarize, utmOf, validateContact, visitOf, type Attribution, type Stay, type VisitType, type VisitWindow } from "@/lib/lead";
+import { ownerForLead } from "@/lib/lead-owner";
 import { saveLead, saveOpen, type LeadRow } from "@/lib/lead-store";
 import { scoreFields, scoreLead } from "@/lib/lead-score";
 import { properties } from "@/lib/properties";
@@ -77,7 +78,12 @@ export async function POST(request: Request) {
   // Zoho: create the lead at the contact step, then update only that lead.
   let zohoRef: string | undefined;
   if (zohoApiEnabled()) {
+    // The lead goes to the associate for the home it's about, as soon as the
+    // site can tell which home that is (lib/lead-owner.ts).
+    const touch = row.attribution as Attribution | undefined;
+    const owner = ownerForLead({ property: row.property, places: row.places, page: touch?.last?.landing ?? touch?.first?.landing }, b.id);
     const zohoAnswers = {
+      ownerId: owner?.id,
       ...scoreFields(score),
       property: row.property,
       gender: row.gender,
