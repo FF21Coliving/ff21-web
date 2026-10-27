@@ -22,9 +22,15 @@ const nextConfig: NextConfig = {
   },
   // Our own photos, videos and logos change only with a new file name, so
   // browsers keep them for 30 days instead of checking on every visit.
+  // Every *.vercel.app address (previews, and the production copy at
+  // ff21-web.vercel.app) stays out of search, so once SITE_ENV=production
+  // only www.ff21.in is indexed.
   async headers() {
     const cache = [{ key: "Cache-Control", value: "public, max-age=2592000, stale-while-revalidate=86400" }];
-    return ["/photos/:path*", "/videos/:path*", "/brand/:path*", "/maps/:path*"].map((source) => ({ source, headers: cache }));
+    return [
+      ...["/photos/:path*", "/videos/:path*", "/brand/:path*", "/maps/:path*"].map((source) => ({ source, headers: cache })),
+      { source: "/:path*", has: [{ type: "host" as const, value: ".*\\.vercel\\.app" }], headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
+    ];
   },
   async redirects() {
     // The old register page now opens Find my home (query string kept).

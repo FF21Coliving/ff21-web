@@ -55,4 +55,19 @@ test.describe("URLs", () => {
       expect(robots).toContain("Disallow: /");
     }
   });
+
+  // Only www.ff21.in is indexed: every *.vercel.app copy says noindex.
+  test("vercel.app addresses stay out of search @smoke", async ({ request, baseURL }) => {
+    const host = new URL(baseURL!).host;
+    if (host.endsWith(".vercel.app") || !process.env.BASE_URL) {
+      // Locally, ask as if we were the vercel.app copy.
+      const headers: Record<string, string> = process.env.BASE_URL ? {} : { host: "ff21-web.vercel.app" };
+      const res = await request.get("/", { headers });
+      expect(res.headers()["x-robots-tag"]).toBe("noindex, nofollow");
+    }
+    if (process.env.BASE_URL && !host.endsWith(".vercel.app")) {
+      const res = await request.get("/");
+      expect(res.headers()["x-robots-tag"] ?? "").not.toContain("noindex");
+    }
+  });
 });
