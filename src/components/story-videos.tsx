@@ -3,14 +3,16 @@
 import { Play } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
-import { stories } from "@/lib/content";
+import { storiesFor } from "@/lib/content";
 import { track } from "@/lib/track";
 
 // Residents on video, filmed upright on a phone. Only the cover picture loads
 // (about 25 KB each, and only as it scrolls near: a video's poster attribute
-// would load with the page); a clip (about 2 MB, 720p) loads when tapped and
+// would load with the page); a clip (2–5 MB, 720p) loads when tapped and
 // plays with sound and captions. Files: public/videos/story-<id>.mp4|webp|vtt.
-export function StoryVideos() {
+// On a home's page, `home` puts that home's residents first.
+export function StoryVideos({ home, limit }: { home?: string; limit?: number }) {
+  const stories = storiesFor(home, limit);
   const [playing, setPlaying] = useState<string | null>(null);
   const [started, setStarted] = useState<string | null>(null);
   const videos = useRef<Record<string, HTMLVideoElement | null>>({});
@@ -41,7 +43,7 @@ export function StoryVideos() {
             }}
           >
             <source src={`/videos/story-${s.id}.mp4`} type="video/mp4" />
-            <track kind="captions" src={`/videos/story-${s.id}.vtt`} srcLang="en" label="English" default />
+            <track kind="captions" src={`/videos/story-${s.id}.vtt`} srcLang="en" label="English" default={!s.onScreen} />
           </video>
           {/* The cover stays until the clip actually plays, so a tap never shows black. */}
           {started !== s.id && (
@@ -51,7 +53,7 @@ export function StoryVideos() {
             <button
               type="button"
               onClick={() => play(s.id)}
-              aria-label={`Play: ${s.name}, ${s.note}`}
+              aria-label={`Play: ${s.name}${s.note ? `, ${s.note}` : ""}`}
               className="group absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-black/15 to-transparent p-5 text-left text-white"
             >
               <span aria-hidden className="pebble absolute left-1/2 top-[42%] grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center bg-white/90 text-ink transition-transform duration-300 group-hover:scale-110">
@@ -59,7 +61,7 @@ export function StoryVideos() {
               </span>
               <span className="font-serif text-[19px] leading-[25px]">“{s.quote}”</span>
               <span className="mt-3 text-[14px] font-semibold">
-                {s.name} <span className="font-normal text-white/75">· {s.note}</span>
+                {s.name} {s.note && <span className="font-normal text-white/75">· {s.note}</span>}
               </span>
             </button>
           )}
