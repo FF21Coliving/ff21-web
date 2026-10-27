@@ -48,9 +48,19 @@ export const takenDown = new Set([
   "/blog/pg-near-manyata-tech-park-under-12000-bangalore",
   "/blog/top-10-affordable-pgs-near-brookefield-bangalore",
 ]);
+// Blog photos were copied off Wix's image service on 27 Oct 2026, which
+// resized each one on request (often 0.5–2 s). They live in
+// public/blog-photos under the first part of their Wix id, built by
+// scripts/photos/build-blog.py; the image loader picks the width.
+const local = (id: string) => `/blog-photos/${id.split("~")[0]}`;
 export const articles = (blogData as unknown as Article[]).filter((a) => !takenDown.has(a.path)).map((a) => {
   const blocks = withAlts(a.blocks.filter((b) => !(b.t === "img" && retired.has(b.id))));
-  return { ...tidy(a), blocks, image: a.image && retired.has(a.image) ? firstPhoto(blocks) : a.image };
+  const image = a.image && retired.has(a.image) ? firstPhoto(blocks) : a.image;
+  return {
+    ...tidy(a),
+    blocks: blocks.map((b) => (b.t === "img" ? { ...b, id: local(b.id) } : b)),
+    image: image ? local(image) : image,
+  };
 });
 // Titles and descriptions of Wix pages the new site has its own version of.
 export const wixMeta = metaData as unknown as Record<string, { title: string; description?: string | null }>;
