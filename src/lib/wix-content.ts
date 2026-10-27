@@ -178,7 +178,7 @@ export const landingName = (l: Landing) =>
 // area pages, and each post links to related posts and the homes near the
 // places it names, so no page hangs off a single link.
 
-const codesOf = (path: string) => {
+export const codesOf = (path: string) => {
   const pick = homesByPage[path];
   return Array.isArray(pick) ? pick : [];
 };

@@ -169,7 +169,7 @@ export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> 
   const record: Record<string, unknown> = withOwner(toZoho(input), input.ownerId);
   const notes: string[] = [];
   let tag = true;
-  for (let attempt = 0; attempt < 5; attempt++) {
+  for (let attempt = 0; attempt < 6; attempt++) {
     const payload: Record<string, unknown> = notes.length ? { ...record, Description: [`Returning? ${notes.join("; ")}.`, record.Description].filter(Boolean).join(" | ") } : { ...record };
     if (tag) payload.Tag = [{ name: WEBSITE_TAG }];
     const result = await call("POST", "Leads", payload, ["workflow"]);
@@ -183,17 +183,18 @@ export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> 
       delete record[field];
       continue;
     }
-    // So is the owner: if Zoho refuses it (say the user left), Zoho's own
-    // rule assigns the lead instead of the lead being lost.
-    if (record.Owner && /owner/i.test(result.detail)) {
-      console.error("[lead:zoho] owner refused, saving without it", result.detail);
-      delete record.Owner;
-      continue;
-    }
     // The tag is a nice-to-have: if Zoho refuses it, save the lead without it.
     if (tag && /tag|scope|permission/i.test(result.detail)) {
       console.error("[lead:zoho] tag refused, saving without it", result.detail);
       tag = false;
+      continue;
+    }
+    // So is the owner. Whatever Zoho says (a refused owner may come back as
+    // a permission error that never names it), try once more without one:
+    // Zoho's own rule then assigns the lead instead of the lead being lost.
+    if (record.Owner) {
+      console.error("[lead:zoho] saving without the owner after", result.detail);
+      delete record.Owner;
       continue;
     }
     return result;
@@ -212,8 +213,8 @@ export async function updateZohoLead(ref: ZohoRef, input: ZohoLeadInput) {
   delete record.Email;
   if (ref.note) record.Description = [ref.note, record.Description].filter(Boolean).join(" | ");
   const result = await call("PUT", `Leads/${ref.id}`, withOwner(record, input.ownerId), []);
-  if (result.ok || !input.ownerId || !/owner/i.test(result.detail)) return result;
-  console.error("[lead:zoho] owner refused, updating without it", result.detail);
+  if (result.ok || !input.ownerId) return result;
+  console.error("[lead:zoho] updating without the owner after", result.detail);
   return call("PUT", `Leads/${ref.id}`, record, []);
 }
 

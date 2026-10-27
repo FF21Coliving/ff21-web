@@ -1,6 +1,6 @@
 import "server-only";
-import { getProperty, homesNear, type Property } from "./properties";
-import { homesFor } from "./wix-content";
+import { getProperty, homesNear, properties, type Property } from "./properties";
+import { codesOf } from "./wix-content";
 
 // Who handles each home's website leads in Zoho, from Madhvik on 27 Oct 2026.
 // Each person's first home is their primary; the rest are secondary. Ids are
@@ -49,9 +49,10 @@ export function homeForLead(lead: { property?: string; places?: string[]; page?:
   if (!path) return undefined;
   const fromHome = /^\/properties\/([^/]+)$/.exec(path);
   if (fromHome) return getProperty(fromHome[1]);
-  if (path === "/" || path === "/find-my-home" || path.startsWith("/blog") || path.startsWith("/post")) return undefined;
-  const homes = homesFor(path);
-  return homes.length && homes.length < 10 ? homes[0] : undefined;
+  // Area pages name their homes, closest first; city-wide pages (and every
+  // other page) name none, so they give no clue.
+  const code = codesOf(path)[0];
+  return code ? properties.find((p) => p.code === code) : undefined;
 }
 
 function safePath(page: string) {
