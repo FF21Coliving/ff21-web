@@ -39,14 +39,15 @@ export const testimonials = [
 
 // Video stories from the FF21 Drive "Testimonials" folder, re-encoded for the
 // site (see StoryVideos). The homepage shows the first eight in this order;
-// a home's page shows its own residents first. Names and homes are from the
+// a home's page shows its own residents, then the general ones the homepage
+// leaves out, so every video shows somewhere. Names and homes are from the
 // file names in the Drive "Edited" folder (27 Oct 2026); people who aren't
 // named there are "FF21 resident". `onScreen`: the clip already has its
 // words on screen, so its captions start off (viewers can still turn them on).
 export type Story = { id: string; name: string; note?: string; quote: string; home?: string; onScreen?: boolean };
 
 export const stories: Story[] = [
-  { id: "muskan", name: "Muskan", note: "three months at FF21 KORA", home: "KORA", onScreen: true, quote: "No food tension, no laundry tension. Everything has been handled by FF21." },
+  { id: "muskan", name: "Muskan", note: "three months at FF21 KORA", home: "KORA", onScreen: true, quote: "No food tension… no laundry tension. Everything has been handled by FF21." },
   { id: "khushi", name: "Khushi", note: "four months at FF21 KORA", home: "KORA", onScreen: true, quote: "This PG has a good amount of safety." },
   { id: "aniket", name: "Aniket", note: "two months at FF21 PODS", home: "PODS", onScreen: true, quote: "The room is very aesthetic, I can say." },
   { id: "residents-real-talk", name: "FF21 residents", note: "Real Talk", onScreen: true, quote: "One of the best experiences of my life." },
@@ -59,10 +60,16 @@ export const stories: Story[] = [
   { id: "naina", name: "Naina", note: "after a visit to FF21 SJR", home: "SJR", onScreen: true, quote: "It's really good, and I'm really considering it." },
 ];
 
-// The stories for a page: a home's own residents first, then the rest.
-export function storiesFor(home?: string, limit = 8) {
-  const own = home ? stories.filter((s) => s.home === home) : [];
-  return [...own, ...stories.filter((s) => !own.includes(s))].slice(0, limit);
+// The stories for a page: the homepage's first eight, or a home's own
+// residents followed by videos not tied to a home, the homepage's leftovers first.
+export const homepageStories = 8;
+
+export function storiesFor(home?: string, limit = homepageStories) {
+  if (!home) return stories.slice(0, limit);
+  const own = stories.filter((s) => s.home === home);
+  const general = stories.filter((s) => !s.home);
+  const leftOver = general.filter((s) => stories.indexOf(s) >= homepageStories);
+  return [...own, ...leftOver, ...general.filter((s) => !leftOver.includes(s))].slice(0, limit);
 }
 
 // Twelve, in the order people ask them. Meals, genders and the resident count

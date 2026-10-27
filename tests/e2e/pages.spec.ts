@@ -1,5 +1,7 @@
 import { expect, test } from "./fixtures";
 import { keyPages, openClean } from "./helpers";
+import { stories, storiesFor } from "../../src/lib/content";
+import { properties } from "../../src/lib/properties";
 
 // @smoke tests are read-only and also run against the live site after every
 // production deploy and every morning (.github/workflows/production-check.yml).
@@ -42,6 +44,9 @@ test("resident videos: every file is there, and a home's own come first @smoke",
     els.map((e) => /story-(.+)\.mp4$/.exec(e.getAttribute("src") ?? "")?.[1]),
   );
   expect(ids).toHaveLength(8);
+  // Every video shows somewhere: on the homepage or on a home's page.
+  const shown = new Set([...storiesFor(), ...properties.flatMap((p) => storiesFor(p.code, 4))].map((s) => s.id));
+  expect(stories.filter((s) => !shown.has(s.id)).map((s) => s.id)).toEqual([]);
   for (const id of ids) {
     for (const ext of ["mp4", "webp", "vtt"]) {
       const res = await request.head(`/videos/story-${id}.${ext}`);
@@ -50,7 +55,7 @@ test("resident videos: every file is there, and a home's own come first @smoke",
   }
   await page.goto("/properties/sjr-sarjapur");
   const first = page.locator("section[aria-labelledby=reviews] figure:has(video)").first();
-  await expect(first.locator("source")).toHaveAttribute("src", "/videos/story-naina.mp4");
+  await expect(first.locator("source")).toHaveAttribute("src", `/videos/story-${storiesFor("SJR", 4)[0].id}.mp4`);
   await expect(page.locator("section[aria-labelledby=reviews] figure:has(video)")).toHaveCount(4);
 });
 
