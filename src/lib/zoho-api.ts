@@ -216,7 +216,7 @@ export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> 
       continue;
     }
     // The tag is a nice-to-have: if Zoho refuses it, save the lead without it.
-    if (tag && /tag|scope|permission/i.test(result.detail)) {
+    if (tag && /\bTag\b|scope|permission/i.test(result.detail)) {
       console.error("[lead:zoho] tag refused, saving without it", result.detail);
       tag = false;
       continue;
