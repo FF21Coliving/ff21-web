@@ -131,7 +131,7 @@ export async function accessToken() {
   return token.value;
 }
 
-type ZohoResult = { ok: true; id: string; note?: string } | { ok: false; detail: string; duplicateField?: string };
+type ZohoResult = { ok: true; id: string; note?: string } | { ok: false; detail: string; duplicateFields?: string[] };
 
 async function call(method: "POST" | "PUT", path: string, record: Record<string, unknown>, trigger: string[]): Promise<ZohoResult> {
   try {
@@ -144,14 +144,44 @@ async function call(method: "POST" | "PUT", path: string, record: Record<string,
     const body = (await res.json().catch(() => ({}))) as { data?: { status?: string; code?: string; message?: string; details?: { id?: string; api_name?: string } }[] };
     const row = body.data?.[0];
     if (row?.status === "success" && row.details?.id) return { ok: true, id: row.details.id };
+    const duplicateFields = duplicatesIn(row);
     return {
       ok: false,
-      detail: `${res.status} ${row?.code ?? ""} ${row?.message ?? ""} ${row?.details?.api_name ?? ""}`.trim(),
-      duplicateField: row?.code === "DUPLICATE_DATA" ? row.details?.api_name : undefined,
+      detail: `${res.status} ${row?.code ?? ""} ${row?.message ?? ""} ${row?.details?.api_name ?? ""} ${errorsOf(row)}`.trim(),
+      duplicateFields: duplicateFields.length ? duplicateFields : undefined,
     };
   } catch (err) {
     return { ok: false, detail: err instanceof Error ? err.message : String(err) };
   }
+}
+
+// Every field Zoho calls a duplicate. One clash comes back as DUPLICATE_DATA;
+// two at once (phone and email of the same returning visitor) come back as
+// MULTIPLE_OR_MULTI_ERRORS with the clashes listed inside, which the site
+// once missed and so lost a returning visitor's new enquiry (28 Oct 2026).
+function duplicatesIn(node: unknown, found: string[] = []): string[] {
+  if (Array.isArray(node)) node.forEach((n) => duplicatesIn(n, found));
+  else if (node && typeof node === "object") {
+    const o = node as { code?: unknown; details?: { api_name?: unknown } };
+    if (o.code === "DUPLICATE_DATA" && typeof o.details?.api_name === "string" && !found.includes(o.details.api_name)) found.push(o.details.api_name);
+    Object.values(node).forEach((v) => duplicatesIn(v, found));
+  }
+  return found;
+}
+
+// Which fields Zoho refused and why, for the logs (field names and codes only).
+function errorsOf(row: unknown): string {
+  const out: string[] = [];
+  const walk = (n: unknown) => {
+    if (Array.isArray(n)) n.forEach(walk);
+    else if (n && typeof n === "object") {
+      const o = n as { code?: unknown; details?: { api_name?: unknown } };
+      if (typeof o.code === "string" && typeof o.details?.api_name === "string") out.push(`${o.details.api_name}:${o.code}`);
+      Object.values(n).forEach(walk);
+    }
+  };
+  walk((row as { details?: unknown } | undefined)?.details);
+  return out.length ? `[${[...new Set(out)].join(", ")}]` : "";
 }
 
 const duplicateLabels: Record<string, string> = { Phone: "phone", Email: "email", Mobile: "mobile" };
@@ -174,13 +204,15 @@ export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> 
     if (tag) payload.Tag = [{ name: WEBSITE_TAG }];
     const result = await call("POST", "Leads", payload, ["workflow"]);
     if (result.ok) return notes.length ? { ...result, note: `Returning? ${notes.join("; ")}.` } : result;
-    const field = result.duplicateField;
-    if (field && record[field] && duplicateLabels[field]) {
-      notes.push(`Same ${duplicateLabels[field]} as an existing lead: ${record[field]}`);
-      // Zoho allows one lead per Phone (and Email); Mobile has no such rule,
-      // so the number stays on the lead where the team can call it.
-      if (field === "Phone") record.Mobile = record.Phone;
-      delete record[field];
+    const clashes = (result.duplicateFields ?? []).filter((f) => record[f] && duplicateLabels[f]);
+    if (clashes.length) {
+      for (const field of clashes) {
+        notes.push(`Same ${duplicateLabels[field]} as an existing lead: ${record[field]}`);
+        // Zoho allows one lead per Phone (and Email); Mobile has no such rule,
+        // so the number stays on the lead where the team can call it.
+        if (field === "Phone") record.Mobile = record.Phone;
+        delete record[field];
+      }
       continue;
     }
     // The tag is a nice-to-have: if Zoho refuses it, save the lead without it.
