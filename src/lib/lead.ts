@@ -133,7 +133,9 @@ export function validateContact(body: unknown): { ok: true; contact: Contact } |
   if (!firstName) errors.firstName = "Please add your first name.";
   if (!lastName) errors.lastName = "Please add your last name.";
   if (!phone) errors.phone = "Please add a valid mobile number.";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) errors.email = "Please add a valid email address.";
+  // The ending must be letters only: "gmail.com3" got past the old check and
+  // Zoho refused it (28 Oct 2026).
+  if (!/^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[a-z]{2,24}$/.test(email)) errors.email = "Please check your email address.";
   if (source && !sources.includes(source)) errors.source = "Please choose how you heard about us.";
   if (Object.keys(errors).length) return { ok: false, errors };
   return { ok: true, contact: { firstName, lastName, phone: phone!, email, source: source || undefined, referralCode: str(b.referralCode, 40) || undefined } };

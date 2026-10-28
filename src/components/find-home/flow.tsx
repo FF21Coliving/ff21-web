@@ -53,7 +53,8 @@ const sourceChoices: { id: Source; label: string; icon: LucideIcon }[] = [
   { id: "Walk Ins", label: "Walked past a home", icon: Footprints },
 ];
 
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+// Same check as the server (lib/lead.ts): the ending must be letters only.
+const emailPattern = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[a-z]{2,24}$/i;
 // The same checks the server makes, so mistakes show before anything is sent.
 function checkField(name: string, value: string): string | undefined {
   const v = value.trim();
