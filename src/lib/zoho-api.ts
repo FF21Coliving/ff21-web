@@ -103,15 +103,7 @@ export function toZoho(i: ZohoLeadInput): Record<string, string> {
     Site_Visit_Schedule_Date: i.visitDay,
     Visit_Type: i.visitDay ? i.visitType : undefined,
     Lead_Qualification: i.qualification,
-    Description:
-      [
-        i.unverified?.phone && `Phone as typed, please check: ${i.unverified.phone}`,
-        i.unverified?.email && `Email as typed, please check: ${i.unverified.email}`,
-        i.scoreNote,
-        i.summary,
-      ]
-        .filter(Boolean)
-        .join(" | ") || undefined,
+    Description: [i.scoreNote, i.summary].filter(Boolean).join(" | ") || undefined,
     Campaign_Source1: i.utm?.source,
     Campaign_Medium: i.utm?.medium,
     Campaign_Name: i.utm?.campaign,
@@ -226,7 +218,12 @@ export const WEBSITE_TAG = "New FF21 Website 2026";
 // them.
 export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> {
   const record: Record<string, unknown> = withOwner(toZoho(input), input.ownerId);
-  const notes: string[] = [];
+  // A phone or email that looked wrong starts the notes, so it travels in the
+  // lead's signed ref and every later update keeps it (review, 28 Oct 2026).
+  const notes: string[] = [
+    ...(input.unverified?.phone ? [`Phone as typed, please check: ${input.unverified.phone}`] : []),
+    ...(input.unverified?.email ? [`Email as typed, please check: ${input.unverified.email}`] : []),
+  ];
   let tag = true;
   for (let attempt = 0; attempt < 8; attempt++) {
     const note = notes.length ? `${notes.join("; ")}.` : "";

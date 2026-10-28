@@ -500,7 +500,7 @@ export function FindMyHome() {
     }
     if (oneWrong) {
       const field = found.phone ? "phone" : "email";
-      const key = `${field}:${c[field] ?? ""}`;
+      const key = `${field}:${(c[field] ?? "").trim()}`;
       if (nudged.current !== key) {
         nudged.current = key;
         setErrors({ [field]: `${found[field]} Or tap Continue to skip it: we'll use your ${field === "phone" ? "email" : "phone"}.` });
