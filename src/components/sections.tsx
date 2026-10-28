@@ -367,7 +367,7 @@ export function FindHomeBand() {
           <div className="relative rotate-[-2deg] rounded-2xl bg-surface p-6 shadow-lg md:p-8">
             <p className="text-[14px] font-semibold text-blue-ink">Great start</p>
             <div className="mt-3 h-1.5 rounded-full bg-line">
-              <div className="h-full w-[29%] rounded-full bg-blue-ink" />
+              <div className="h-full w-[29%] rounded-full bg-blue" />
             </div>
             <p className="mt-6 font-display text-[23px] font-bold leading-7 tracking-[-0.02em] text-ink">Where do you work or study?</p>
             <div className="mt-5 grid gap-2">
@@ -388,7 +388,7 @@ export function FindHomeBand() {
               ))}
             </div>
             <div className="mt-5 flex justify-end">
-              <span className="inline-flex h-10 items-center rounded-full bg-blue-ink px-5 text-[14px] font-semibold text-white">Continue</span>
+              <span className="inline-flex h-10 items-center rounded-full bg-blue px-5 text-[14px] font-semibold text-on-blue">Continue</span>
             </div>
           </div>
           <div className="absolute -bottom-2 -left-4 flex w-[290px] rotate-[3deg] items-center gap-3 rounded-xl bg-surface p-2.5 pr-4 shadow-lg md:-left-10">

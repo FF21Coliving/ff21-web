@@ -693,7 +693,7 @@ export function FindMyHome() {
                 </span>
               </p>
               <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-line" aria-hidden>
-                <div className="h-full rounded-full bg-blue-ink transition-[width] duration-500 ease-[var(--ease-standard)]" style={{ width: `${progressOf(index)}%` }} />
+                <div className="h-full rounded-full bg-blue transition-[width] duration-500 ease-[var(--ease-standard)]" style={{ width: `${progressOf(index)}%` }} />
               </div>
 
               <div key={step} className="rise">
