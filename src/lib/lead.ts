@@ -61,8 +61,11 @@ export type Lead = {
   places?: string[];
   firstName: string;
   lastName: string;
+  // Either may be "" when only the other was valid (Madhvik, 28 Oct 2026:
+  // one right is enough). What was typed for the wrong one is in unverified.
   phone: string;
   email: string;
+  unverified?: Unverified;
   gender: Gender;
   property: string;
   stay?: Stay;
@@ -115,30 +118,56 @@ function cleanTouch(v: unknown): Touch | undefined {
   return t;
 }
 
-export type Contact = Pick<Lead, "firstName" | "lastName" | "phone" | "email" | "referralCode"> & { source?: Source };
+// A phone or email that looked wrong, kept as typed so the team can check it.
+export type Unverified = { phone?: string; email?: string };
+
+export type Contact = Pick<Lead, "firstName" | "lastName" | "phone" | "email" | "referralCode" | "unverified"> & { source?: Source };
 
 export const isLeadId = (v: unknown): v is string => typeof v === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 
 // The first step of Find my home: who to call. Saved before anything else.
 // How they heard of us is asked last, so it is optional here.
+export const isEmail = (email: string) => /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[a-z]{2,24}$/.test(email.toLowerCase());
+
 export function validateContact(body: unknown): { ok: true; contact: Contact } | { ok: false; errors: LeadErrors } {
   const b = (body && typeof body === "object" ? body : {}) as Record<string, unknown>;
   const errors: LeadErrors = {};
   const firstName = str(b.firstName, 60);
   const lastName = str(b.lastName, 60);
-  const email = str(b.email, 120).toLowerCase();
-  const phone = normalizePhone(str(b.phone, 30));
+  const typedEmail = str(b.email, 120);
+  const typedPhone = str(b.phone, 30);
+  const email = typedEmail.toLowerCase();
+  const phone = normalizePhone(typedPhone);
   const source = str(b.source) as Source;
 
   if (!firstName) errors.firstName = "Please add your first name.";
   if (!lastName) errors.lastName = "Please add your last name.";
-  if (!phone) errors.phone = "Please add a valid mobile number.";
   // The ending must be letters only: "gmail.com3" got past the old check and
   // Zoho refused it (28 Oct 2026).
-  if (!/^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[a-z]{2,24}$/.test(email)) errors.email = "Please check your email address.";
+  const emailOk = isEmail(email);
+  // One right is enough to reach someone, so the lead goes through; only when
+  // both are wrong (or missing) is the visitor asked to fix them.
+  if (!phone && !emailOk) {
+    errors.phone = "Please add a valid mobile number.";
+    errors.email = "Please check your email address.";
+  }
   if (source && !sources.includes(source)) errors.source = "Please choose how you heard about us.";
   if (Object.keys(errors).length) return { ok: false, errors };
-  return { ok: true, contact: { firstName, lastName, phone: phone!, email, source: source || undefined, referralCode: str(b.referralCode, 40) || undefined } };
+  const unverified: Unverified = {};
+  if (!phone && typedPhone) unverified.phone = typedPhone;
+  if (!emailOk && typedEmail) unverified.email = typedEmail;
+  return {
+    ok: true,
+    contact: {
+      firstName,
+      lastName,
+      phone: phone ?? "",
+      email: emailOk ? email : "",
+      ...(Object.keys(unverified).length ? { unverified } : {}),
+      source: source || undefined,
+      referralCode: str(b.referralCode, 40) || undefined,
+    },
+  };
 }
 
 export function validateLead(body: unknown): { ok: true; lead: Lead } | { ok: false; errors: LeadErrors } {
@@ -158,7 +187,7 @@ export function validateLead(body: unknown): { ok: true; lead: Lead } | { ok: fa
   if (checked.ok && !checked.contact.source) errors.source = "Please tell us how you heard about us.";
 
   if (!checked.ok || Object.keys(errors).length) return { ok: false, errors };
-  const { firstName, lastName, phone, email, referralCode } = checked.contact;
+  const { firstName, lastName, phone, email, referralCode, unverified } = checked.contact;
   const source = checked.contact.source!;
 
   const attribution = (b.attribution ?? {}) as Record<string, unknown>;
@@ -175,6 +204,7 @@ export function validateLead(body: unknown): { ok: true; lead: Lead } | { ok: fa
       lastName,
       phone,
       email,
+      unverified,
       gender,
       property,
       stay: stay || undefined,
