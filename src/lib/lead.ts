@@ -209,8 +209,12 @@ export function summarize(a: Pick<Lead, "moveIn" | "stay" | "budget" | "room" | 
 export const leadSummary = (lead: Lead) => summarize(lead, lead.form);
 
 // UTM tags and ad click ids from the visit, for Zoho's campaign fields.
+// The campaign behind a lead: the latest visit that carried one. A return
+// visit straight from Google search carries none, and taking it would lose
+// the ad click that brought the visitor first (28 Oct 2026).
+const hasCampaign = (t?: Attribution["first"]) => Boolean(t && (t.utm_source || t.utm_medium || t.utm_campaign || t.gclid));
 export function utmOf(a: Attribution | undefined) {
-  const t = a?.last ?? a?.first;
+  const t = hasCampaign(a?.last) ? a?.last : hasCampaign(a?.first) ? a?.first : (a?.last ?? a?.first);
   if (!t) return undefined;
   return { source: t.utm_source, medium: t.utm_medium, campaign: t.utm_campaign, term: t.utm_term, content: t.utm_content, gclid: t.gclid };
 }
