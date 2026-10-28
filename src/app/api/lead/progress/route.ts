@@ -1,4 +1,4 @@
-import { genders, isLeadId, sources, stays, summarize, utmOf, validateContact, visitOf, type Attribution, type Stay, type VisitType, type VisitWindow } from "@/lib/lead";
+import { cameFromOf, cleanAttribution, genders, isLeadId, leadSourceFor, sources, stays, summarize, utmOf, validateContact, visitOf, type Attribution, type Stay, type VisitType, type VisitWindow } from "@/lib/lead";
 import { ownerForLead } from "@/lib/lead-owner";
 import { saveLead, saveOpen, type LeadRow } from "@/lib/lead-store";
 import { scoreFields, scoreLead } from "@/lib/lead-score";
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       email: c.email || undefined,
       source: c.source,
       referral_code: c.referralCode,
-      attribution: b.attribution && typeof b.attribution === "object" ? b.attribution : undefined,
+      attribution: cleanAttribution(b.attribution),
     });
   }
 
@@ -86,6 +86,10 @@ export async function POST(request: Request) {
     // where they're looking, and once a home is chosen. Not on the steps in
     // between, so a reassignment made in Zoho meanwhile stays put.
     const touch = row.attribution as Attribution | undefined;
+    // Every step sends the visit's attribution (only the contact step stores
+    // it), so Lead Source follows the ad click on every update too.
+    const visit = cleanAttribution(b.attribution) ?? touch;
+    const cameFrom = cameFromOf(visit);
     const routes = step === "you" || step === "where" || Boolean(row.property);
     const owner = routes ? ownerForLead({ property: row.property, places: row.places, page: touch?.last?.landing ?? touch?.first?.landing }, b.id) : undefined;
     const zohoAnswers = {
@@ -96,6 +100,7 @@ export async function POST(request: Request) {
       stay: row.stay,
       room: row.room,
       referralCode: row.referral_code,
+      cameFrom,
       visitDay: row.visit_day,
       visitType: row.visit_type,
       summary: summarize({
@@ -117,8 +122,8 @@ export async function POST(request: Request) {
         phone: row.phone,
         email: row.email,
         unverified,
-        // Asked at the end; until then, what the visit tells us, or "Website".
-        source: row.source ?? "Website",
+        // A tracked ad click, else their answer (asked at the end), else "Website".
+        source: leadSourceFor(visit, row.source, "Website"),
         page: row.page,
         utm: utmOf(row.attribution as Attribution | undefined),
       });
@@ -129,7 +134,10 @@ export async function POST(request: Request) {
     } else {
       const ref = readRef(b.zohoRef);
       if (ref) {
-        const updated = await updateZohoLead(ref, { ...zohoAnswers, source: row.source });
+        // No fallback here: an update without attribution or an answer
+        // leaves the Lead Source set at creation alone.
+        const source = leadSourceFor(visit, row.source);
+        const updated = await updateZohoLead(ref, { ...zohoAnswers, source, heardVia: row.source && row.source !== source ? row.source : undefined });
         if (!updated.ok) console.error("[lead:zoho] update failed", updated.detail);
       }
     }

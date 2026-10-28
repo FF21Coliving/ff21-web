@@ -1,3 +1,4 @@
+import { channelOf } from "./channel";
 import { properties } from "./properties";
 
 // Picklist values must match the Zoho CRM web form exactly.
@@ -44,6 +45,11 @@ export type Touch = {
   utm_term?: string;
   utm_content?: string;
   gclid?: string;
+  // Google's ad click ids from iPhones and apps, where gclid isn't allowed.
+  gbraid?: string;
+  wbraid?: string;
+  // The Google Ads campaign a click came from (Google adds it to every ad URL).
+  gad_campaignid?: string;
   fbclid?: string;
   landing?: string;
   referrer?: string;
@@ -105,10 +111,18 @@ export function inferSource(a: Attribution | undefined): Source | undefined {
   return undefined;
 }
 
+// Attribution as sent by the browser, kept to known string fields.
+export const cleanAttribution = (v: unknown): Attribution | undefined => {
+  if (!v || typeof v !== "object") return undefined;
+  const o = v as Record<string, unknown>;
+  const a: Attribution = { first: cleanTouch(o.first), last: cleanTouch(o.last) };
+  return a.first || a.last ? a : undefined;
+};
+
 function cleanTouch(v: unknown): Touch | undefined {
   if (!v || typeof v !== "object") return undefined;
   const o = v as Record<string, unknown>;
-  const keys = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "gclid", "fbclid", "landing", "referrer"] as const;
+  const keys = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "gclid", "gbraid", "wbraid", "gad_campaignid", "fbclid", "landing", "referrer"] as const;
   const t: Touch = {};
   for (const k of keys) {
     const s = str(o[k], 300);
@@ -244,9 +258,50 @@ export const leadSummary = (lead: Lead) => summarize(lead, lead.form);
 // The campaign behind a lead: the latest visit that carried one. A return
 // visit straight from Google search carries none, and taking it would lose
 // the ad click that brought the visitor first (28 Oct 2026).
-const hasCampaign = (t?: Attribution["first"]) => Boolean(t && (t.utm_source || t.utm_medium || t.utm_campaign || t.gclid));
+const googleClick = (t?: Touch) => Boolean(t && (t.gclid || t.gbraid || t.wbraid));
+const hasCampaign = (t?: Touch) => Boolean(t && (t.utm_source || t.utm_medium || t.utm_campaign || t.gad_campaignid || t.fbclid || googleClick(t)));
+const campaignTouch = (a: Attribution | undefined) => (hasCampaign(a?.last) ? a?.last : hasCampaign(a?.first) ? a?.first : (a?.last ?? a?.first));
+
+// Untagged ad clicks still say where they came from: a Google click id means
+// Google Ads (campaign from gad_campaignid), fbclid means Meta.
 export function utmOf(a: Attribution | undefined) {
-  const t = hasCampaign(a?.last) ? a?.last : hasCampaign(a?.first) ? a?.first : (a?.last ?? a?.first);
+  const t = campaignTouch(a);
   if (!t) return undefined;
-  return { source: t.utm_source, medium: t.utm_medium, campaign: t.utm_campaign, term: t.utm_term, content: t.utm_content, gclid: t.gclid };
+  const google = googleClick(t);
+  return {
+    source: t.utm_source ?? (google ? "google" : t.fbclid ? "meta" : undefined),
+    medium: t.utm_medium ?? (google ? "cpc" : undefined),
+    campaign: t.utm_campaign ?? t.gad_campaignid,
+    term: t.utm_term,
+    content: t.utm_content,
+    gclid: t.gclid,
+  };
+}
+
+// The channel the lead's campaign visit came through, the same way the
+// dashboard's Website tab names it (lib/channel.ts).
+export function leadChannel(a: Attribution | undefined): string {
+  const t = campaignTouch(a);
+  if (!t) return "Direct";
+  return channelOf({ ref: t.referrer, source: t.utm_source, medium: t.utm_medium, click: googleClick(t) ? "gclid" : t.fbclid ? "fbclid" : undefined });
+}
+
+// Zoho's Lead Source for a website lead (Madhvik, 28 Oct 2026): a tracked ad
+// click decides it (Google Ads as "Google", like the old Wix form; Meta ads as
+// "Meta Ads"; Instagram and other Meta links as "Social Media"); otherwise what
+// the visitor told us, else `fallback`. Their own answer still goes in the
+// notes (see zohoInput), so nothing is lost when the two differ.
+export function leadSourceFor(a: Attribution | undefined, said: string | undefined, fallback?: string): string | undefined {
+  const channel = a ? leadChannel(a) : "";
+  if (channel === "Google Ads") return "Google";
+  if (channel === "Meta Ads") return "Meta Ads";
+  if (["Instagram", "Facebook", "Meta (ads or posts)"].includes(channel)) return "Social Media";
+  return said ?? fallback;
+}
+
+// A short line for the notes: where the visit came from.
+export function cameFromOf(a: Attribution | undefined): string | undefined {
+  if (!a?.first && !a?.last) return undefined;
+  const campaign = utmOf(a)?.campaign;
+  return `${leadChannel(a)}${campaign ? ` (campaign ${campaign})` : ""}`;
 }

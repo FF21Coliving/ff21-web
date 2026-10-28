@@ -69,6 +69,10 @@ export type ZohoLeadInput = {
   scoreNote?: string;
   page?: string;
   utm?: { source?: string; medium?: string; campaign?: string; term?: string; content?: string; gclid?: string };
+  // Where the visit came from ("Google Ads (campaign 23447782277)"), and the
+  // visitor's own answer when Lead Source says something else.
+  cameFrom?: string;
+  heardVia?: string;
   // A phone or email that looked wrong, sent as a note instead of a field.
   unverified?: { phone?: string; email?: string };
   // The Zoho user who should own the lead (lib/lead-owner.ts). Unset: the
@@ -103,7 +107,8 @@ export function toZoho(i: ZohoLeadInput): Record<string, string> {
     Site_Visit_Schedule_Date: i.visitDay,
     Visit_Type: i.visitDay ? i.visitType : undefined,
     Lead_Qualification: i.qualification,
-    Description: [i.scoreNote, i.summary].filter(Boolean).join(" | ") || undefined,
+    Description:
+      [i.scoreNote, i.summary, i.cameFrom && `Came from: ${i.cameFrom}`, i.heardVia && `Told us they heard via: ${i.heardVia}`].filter(Boolean).join(" | ") || undefined,
     Campaign_Source1: i.utm?.source,
     Campaign_Medium: i.utm?.medium,
     Campaign_Name: i.utm?.campaign,

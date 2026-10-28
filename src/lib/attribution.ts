@@ -3,7 +3,9 @@
 import type { Attribution, Touch } from "./lead";
 
 const KEY = "ff21_attribution";
-const PARAMS = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "gclid", "fbclid"] as const;
+// gbraid/wbraid: Google ad clicks from iPhones and apps; gad_campaignid: the
+// Google Ads campaign, on every Google ad click.
+const PARAMS = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "gclid", "gbraid", "wbraid", "gad_campaignid", "fbclid"] as const;
 
 export function readAttribution(): Attribution {
   try {

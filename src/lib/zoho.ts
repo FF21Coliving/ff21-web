@@ -1,5 +1,5 @@
 import "server-only";
-import { leadSummary, utmOf, type Lead } from "./lead";
+import { cameFromOf, leadSourceFor, leadSummary, utmOf, type Lead } from "./lead";
 import { ownerForLead } from "./lead-owner";
 import { getProperty } from "./properties";
 import { createZohoLead, readRef, updateZohoLead, zohoApiEnabled, type ZohoLeadInput } from "./zoho-api";
@@ -37,13 +37,17 @@ export function zohoFields(lead: Lead): Record<string, string> {
   };
 }
 
-export const zohoInput = (lead: Lead): ZohoLeadInput => ({
+export const zohoInput = (lead: Lead): ZohoLeadInput => zohoInputFor(lead, leadSourceFor(lead.attribution, lead.source, "Website"));
+
+const zohoInputFor = (lead: Lead, source: string | undefined): ZohoLeadInput => ({
   firstName: lead.firstName,
   lastName: lead.lastName,
   phone: lead.phone || undefined,
   email: lead.email || undefined,
   unverified: lead.unverified,
-  source: lead.source,
+  source,
+  cameFrom: cameFromOf(lead.attribution),
+  heardVia: lead.source && lead.source !== source ? lead.source : undefined,
   referralCode: lead.referralCode,
   property: lead.property,
   gender: lead.gender,
