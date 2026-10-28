@@ -1,17 +1,21 @@
 // Shared class names from the FF21 Design Blueprint, so every button,
-// heading and container looks the same. Blue fills carry charcoal labels
-// (5.8:1). No underlines anywhere: links move, fill or change colour instead.
+// heading and container looks the same. The main button is FF21's deep teal
+// with white text (5.6:1, and 5.6:1 against the page, so it stands out); the
+// light brand teal (charcoal label, 5.8:1) stays for buttons over photos,
+// where it reads better. No underlines anywhere: links move, fill or change
+// colour instead.
 const base =
   "inline-flex items-center justify-center gap-2 rounded-full font-semibold whitespace-nowrap transition-[background-color,box-shadow,transform,color,border-color] duration-200 ease-[var(--ease-standard)] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50";
 
 export const button = {
-  primary: `${base} h-12 px-6 text-[15px] bg-blue text-on-blue hover:bg-blue-hover hover:shadow-md`,
+  primary: `${base} h-12 px-6 text-[15px] bg-blue-ink text-white hover:bg-blue-ink-hover hover:shadow-md`,
+  onMediaPrimary: `${base} h-12 px-6 text-[15px] bg-blue text-on-blue hover:bg-blue-hover hover:shadow-md`,
   secondary: `${base} h-12 px-6 text-[15px] border border-line-soft bg-surface text-ink hover:border-ink`,
   quiet: `${base} h-12 px-5 text-[15px] text-ink hover:bg-mist`,
   onMedia: `${base} h-12 px-6 text-[15px] bg-surface text-ink hover:bg-mist`,
   onMediaGlass: `${base} h-12 px-5 text-[15px] bg-white/15 text-white backdrop-blur-md hover:bg-white/25`,
   onBlue: `${base} h-14 px-7 text-[16px] bg-surface text-ink shadow-md hover:shadow-lg`,
-  smallPrimary: `${base} h-10 px-5 text-[14px] bg-blue text-on-blue hover:bg-blue-hover`,
+  smallPrimary: `${base} h-10 px-5 text-[14px] bg-blue-ink text-white hover:bg-blue-ink-hover`,
   icon: "inline-grid h-10 w-10 place-items-center rounded-full border border-line bg-surface text-ink transition-colors hover:border-ink",
 };
 

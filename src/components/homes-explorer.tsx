@@ -80,7 +80,7 @@ export function HomesExplorer({ phoneRail = false, eagerCount = 4 }: { phoneRail
         >
           {shown.map((p, i) => (
             <div key={p.slug} className={phoneRail ? "w-[80vw] shrink-0 snap-start sm:w-auto" : undefined}>
-              <HomeCard property={p} eager={i < eagerCount} sizes="(min-width: 1536px) 22vw, (min-width: 1024px) 30vw, (min-width: 640px) 46vw, 80vw" />
+              <HomeCard property={p} rail={phoneRail} eager={i < eagerCount} sizes="(min-width: 1536px) 22vw, (min-width: 1024px) 30vw, (min-width: 640px) 46vw, 80vw" />
             </div>
           ))}
         </div>

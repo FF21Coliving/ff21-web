@@ -24,7 +24,7 @@ export function MobileBar() {
           <MessageCircle aria-hidden className="h-5 w-5" />
           WhatsApp
         </TrackedLink>
-        <Link href="/find-my-home" className="flex h-12 flex-[1.4] items-center justify-center rounded-full bg-blue text-[15px] font-semibold text-on-blue">
+        <Link href="/find-my-home" className="flex h-12 flex-[1.4] items-center justify-center rounded-full bg-blue-ink text-[15px] font-semibold text-white">
           Find my home
         </Link>
       </div>

@@ -35,6 +35,8 @@ function CollageTile({ tile, sizes, className = "" }: { tile: Tile; sizes: strin
 export function ScrollExpandHero({ frames, left, right, founded, from }: Props) {
   const root = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
+  // Opens the window all the way (the "Scroll down" button, a sideways swipe).
+  const opener = useRef<() => void>(() => {});
   // The film's later frames first show at 6, 12, 18 and 24 seconds, so their
   // photos load once the page has finished loading instead of competing with
   // the first one (about 330 KB on a phone). Their frames are there from the
@@ -87,15 +89,75 @@ export function ScrollExpandHero({ frames, left, right, founded, from }: Props) 
       if (!frame) frame = requestAnimationFrame(update);
     };
 
+    // Where (in page scroll) the opening starts and ends.
+    const span = () => {
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      return { top, end: top + Math.max(0, el.offsetHeight - st.offsetHeight) };
+    };
+    let lastY = window.scrollY;
+    let goingDown = true;
+    let settle = 0;
+    let gliding = 0;
+    const glideTo = (y: number) => {
+      window.clearTimeout(gliding);
+      gliding = window.setTimeout(() => (gliding = 0), 800);
+      window.scrollTo({ top: y, behavior: "smooth" });
+    };
+    // Finish what the visitor started: a pause part-way glides to fully open
+    // (or back to the start, if they were scrolling up), so the opening never
+    // sits half done and a short flick is enough (Madhvik, 28 Oct 2026).
+    const finish = () => {
+      if (reduce.matches || gliding) return;
+      const { top, end } = span();
+      const y = window.scrollY;
+      if (end - top < 4 || y <= top + 2 || y >= end - 2) return;
+      glideTo(goingDown ? end : top);
+    };
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (y !== lastY) goingDown = y > lastY;
+      lastY = y;
+      window.clearTimeout(settle);
+      settle = window.setTimeout(finish, 160);
+      request();
+    };
+    opener.current = () => {
+      const { end } = span();
+      if (window.scrollY < end - 2) glideTo(end);
+    };
+    // People try sideways too: a sideways swipe or trackpad scroll opens it.
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaX) > 12 && Math.abs(e.deltaX) > Math.abs(e.deltaY) * 1.5) opener.current();
+    };
+    let tx = 0;
+    let ty = 0;
+    const onTouchStart = (e: TouchEvent) => {
+      tx = e.touches[0].clientX;
+      ty = e.touches[0].clientY;
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      const t = e.changedTouches[0];
+      const dx = t.clientX - tx;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(t.clientY - ty) * 1.5) opener.current();
+    };
+
     update();
-    window.addEventListener("scroll", request, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", request);
     reduce.addEventListener("change", request);
+    st.addEventListener("wheel", onWheel, { passive: true });
+    st.addEventListener("touchstart", onTouchStart, { passive: true });
+    st.addEventListener("touchend", onTouchEnd, { passive: true });
     return () => {
       cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", request);
+      window.clearTimeout(settle);
+      window.clearTimeout(gliding);
+      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", request);
       reduce.removeEventListener("change", request);
+      st.removeEventListener("wheel", onWheel);
+      st.removeEventListener("touchstart", onTouchStart);
+      st.removeEventListener("touchend", onTouchEnd);
     };
   }, []);
 
@@ -171,10 +233,10 @@ export function ScrollExpandHero({ frames, left, right, founded, from }: Props) 
               {side(left, "l")}
               {side(right, "r")}
             </div>
-            <p className="xh-cue">
-              Scroll to step inside
+            <button type="button" className="xh-cue" onClick={() => opener.current()}>
+              Scroll down
               <ArrowDown aria-hidden className="h-4 w-4" />
-            </p>
+            </button>
           </div>
 
           {/* What the window opens into: the whole screen, and just the essentials */}
@@ -191,7 +253,7 @@ export function ScrollExpandHero({ frames, left, right, founded, from }: Props) 
                 Furnished rooms near the city&apos;s tech parks, with meals, WiFi and housekeeping in one rent. Starts from {from} a month.
               </p>
               <div className="mt-5 flex gap-3 md:mt-8">
-                <Link href="/find-my-home" className={`${button.primary} group flex-1 md:flex-none`}>
+                <Link href="/find-my-home" className={`${button.onMediaPrimary} group flex-1 md:flex-none`}>
                   Book now
                   <ArrowRight aria-hidden className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
                 </Link>
