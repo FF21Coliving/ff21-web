@@ -685,7 +685,13 @@ export function FindMyHome() {
               {/* Progress: encouragement and a bar that starts a little way in,
                   never a count of steps still to go (Madhvik, 28 Oct 2026:
                   "9 steps left" put people off; speed and motivation first). */}
-              <p className="text-[15px] font-semibold text-blue-ink">{cheer(index)}</p>
+              <p className="text-[15px] font-semibold text-blue-ink">
+                {cheer(index)}
+                <span className="sr-only">
+                  {" "}
+                  (question {index + 1} of {STEPS.length})
+                </span>
+              </p>
               <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-line" aria-hidden>
                 <div className="h-full rounded-full bg-blue-ink transition-[width] duration-500 ease-[var(--ease-standard)]" style={{ width: `${progressOf(index)}%` }} />
               </div>

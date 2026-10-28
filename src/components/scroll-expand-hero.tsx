@@ -98,20 +98,35 @@ export function ScrollExpandHero({ frames, left, right, founded, from }: Props) 
     let goingDown = true;
     let settle = 0;
     let gliding = 0;
+    // A finger on the screen or a hand on the scrollbar: never glide under it.
+    let held = false;
     const glideTo = (y: number) => {
       window.clearTimeout(gliding);
-      gliding = window.setTimeout(() => (gliding = 0), 800);
+      gliding = window.setTimeout(() => {
+        gliding = 0;
+        finish(); // in case the glide was interrupted part-way
+      }, 800);
       window.scrollTo({ top: y, behavior: "smooth" });
     };
     // Finish what the visitor started: a pause part-way glides to fully open
     // (or back to the start, if they were scrolling up), so the opening never
     // sits half done and a short flick is enough (Madhvik, 28 Oct 2026).
-    const finish = () => {
-      if (reduce.matches || gliding) return;
+    function finish() {
+      if (reduce.matches || gliding || held) return;
       const { top, end } = span();
       const y = window.scrollY;
       if (end - top < 4 || y <= top + 2 || y >= end - 2) return;
-      glideTo(goingDown ? end : top);
+      // Nearly open and nudged up a little: stay open rather than rewind.
+      glideTo(goingDown || (y - top) / (end - top) > 0.85 ? end : top);
+    }
+    const hold = () => {
+      held = true;
+      window.clearTimeout(settle);
+    };
+    const release = () => {
+      held = false;
+      window.clearTimeout(settle);
+      settle = window.setTimeout(finish, 160);
     };
     const onScroll = () => {
       const y = window.scrollY;
@@ -148,6 +163,11 @@ export function ScrollExpandHero({ frames, left, right, founded, from }: Props) 
     st.addEventListener("wheel", onWheel, { passive: true });
     st.addEventListener("touchstart", onTouchStart, { passive: true });
     st.addEventListener("touchend", onTouchEnd, { passive: true });
+    window.addEventListener("pointerdown", hold, { passive: true });
+    window.addEventListener("touchstart", hold, { passive: true });
+    window.addEventListener("pointerup", release, { passive: true });
+    window.addEventListener("touchend", release, { passive: true });
+    window.addEventListener("touchcancel", release, { passive: true });
     return () => {
       cancelAnimationFrame(frame);
       window.clearTimeout(settle);
@@ -158,6 +178,11 @@ export function ScrollExpandHero({ frames, left, right, founded, from }: Props) 
       st.removeEventListener("wheel", onWheel);
       st.removeEventListener("touchstart", onTouchStart);
       st.removeEventListener("touchend", onTouchEnd);
+      window.removeEventListener("pointerdown", hold);
+      window.removeEventListener("touchstart", hold);
+      window.removeEventListener("pointerup", release);
+      window.removeEventListener("touchend", release);
+      window.removeEventListener("touchcancel", release);
     };
   }, []);
 

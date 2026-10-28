@@ -388,7 +388,7 @@ export function FindHomeBand() {
               ))}
             </div>
             <div className="mt-5 flex justify-end">
-              <span className="inline-flex h-10 items-center rounded-full bg-blue px-5 text-[14px] font-semibold text-on-blue">Continue</span>
+              <span className="inline-flex h-10 items-center rounded-full bg-blue-ink px-5 text-[14px] font-semibold text-white">Continue</span>
             </div>
           </div>
           <div className="absolute -bottom-2 -left-4 flex w-[290px] rotate-[3deg] items-center gap-3 rounded-xl bg-surface p-2.5 pr-4 shadow-lg md:-left-10">
@@ -780,7 +780,7 @@ export function VisitInvite({ photo = photos.rooftopDusk }: { photo?: PhotoType 
         </h2>
         <p className="mt-4 max-w-md text-[16px] leading-[25px] text-white/90 md:mt-6 md:text-[19px] md:leading-[31px]">In person, or on a video call if you&apos;re moving from another city.</p>
         <div className="mt-7 flex gap-3 md:mt-9">
-          <Link href="/find-my-home" className={`${button.primary} flex-1 md:flex-none`}>
+          <Link href="/find-my-home" className={`${button.onMediaPrimary} flex-1 md:flex-none`}>
             Book now
           </Link>
           <TrackedLink event="whatsapp_click" params={{ placement: "visit_invite" }} href={whatsappLink("Hi FF21! I'd like to visit one of your homes.")} className={`${button.onMediaGlass} flex-1 md:flex-none`}>
