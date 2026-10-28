@@ -40,8 +40,9 @@ export function zohoFields(lead: Lead): Record<string, string> {
 export const zohoInput = (lead: Lead): ZohoLeadInput => ({
   firstName: lead.firstName,
   lastName: lead.lastName,
-  phone: lead.phone,
-  email: lead.email,
+  phone: lead.phone || undefined,
+  email: lead.email || undefined,
+  unverified: lead.unverified,
   source: lead.source,
   referralCode: lead.referralCode,
   property: lead.property,
@@ -54,7 +55,7 @@ export const zohoInput = (lead: Lead): ZohoLeadInput => ({
   ...scoreFields(scoreLead({ ...lead, finished: true })),
   page: lead.page,
   utm: utmOf(lead.attribution),
-  ownerId: ownerForLead({ property: lead.property, places: lead.places, page: lead.attribution?.last?.landing ?? lead.attribution?.first?.landing }, lead.id ?? lead.phone)?.id,
+  ownerId: ownerForLead({ property: lead.property, places: lead.places, page: lead.attribution?.last?.landing ?? lead.attribution?.first?.landing }, lead.id ?? (lead.phone || lead.email))?.id,
 });
 
 // zohoRef: the signed reference the site handed out when it created this

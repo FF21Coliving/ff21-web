@@ -69,6 +69,8 @@ export type ZohoLeadInput = {
   scoreNote?: string;
   page?: string;
   utm?: { source?: string; medium?: string; campaign?: string; term?: string; content?: string; gclid?: string };
+  // A phone or email that looked wrong, sent as a note instead of a field.
+  unverified?: { phone?: string; email?: string };
   // The Zoho user who should own the lead (lib/lead-owner.ts). Unset: the
   // owner stays as it is (on a new lead, Zoho's own assignment rule).
   ownerId?: string;
@@ -131,7 +133,7 @@ export async function accessToken() {
   return token.value;
 }
 
-type ZohoResult = { ok: true; id: string; note?: string } | { ok: false; detail: string; duplicateFields?: string[] };
+type ZohoResult = { ok: true; id: string; note?: string } | { ok: false; detail: string; duplicateFields?: string[]; invalidFields?: string[] };
 
 async function call(method: "POST" | "PUT", path: string, record: Record<string, unknown>, trigger: string[]): Promise<ZohoResult> {
   try {
@@ -149,6 +151,7 @@ async function call(method: "POST" | "PUT", path: string, record: Record<string,
       ok: false,
       detail: `${res.status} ${row?.code ?? ""} ${row?.message ?? ""} ${row?.details?.api_name ?? ""} ${errorsOf(row)}`.trim(),
       duplicateFields: duplicateFields.length ? duplicateFields : undefined,
+      invalidFields: invalidIn(row).length ? invalidIn(row) : undefined,
     };
   } catch (err) {
     return { ok: false, detail: err instanceof Error ? err.message : String(err) };
@@ -184,7 +187,25 @@ function errorsOf(row: unknown): string {
   return out.length ? `[${[...new Set(out)].join(", ")}]` : "";
 }
 
+// Fields Zoho refused as invalid (INVALID_DATA), anywhere in its answer.
+function invalidIn(node: unknown, found: string[] = []): string[] {
+  if (Array.isArray(node)) node.forEach((n) => invalidIn(n, found));
+  else if (node && typeof node === "object") {
+    const o = node as { code?: unknown; details?: { api_name?: unknown } };
+    if (o.code === "INVALID_DATA" && typeof o.details?.api_name === "string" && !found.includes(o.details.api_name)) found.push(o.details.api_name);
+    Object.values(node).forEach((v) => invalidIn(v, found));
+  }
+  return found;
+}
+
 const duplicateLabels: Record<string, string> = { Phone: "phone", Email: "email", Mobile: "mobile" };
+// Never dropped: Zoho needs a last name, and Description carries the notes.
+const keep = new Set(["Last_Name", "Description"]);
+// A lead needs one way to reach the person: a refused phone (or mobile) or
+// email is only dropped while another of them is still on the lead.
+const reach = ["Phone", "Mobile", "Email"];
+const canDrop = (record: Record<string, unknown>, field: string) =>
+  !keep.has(field) && (!reach.includes(field) || reach.some((f) => f !== field && record[f]));
 
 // Every website lead carries this tag (created in Zoho on 15 Oct 2026), so the
 // team can keep them in their own list view.
@@ -197,17 +218,24 @@ export const WEBSITE_TAG = "New FF21 Website 2026";
 // them.
 export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> {
   const record: Record<string, unknown> = withOwner(toZoho(input), input.ownerId);
-  const notes: string[] = [];
+  // A phone or email that looked wrong starts the notes, so it travels in the
+  // lead's signed ref and every later update keeps it (review, 28 Oct 2026).
+  const notes: string[] = [
+    ...(input.unverified?.phone ? [`Phone as typed, please check: ${input.unverified.phone}`] : []),
+    ...(input.unverified?.email ? [`Email as typed, please check: ${input.unverified.email}`] : []),
+  ];
   let tag = true;
-  for (let attempt = 0; attempt < 6; attempt++) {
-    const payload: Record<string, unknown> = notes.length ? { ...record, Description: [`Returning? ${notes.join("; ")}.`, record.Description].filter(Boolean).join(" | ") } : { ...record };
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const note = notes.length ? `${notes.join("; ")}.` : "";
+    const payload: Record<string, unknown> = note ? { ...record, Description: [note, record.Description].filter(Boolean).join(" | ") } : { ...record };
     if (tag) payload.Tag = [{ name: WEBSITE_TAG }];
     const result = await call("POST", "Leads", payload, ["workflow"]);
-    if (result.ok) return notes.length ? { ...result, note: `Returning? ${notes.join("; ")}.` } : result;
+    if (result.ok) return note ? { ...result, note } : result;
     const clashes = (result.duplicateFields ?? []).filter((f) => record[f] && duplicateLabels[f]);
     if (clashes.length) {
       for (const field of clashes) {
-        notes.push(`Same ${duplicateLabels[field]} as an existing lead: ${record[field]}`);
+        const first = !notes.some((n) => n.startsWith("Returning?"));
+        notes.push(`${first ? "Returning? " : ""}Same ${duplicateLabels[field]} as an existing lead: ${record[field]}`);
         // Zoho allows one lead per Phone (and Email); Mobile has no such rule,
         // so the number stays on the lead where the team can call it.
         if (field === "Phone") record.Mobile = record.Phone;
@@ -215,6 +243,18 @@ export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> 
       }
       continue;
     }
+    // A field Zoho calls invalid (an email typed as "name@gmail.com3") must
+    // not cost the whole lead: save it without that field and keep what was
+    // typed in Description, so the team still has the phone (28 Oct 2026).
+    const refused = (result.invalidFields ?? []).filter((f) => record[f] !== undefined && f !== "Tag" && f !== "Owner");
+    let dropped = false;
+    for (const field of refused) {
+      if (!canDrop(record, field)) continue;
+      notes.push(`Zoho refused the ${field.replace(/_/g, " ").toLowerCase()} as typed: ${String(record[field])}`);
+      delete record[field];
+      dropped = true;
+    }
+    if (dropped) continue;
     // The tag is a nice-to-have: if Zoho refuses it, save the lead without it.
     if (tag && /\bTag\b|scope|permission/i.test(result.detail)) {
       console.error("[lead:zoho] tag refused, saving without it", result.detail);

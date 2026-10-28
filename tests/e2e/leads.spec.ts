@@ -30,6 +30,15 @@ test("missing details are refused with reasons", async ({ request }) => {
   expect(Object.keys(body.errors)).toEqual(expect.arrayContaining(["phone", "email", "property"]));
 });
 
+// One way to reach them is enough (28 Oct 2026): a wrong email with a good
+// phone, or a wrong phone with a good email, still goes through.
+test("a lead with only one good contact is accepted", async ({ request }) => {
+  for (const data of [{ ...lead, email: "name@gmail.com3" }, { ...lead, phone: "12345" }]) {
+    const res = await request.post("/api/lead", { data });
+    expect(res.status(), JSON.stringify({ phone: data.phone, email: data.email })).toBe(200);
+  }
+});
+
 test("bots get a quiet yes and nothing else", async ({ request }) => {
   const res = await request.post("/api/lead", { data: { ...lead, website: "spam.example" } });
   expect(await res.json()).toEqual({ ok: true });

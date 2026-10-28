@@ -27,6 +27,8 @@ export async function POST(request: Request) {
   const step = STEPS.includes(String(b.step)) ? String(b.step) : undefined;
 
   const row: LeadRow = { id: b.id, last_step: step, page: str(b.page, 300) };
+  // A phone or email that looked wrong (the other was fine): a note in Zoho.
+  let unverified: { phone?: string; email?: string } | undefined;
 
   if (step === "you") {
     const checked = validateContact(b);
@@ -36,11 +38,12 @@ export async function POST(request: Request) {
     const elapsedMs = typeof b.elapsedMs === "number" ? b.elapsedMs : 0;
     if (b.website || elapsedMs < MIN_FILL_MS) return Response.json({ ok: true });
     const c = checked.contact;
+    unverified = c.unverified;
     Object.assign(row, {
       first_name: c.firstName,
       last_name: c.lastName,
-      phone: c.phone,
-      email: c.email,
+      phone: c.phone || undefined,
+      email: c.email || undefined,
       source: c.source,
       referral_code: c.referralCode,
       attribution: b.attribution && typeof b.attribution === "object" ? b.attribution : undefined,
@@ -113,6 +116,7 @@ export async function POST(request: Request) {
         lastName: row.last_name,
         phone: row.phone,
         email: row.email,
+        unverified,
         // Asked at the end; until then, what the visit tells us, or "Website".
         source: row.source ?? "Website",
         page: row.page,

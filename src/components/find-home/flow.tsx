@@ -53,7 +53,8 @@ const sourceChoices: { id: Source; label: string; icon: LucideIcon }[] = [
   { id: "Walk Ins", label: "Walked past a home", icon: Footprints },
 ];
 
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+// Same check as the server (lib/lead.ts): the ending must be letters only.
+const emailPattern = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[a-z]{2,24}$/i;
 // The same checks the server makes, so mistakes show before anything is sent.
 function checkField(name: string, value: string): string | undefined {
   const v = value.trim();
@@ -363,6 +364,9 @@ export function FindMyHome() {
   // The contact step's save, still in flight while the visitor answers the
   // next question; later saves wait for it so they carry the Zoho reference.
   const contactSaved = useRef<Promise<void>>(Promise.resolve());
+  // A wrong phone or email when the other is fine: point it out once, then let
+  // them through (Madhvik, 28 Oct 2026: one right is enough to reach them).
+  const nudged = useRef("");
   const [answers, setAnswers] = useState<Answers>(() => ({
     places: startProperty ? [getProperty(startProperty)!.area] : [],
     property: startProperty,
@@ -374,7 +378,7 @@ export function FindMyHome() {
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [errors, setErrors] = useState<LeadErrors>({});
   const [message, setMessage] = useState("");
-  const [done, setDone] = useState<{ name: string; phone: string; testMode: boolean } | null>(null);
+  const [done, setDone] = useState<{ name: string; phone: string; email: string; testMode: boolean } | null>(null);
   const [pickDate, setPickDate] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const startedAt = useRef(0);
@@ -488,10 +492,21 @@ export function FindMyHome() {
       const msg = checkField(k, c[k] ?? "");
       if (msg) found[k] = msg;
     }
-    if (Object.keys(found).length) {
+    const oneWrong = Boolean(found.phone) !== Boolean(found.email);
+    if (found.firstName || found.lastName || (found.phone && found.email)) {
       setErrors(found);
       document.getElementById(Object.keys(found)[0])?.focus();
       return;
+    }
+    if (oneWrong) {
+      const field = found.phone ? "phone" : "email";
+      const key = `${field}:${(c[field] ?? "").trim()}`;
+      if (nudged.current !== key) {
+        nudged.current = key;
+        setErrors({ [field]: `${found[field]} Or tap Continue to skip it: we'll use your ${field === "phone" ? "email" : "phone"}.` });
+        document.getElementById(field)?.focus();
+        return;
+      }
     }
     setErrors({});
     // The same checks just passed here, so move on straight away and save in
@@ -589,7 +604,8 @@ export function FindMyHome() {
       if (res.ok && body.ok) {
         const p = getProperty(answers.property ?? "");
         track("generate_lead", { form: "find-my-home", property: p?.code, source: answers.source });
-        setDone({ name: contact.firstName, phone: contact.phone, testMode: body.mode === "test" });
+        // The number or email as the team will use it: a wrong one isn't promised.
+        setDone({ name: contact.firstName, phone: normalizePhone(contact.phone) ? contact.phone : "", email: emailPattern.test(contact.email) ? contact.email : "", testMode: body.mode === "test" });
         setStatus("done");
         window.scrollTo({ top: 0 });
         return;
@@ -647,8 +663,8 @@ export function FindMyHome() {
               </h1>
               <p className="mt-3 text-[17px] leading-[27px] text-ink-2">
                 {visit
-                  ? `Our team will confirm your ${answers.visitType === "Virtual" ? "video tour" : "visit"}${chosen ? ` of FF21 ${chosen.code}` : ""} for ${visitLabel(answers.visitDay!, answers.visitWindow)} by WhatsApp or a call on ${done.phone}.`
-                  : `Our team will call you on ${done.phone} to set up your visit${chosen ? ` to FF21 ${chosen.code}` : ""}. Visits ${site.visitHours}.`}
+                  ? `Our team will confirm your ${answers.visitType === "Virtual" ? "video tour" : "visit"}${chosen ? ` of FF21 ${chosen.code}` : ""} for ${visitLabel(answers.visitDay!, answers.visitWindow)} ${done.phone ? `by WhatsApp or a call on ${done.phone}` : `by email at ${done.email}`}.`
+                  : `Our team will ${done.phone ? `call you on ${done.phone}` : `email you at ${done.email}`} to set up your visit${chosen ? ` to FF21 ${chosen.code}` : ""}. Visits ${site.visitHours}.`}
               </p>
               <dl className="mt-8 divide-y divide-line rounded-lg border border-line">
                 {[
