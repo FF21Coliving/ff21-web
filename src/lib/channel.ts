@@ -18,7 +18,7 @@ export function channelOf(e: { ref?: string; source?: string; medium?: string; c
   const ref = (e.ref ?? "").toLowerCase();
   const paid = /cpc|ppc|paid|ads?$|display|cpm/.test(med);
   if (e.click === "gclid" || (paid && /google|adwords|youtube/.test(src))) return "Google Ads";
-  if ((e.click === "fbclid" && paid) || (paid && /facebook|instagram|meta|fb|ig/.test(src))) return "Meta Ads";
+  if ((e.click === "fbclid" && paid) || (paid && /facebook|instagram|meta|^(fb|ig)$/.test(src))) return "Meta Ads";
   if (paid) return "Other ads";
   if (src) {
     if (/instagram|^ig$/.test(src)) return "Instagram";
