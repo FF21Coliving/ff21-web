@@ -1,5 +1,6 @@
 import { expect, test } from "./fixtures";
-import { cameFromOf, leadChannel, leadSourceFor, utmOf, type Attribution } from "../../src/lib/lead";
+import { channelOf } from "../../src/lib/channel";
+import { cameFromOf, inferSource, leadChannel, leadSourceFor, utmOf, type Attribution } from "../../src/lib/lead";
 
 // Which source a website lead gets in Zoho (28 Oct 2026): a tracked ad click
 // decides it; otherwise the visitor's answer; otherwise "Website".
@@ -37,5 +38,17 @@ test.describe("Lead attribution", () => {
     const back: Attribution = { first: google.first, last: { referrer: "https://www.google.com/", landing: "/find-my-home" } };
     expect(leadChannel(back)).toBe("Google Ads");
     expect(leadSourceFor(back, "Social Media", "Website")).toBe("Google");
+  });
+
+  test("the pre-filled answer agrees with the ad that brought them", () => {
+    const back: Attribution = { first: metaAd.first, last: { referrer: "https://www.google.com/" } };
+    expect(inferSource(back)).toBe("Social Media");
+    expect(inferSource(iphone)).toBe("Google");
+  });
+
+  test("only Meta's own sources count as Meta Ads", () => {
+    expect(channelOf({ source: "digital", medium: "cpc" })).toBe("Other ads");
+    expect(channelOf({ source: "ig", medium: "paid" })).toBe("Meta Ads");
+    expect(channelOf({ source: "facebook_ads", medium: "cpc" })).toBe("Meta Ads");
   });
 });

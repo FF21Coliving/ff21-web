@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     const touch = row.attribution as Attribution | undefined;
     // Every step sends the visit's attribution (only the contact step stores
     // it), so Lead Source follows the ad click on every update too.
-    const visit = cleanAttribution(b.attribution) ?? touch;
+    const visit = cleanAttribution(b.attribution);
     const cameFrom = cameFromOf(visit);
     const routes = step === "you" || step === "where" || Boolean(row.property);
     const owner = routes ? ownerForLead({ property: row.property, places: row.places, page: touch?.last?.landing ?? touch?.first?.landing }, b.id) : undefined;
@@ -134,9 +134,10 @@ export async function POST(request: Request) {
     } else {
       const ref = readRef(b.zohoRef);
       if (ref) {
-        // No fallback here: an update without attribution or an answer
-        // leaves the Lead Source set at creation alone.
-        const source = leadSourceFor(visit, row.source);
+        // No fallback here: an update without attribution (an old page, or
+        // storage cleared mid-form) leaves the Lead Source set at creation
+        // alone, and their answer goes in the notes.
+        const source = visit ? leadSourceFor(visit, row.source) : undefined;
         const updated = await updateZohoLead(ref, { ...zohoAnswers, source, heardVia: row.source && row.source !== source ? row.source : undefined });
         if (!updated.ok) console.error("[lead:zoho] update failed", updated.detail);
       }

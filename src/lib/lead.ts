@@ -101,10 +101,11 @@ export function normalizePhone(input: string): string | null {
 }
 
 export function inferSource(a: Attribution | undefined): Source | undefined {
-  const t = a?.last ?? a?.first;
+  // The same visit Lead Source goes by, so the pre-filled answer agrees with it.
+  const t = campaignTouch(a);
   if (!t) return undefined;
   const hay = `${t.utm_source ?? ""} ${t.referrer ?? ""}`.toLowerCase();
-  if (t.gclid || /google/.test(hay)) return "Google";
+  if (googleClick(t) || /google/.test(hay)) return "Google";
   if (t.fbclid || /facebook|instagram|\bfb\b|\big\b|meta/.test(hay)) return "Social Media";
   if (/housing/.test(hay)) return "Housing.com";
   if (/magicbricks/.test(hay)) return "MagicBricks";
