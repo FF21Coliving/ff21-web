@@ -18,6 +18,12 @@ import { button } from "../ui";
 // Contact details come first, so every answer after them is saved to a lead
 // the team can call, even if the visitor stops halfway.
 const STEPS = ["you", "where", "movein", "stay", "budget", "room", "who", "home", "visit", "heard"] as const;
+
+// What the progress line says: speed and momentum, not steps to go.
+const cheer = (i: number) =>
+  i === 0 ? "About a minute · no sign-up" : i === STEPS.length - 1 ? "Last one!" : i <= 2 ? "Great start" : i <= 5 ? "Halfway there" : "Almost done";
+// The bar starts a fifth full, so the first screen already feels under way.
+const progressOf = (i: number) => Math.round(20 + (80 * i) / (STEPS.length - 1));
 type StepId = (typeof STEPS)[number];
 type RoomChoice = RoomKind | "unsure";
 type Budget = { label: string; max: number | null };
@@ -122,7 +128,7 @@ const copy: Record<StepId, { title: string; lead: string }> = {
   heard: { title: "Last thing: how did you hear about us?", lead: "It helps us know what's working. Got a referral code from a friend? Add it below." },
   who: { title: "Who's moving in?", lead: "So we can suggest the right room." },
   visit: { title: "When would you like to visit?", lead: `Pick a day and a time of day. Our team will confirm on WhatsApp. Visits ${site.visitHours}.` },
-  you: { title: "First, how can we reach you?", lead: "Our team will call or WhatsApp you to set up a visit. Your answers save as you go." },
+  you: { title: "Let's find your home", lead: "Where should we send your matches? Our team calls or WhatsApps you to set up a visit. No spam, ever." },
 };
 
 function rank(answers: Answers) {
@@ -676,16 +682,18 @@ export function FindMyHome() {
             </div>
           ) : (
             <>
-              {/* Progress */}
-              <div className="flex items-end justify-between">
-                <p className="text-ink">
-                  <span className="text-[32px] font-bold leading-none tracking-[-0.02em]">{index + 1}</span>
-                  <span className="text-[15px] text-ink-3"> / {STEPS.length}</span>
-                </p>
-                <p className="text-[14px] text-ink-3">{STEPS.length - index - 1 === 0 ? "Last step" : STEPS.length - index - 1 === 1 ? "1 step left" : `${STEPS.length - index - 1} steps left`}</p>
-              </div>
-              <div className="mt-3 h-1 overflow-hidden rounded-full bg-line" aria-hidden>
-                <div className="h-full rounded-full bg-blue transition-[width] duration-500 ease-[var(--ease-standard)]" style={{ width: `${((index + 1) / STEPS.length) * 100}%` }} />
+              {/* Progress: encouragement and a bar that starts a little way in,
+                  never a count of steps still to go (Madhvik, 28 Oct 2026:
+                  "9 steps left" put people off; speed and motivation first). */}
+              <p className="text-[15px] font-semibold text-blue-ink">
+                {cheer(index)}
+                <span className="sr-only">
+                  {" "}
+                  (question {index + 1} of {STEPS.length})
+                </span>
+              </p>
+              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-line" aria-hidden>
+                <div className="h-full rounded-full bg-blue transition-[width] duration-500 ease-[var(--ease-standard)]" style={{ width: `${progressOf(index)}%` }} />
               </div>
 
               <div key={step} className="rise">
@@ -1013,7 +1021,7 @@ export function FindMyHome() {
             <div className="mx-auto flex max-w-[580px] items-center justify-between gap-4">
               {step === "you" ? (
                 <>
-                  <span className="text-[14px] text-ink-3">Takes about a minute</span>
+                  <span className="text-[14px] text-ink-3">Your answers save as you go</span>
                   <button type="submit" form="contact" className={button.primary}>
                     Continue
                   </button>

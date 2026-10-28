@@ -27,7 +27,7 @@ export function SearchBar() {
             </Link>
           </div>
         ))}
-        <Link href="/find-my-home" className="flex h-14 shrink-0 items-center gap-2 rounded-full bg-blue px-7 text-[16px] font-semibold text-on-blue transition-colors hover:bg-blue-hover">
+        <Link href="/find-my-home" className="flex h-14 shrink-0 items-center gap-2 rounded-full bg-blue px-8 text-[17px] font-extrabold tracking-[-0.01em] text-on-blue transition-colors hover:bg-blue-hover">
           <Search aria-hidden className="h-5 w-5" strokeWidth={2.25} />
           Find my home
         </Link>

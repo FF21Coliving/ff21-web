@@ -264,7 +264,7 @@ export default async function PropertyPage({ params }: PageProps<"/properties/[s
                       Walk through FF21 {p.code} before you visit.
                     </h2>
                     <p className="mt-3 text-[16px] leading-[26px] text-white/75">Filmed upright by the FF21 team. It plays full screen, with the way to book right beside it.</p>
-                    <TourTrigger home={p} className={`${button.primary} mt-6`}>
+                    <TourTrigger home={p} className={`${button.onMediaPrimary} mt-6`}>
                       <Play aria-hidden className="h-4 w-4 fill-current" />
                       Watch the tour
                     </TourTrigger>

@@ -121,7 +121,7 @@ export function TourDialog({ homes, index, onIndex, onClose, onHomePage }: Dialo
             </div>
 
             <div className="mt-7 flex flex-wrap gap-3">
-              <Link href={`/find-my-home?property=${home.slug}`} className={button.primary}>
+              <Link href={`/find-my-home?property=${home.slug}`} className={button.onMediaPrimary}>
                 Book now
               </Link>
               {!onHomePage && (
@@ -144,7 +144,7 @@ export function TourDialog({ homes, index, onIndex, onClose, onHomePage }: Dialo
 
           {/* Phones: book from the tour */}
           <div className="flex w-full max-w-[520px] gap-2 xl:hidden">
-            <Link href={`/find-my-home?property=${home.slug}`} className={`${button.primary} flex-1`}>
+            <Link href={`/find-my-home?property=${home.slug}`} className={`${button.onMediaPrimary} flex-1`}>
               Book now
             </Link>
             {!onHomePage && (

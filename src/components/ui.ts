@@ -1,11 +1,14 @@
 // Shared class names from the FF21 Design Blueprint, so every button,
 // heading and container looks the same. Blue fills carry charcoal labels
-// (5.8:1). No underlines anywhere: links move, fill or change colour instead.
+// (5.8:1); FF21's light teal stays the button colour (Madhvik, 28 Oct 2026).
+// onMediaPrimary marks buttons over photos or dark panels. No underlines
+// anywhere: links move, fill or change colour instead.
 const base =
   "inline-flex items-center justify-center gap-2 rounded-full font-semibold whitespace-nowrap transition-[background-color,box-shadow,transform,color,border-color] duration-200 ease-[var(--ease-standard)] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50";
 
 export const button = {
   primary: `${base} h-12 px-6 text-[15px] bg-blue text-on-blue hover:bg-blue-hover hover:shadow-md`,
+  onMediaPrimary: `${base} h-12 px-6 text-[15px] bg-blue text-on-blue hover:bg-blue-hover hover:shadow-md`,
   secondary: `${base} h-12 px-6 text-[15px] border border-line-soft bg-surface text-ink hover:border-ink`,
   quiet: `${base} h-12 px-5 text-[15px] text-ink hover:bg-mist`,
   onMedia: `${base} h-12 px-6 text-[15px] bg-surface text-ink hover:bg-mist`,

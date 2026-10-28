@@ -11,13 +11,16 @@ import { Tag } from "./tag";
 
 // `eager`: the first photo loads straight away (cards near the top).
 // `priority`: the page's main image, fetched before everything else.
-type Props = { property: Property; sizes: string; eager?: boolean; priority?: boolean };
+// `rail`: the card sits in a sideways row on phones (the homepage), so a
+// sideways swipe must move the row, not the photos: there the photos change
+// with the arrows only (Madhvik, 28 Oct 2026: one swipe, one meaning).
+type Props = { property: Property; sizes: string; eager?: boolean; priority?: boolean; rail?: boolean };
 
 // A home at a glance: swipe through its photos, then the facts people compare.
 // Only the first photo comes with the page; the other four load when someone
 // reaches for them (hover, touch, focus, a swipe), so a page of cards doesn't
 // fetch twenty photos nobody has looked at.
-export function HomeCard({ property: p, sizes, eager, priority }: Props) {
+export function HomeCard({ property: p, sizes, eager, priority, rail }: Props) {
   const photos = [p.hero, ...p.gallery].slice(0, 5);
   const scroller = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
@@ -48,7 +51,7 @@ export function HomeCard({ property: p, sizes, eager, priority }: Props) {
                   setMore(true);
                   setIndex(Math.round(el.scrollLeft / el.clientWidth));
                 }}
-                className="no-scrollbar flex h-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain"
+                className={`no-scrollbar flex h-full snap-x snap-mandatory ${rail ? "overflow-x-hidden sm:overflow-x-auto sm:overscroll-x-contain" : "overflow-x-auto overscroll-x-contain"}`}
               >
                 {photos.map((photo, i) => (
                   <div key={photo.id} className="relative h-full w-full shrink-0 snap-center overflow-hidden">
@@ -88,7 +91,7 @@ export function HomeCard({ property: p, sizes, eager, priority }: Props) {
               onClick={() => go(-1)}
               disabled={index === 0}
               aria-label={`Previous photo of ${p.area}`}
-              className="absolute left-3 top-1/2 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-surface text-ink opacity-0 shadow-md transition-[opacity,transform] duration-300 hover:scale-105 focus-visible:opacity-100 disabled:hidden group-hover:opacity-100 md:grid"
+              className={`absolute left-3 top-1/2 h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-surface text-ink shadow-md transition-[opacity,transform] duration-300 hover:scale-105 focus-visible:opacity-100 disabled:hidden md:grid md:opacity-0 md:group-hover:opacity-100 ${rail ? "grid opacity-90 sm:hidden sm:opacity-0" : "hidden opacity-0"}`}
             >
               <ChevronLeft className="h-4 w-4" strokeWidth={2.5} />
             </button>
@@ -97,7 +100,7 @@ export function HomeCard({ property: p, sizes, eager, priority }: Props) {
               onClick={() => go(1)}
               disabled={index === photos.length - 1}
               aria-label={`Next photo of ${p.area}`}
-              className="absolute right-3 top-1/2 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-surface text-ink opacity-0 shadow-md transition-[opacity,transform] duration-300 hover:scale-105 focus-visible:opacity-100 disabled:hidden group-hover:opacity-100 md:grid"
+              className={`absolute right-3 top-1/2 h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-surface text-ink shadow-md transition-[opacity,transform] duration-300 hover:scale-105 focus-visible:opacity-100 disabled:hidden md:grid md:opacity-0 md:group-hover:opacity-100 ${rail ? "grid opacity-90 sm:hidden sm:opacity-0" : "hidden opacity-0"}`}
             >
               <ChevronRight className="h-4 w-4" strokeWidth={2.5} />
             </button>

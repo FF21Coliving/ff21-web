@@ -342,7 +342,7 @@ export function FindHomeBand() {
             Tell us where you work. We&apos;ll find your <Accent tone="onBlue">home</Accent>.
           </h2>
           <p className="mt-6 max-w-lg text-[17px] leading-[28px] text-ink md:text-[19px] md:leading-[31px]">
-            Eight quick questions about your workplace, move-in date, budget and room. We match you with an FF21 home and set up a visit.
+            About a minute: where you work, when you&apos;re moving and your budget. We match you with an FF21 home and set up a visit.
           </p>
           <ul className="mt-8 space-y-3">
             {["Homes ranked by your workplace, budget and room", "One rent with meals, WiFi, housekeeping and laundry", "Visit in person or on video, any day"].map((t) => (
@@ -365,15 +365,9 @@ export function FindHomeBand() {
         <div aria-hidden className="relative mx-auto hidden w-full max-w-[480px] pb-16 md:block lg:pb-10">
           <Splash className="absolute -left-16 -top-14 h-44 w-44 rotate-12 md:-left-24 md:h-52 md:w-52" />
           <div className="relative rotate-[-2deg] rounded-2xl bg-surface p-6 shadow-lg md:p-8">
-            <div className="flex items-end justify-between">
-              <p className="text-ink">
-                <span className="font-display text-[28px] font-bold leading-none">1</span>
-                <span className="text-[14px] text-ink-3"> / 8</span>
-              </p>
-              <p className="text-[13px] text-ink-3">7 steps left</p>
-            </div>
-            <div className="mt-3 h-1 rounded-full bg-line">
-              <div className="h-full w-[12.5%] rounded-full bg-blue" />
+            <p className="text-[14px] font-semibold text-blue-ink">Great start</p>
+            <div className="mt-3 h-1.5 rounded-full bg-line">
+              <div className="h-full w-[29%] rounded-full bg-blue" />
             </div>
             <p className="mt-6 font-display text-[23px] font-bold leading-7 tracking-[-0.02em] text-ink">Where do you work or study?</p>
             <div className="mt-5 grid gap-2">
@@ -786,7 +780,7 @@ export function VisitInvite({ photo = photos.rooftopDusk }: { photo?: PhotoType 
         </h2>
         <p className="mt-4 max-w-md text-[16px] leading-[25px] text-white/90 md:mt-6 md:text-[19px] md:leading-[31px]">In person, or on a video call if you&apos;re moving from another city.</p>
         <div className="mt-7 flex gap-3 md:mt-9">
-          <Link href="/find-my-home" className={`${button.primary} flex-1 md:flex-none`}>
+          <Link href="/find-my-home" className={`${button.onMediaPrimary} flex-1 md:flex-none`}>
             Book now
           </Link>
           <TrackedLink event="whatsapp_click" params={{ placement: "visit_invite" }} href={whatsappLink("Hi FF21! I'd like to visit one of your homes.")} className={`${button.onMediaGlass} flex-1 md:flex-none`}>

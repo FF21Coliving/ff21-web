@@ -6,8 +6,9 @@ import { usePathname } from "next/navigation";
 import { whatsappLink } from "@/lib/site";
 import { TrackedLink } from "./tracked-link";
 
-// Phones keep the two main actions within thumb reach. Home pages show their
-// own booking bar instead.
+// Phones keep the two main actions within thumb reach: Find my home big and
+// bold, WhatsApp a round icon beside it (Madhvik, 28 Oct 2026). Home pages
+// show their own booking bar instead.
 export function MobileBar() {
   const pathname = usePathname();
   if (/^\/properties\/[^/]+$/.test(pathname)) return null;
@@ -19,12 +20,12 @@ export function MobileBar() {
           event="whatsapp_click"
           params={{ placement: "mobile_bar", page: pathname }}
           href={whatsappLink("Hi FF21! I'd like to know more about your homes.")}
-          className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full border border-line-soft text-[15px] font-semibold text-ink"
+          aria-label="WhatsApp FF21"
+          className="grid h-14 w-14 shrink-0 place-items-center rounded-full border border-line-soft text-ink"
         >
-          <MessageCircle aria-hidden className="h-5 w-5" />
-          WhatsApp
+          <MessageCircle aria-hidden className="h-6 w-6" />
         </TrackedLink>
-        <Link href="/find-my-home" className="flex h-12 flex-[1.4] items-center justify-center rounded-full bg-blue text-[15px] font-semibold text-on-blue">
+        <Link href="/find-my-home" className="flex h-14 flex-1 items-center justify-center rounded-full bg-blue text-[17px] font-extrabold tracking-[-0.01em] text-on-blue shadow-md">
           Find my home
         </Link>
       </div>
