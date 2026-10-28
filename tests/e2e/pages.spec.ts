@@ -79,6 +79,15 @@ test("every listed photo is one of the site's own", () => {
   expect(all.filter((ph) => !ph.id.startsWith("/photos/")).map((ph) => ph.id)).toEqual([]);
 });
 
+// FF21 isn't a "student PG"; Wix's old /bangalore-student-pg keeps its URL only.
+test("no page is called a student PG @smoke", async ({ page }) => {
+  for (const path of ["/bangalore-student-pg", "/properties"]) {
+    await page.goto(path);
+    expect(await page.locator("h1, a").allTextContents(), path).not.toContainEqual(expect.stringMatching(/student pg/i));
+    expect((await page.locator('meta[name="description"]').getAttribute("content")) ?? "", path).not.toMatch(/student pg/i);
+  }
+});
+
 test("every home shows a price and its meals @smoke", async ({ page }) => {
   await page.goto("/properties/itp-whitefield");
   await expect(page.locator("p", { hasText: "Meals at FF21 ITP:" })).toContainText("weekends included");

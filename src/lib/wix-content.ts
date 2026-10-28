@@ -40,7 +40,12 @@ const withAlts = (blocks: Block[]): Block[] =>
 // The two posts that used it as their cover take their next photo instead.
 const retired = new Set(["3a848c_cd0a5381b37143ed89554cbe4a3ac550~mv2.png"]);
 const firstPhoto = (blocks: Block[]) => blocks.flatMap((b) => (b.t === "img" ? [b.id] : []))[0] ?? null;
-export const landingPages = (landingData as unknown as Landing[]).map(tidy);
+// Wix's "/bangalore-student-pg" keeps its URL, but FF21 doesn't call itself a
+// student PG (Madhvik, 28 Oct 2026): its name says "PGs in Bangalore" and its
+// description loses the phrase.
+const notStudent = (l: Landing): Landing =>
+  l.path === "/bangalore-student-pg" ? { ...l, description: l.description?.replace(/Bangalore student PG,\s*/i, "") ?? null } : l;
+export const landingPages = (landingData as unknown as Landing[]).map(tidy).map(notStudent);
 // Posts taken down on 24 Oct 2026: they listed made-up "FF21 … PG" homes at
 // rents below FF21's real ones. next.config.ts redirects each to its area.
 export const takenDown = new Set([
@@ -172,7 +177,9 @@ export function homesFor(path: string): Property[] {
 // URL: "/pg-near-bagmane-tech-park" is "PG near Bagmane Tech Park".
 const upper = new Set(["pg", "itpl", "hbr", "kr", "rr", "btm", "hsr", "aecs", "beml", "rmz", "rga", "vr"]);
 const lower = new Set(["near", "in", "at", "for"]);
+const landingNames: Record<string, string> = { "/bangalore-student-pg": "PGs in Bangalore" };
 export const landingName = (l: Landing) =>
+  landingNames[l.path] ??
   l.path
     .slice(1)
     .split("-")
