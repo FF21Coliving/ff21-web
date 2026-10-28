@@ -26,7 +26,8 @@ import { photos } from "@/lib/photos";
 import { inrK, prices, site } from "@/lib/site";
 import { homesList } from "@/lib/schema";
 
-const frames = [photos.rooftopSunset, photos.loungeTeal, photos.diningFamily, photos.rooftopDusk, photos.workspace];
+// The ITP lounge opens the film: Madhvik's pick for the best first photo (28 Oct 2026).
+const frames = [photos.loungeTeal, photos.rooftopSunset, photos.diningFamily, photos.rooftopDusk, photos.workspace];
 
 // One JSON-LD object with a @graph, the form every structured-data reader expects.
 const jsonLd = {
