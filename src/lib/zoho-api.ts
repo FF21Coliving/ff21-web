@@ -204,12 +204,12 @@ function invalidIn(node: unknown, found: string[] = []): string[] {
   return found;
 }
 
-const duplicateLabels: Record<string, string> = { Phone: "phone", Email: "email", Mobile: "mobile" };
+const duplicateLabels: Record<string, string> = { Phone: "phone", Email: "email", Mobile: "mobile", WhatsApp: "WhatsApp number" };
 // Never dropped: Zoho needs a last name, and Description carries the notes.
 const keep = new Set(["Last_Name", "Description"]);
 // A lead needs one way to reach the person: a refused phone (or mobile) or
 // email is only dropped while another of them is still on the lead.
-const reach = ["Phone", "Mobile", "Email"];
+const reach = ["Phone", "Mobile", "WhatsApp", "Email"];
 const canDrop = (record: Record<string, unknown>, field: string) =>
   !keep.has(field) && (!reach.includes(field) || reach.some((f) => f !== field && record[f]));
 
@@ -219,7 +219,8 @@ export const WEBSITE_TAG = "New FF21 Website 2026";
 
 // A new lead. Runs the same workflow rules a web-form lead would. If Zoho says
 // a unique field (phone or email) matches an existing lead, that lead is left
-// alone: the new lead is created without that field (a phone moves to Mobile),
+// alone: the new lead is created without that field (a phone moves to Mobile
+// and WhatsApp number),
 // and Description says which existing value it matched, so the team can link
 // them.
 export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> {
@@ -243,8 +244,14 @@ export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> 
         const first = !notes.some((n) => n.startsWith("Returning?"));
         notes.push(`${first ? "Returning? " : ""}Same ${duplicateLabels[field]} as an existing lead: ${record[field]}`);
         // Zoho allows one lead per Phone (and Email); Mobile has no such rule,
-        // so the number stays on the lead where the team can call it.
-        if (field === "Phone") record.Mobile = record.Phone;
+        // so the number moves there. A Zoho custom function in FF21's new-lead
+        // automations then clears Mobile when Phone is empty (seen 29 Oct
+        // 2026), so it also goes in "WhatsApp number", which nothing clears:
+        // a lead must never reach the team without a number to call.
+        if (field === "Phone") {
+          record.Mobile = record.Phone;
+          record.WhatsApp = record.Phone;
+        }
         delete record[field];
       }
       continue;
