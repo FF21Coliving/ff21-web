@@ -73,7 +73,7 @@ export type ZohoLeadInput = {
   // visitor's own answer when Lead Source says something else.
   cameFrom?: string;
   heardVia?: string;
-  // A phone or email that looked wrong, sent as a note instead of a field.
+  // An email that looked wrong, sent as a note instead of a field.
   unverified?: { phone?: string; email?: string };
   // The Zoho user who should own the lead (lib/lead-owner.ts). Unset: the
   // owner stays as it is (on a new lead, Zoho's own assignment rule).
@@ -224,7 +224,7 @@ export const WEBSITE_TAG = "New FF21 Website 2026";
 // them.
 export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> {
   const record: Record<string, unknown> = withOwner(toZoho(input), input.ownerId);
-  // A phone or email that looked wrong starts the notes, so it travels in the
+  // An email that looked wrong starts the notes, so it travels in the
   // lead's signed ref and every later update keeps it (review, 28 Oct 2026).
   const notes: string[] = [
     ...(input.unverified?.phone ? [`Phone as typed, please check: ${input.unverified.phone}`] : []),

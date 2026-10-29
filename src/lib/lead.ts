@@ -133,7 +133,8 @@ function cleanTouch(v: unknown): Touch | undefined {
   return t;
 }
 
-// A phone or email that looked wrong, kept as typed so the team can check it.
+// An email that looked wrong, kept as typed so the team can check it (the
+// phone is required, so only an email can be unverified now).
 export type Unverified = { phone?: string; email?: string };
 
 export type Contact = Pick<Lead, "firstName" | "lastName" | "phone" | "email" | "referralCode" | "unverified"> & { source?: Source };
