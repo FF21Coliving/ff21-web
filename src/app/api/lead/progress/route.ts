@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   const step = STEPS.includes(String(b.step)) ? String(b.step) : undefined;
 
   const row: LeadRow = { id: b.id, last_step: step, page: str(b.page, 300) };
-  // A phone or email that looked wrong (the other was fine): a note in Zoho.
+  // An email that looked wrong: a note in Zoho instead of the field.
   let unverified: { phone?: string; email?: string } | undefined;
 
   if (step === "you") {

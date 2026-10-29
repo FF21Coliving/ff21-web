@@ -23,8 +23,9 @@ export function zohoFields(lead: Lead): Record<string, string> {
   const descriptionField = process.env.ZOHO_DESCRIPTION_FIELD;
   return {
     ...(descriptionField ? { [descriptionField]: leadSummary(lead) } : {}),
-    "First Name": lead.firstName,
-    "Last Name": lead.lastName,
+    // Zoho needs a last name; when only one name is given it goes there.
+    "First Name": lead.lastName ? lead.firstName : "",
+    "Last Name": lead.lastName || lead.firstName,
     Phone: lead.phone,
     Email: lead.email,
     LEADCF13: lead.gender,
