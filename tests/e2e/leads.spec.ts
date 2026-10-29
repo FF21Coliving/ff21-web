@@ -49,3 +49,24 @@ test("Find my home opens on its first question", async ({ page }) => {
   await expect(page.locator("h1, h2").first()).toBeVisible();
   await expect(page.getByRole("button").first()).toBeVisible();
 });
+
+// Google Ads counts a lead when the contact details are saved, once per form
+// run and with the lead's id, not when the whole form is sent (29 Oct 2026):
+// about half of the people who leave a number never send the last step.
+test("the ad platforms count a lead at the contact step, once", async ({ page }) => {
+  await page.route("**/api/lead/progress", (route) => route.fulfill({ json: { ok: true } }));
+  await page.goto("/find-my-home");
+  const contactLeads = () =>
+    page.evaluate(() => ((window as unknown as { dataLayer?: { event?: string; lead_id?: string }[] }).dataLayer ?? []).filter((e) => e.event === "contact_lead"));
+  for (let i = 0; i < 2; i++) {
+    await page.getByLabel("First name").fill("Test");
+    await page.getByLabel("Last name").fill("Guardrail");
+    await page.locator('input[name="phone"]').fill("9876543210");
+    await page.getByLabel("Email").fill("test@example.com");
+    await page.getByRole("button", { name: "Continue" }).click();
+    await expect.poll(async () => (await contactLeads()).length).toBe(1);
+    if (i === 0) await page.getByRole("button", { name: "Previous question" }).click();
+  }
+  const [counted] = await contactLeads();
+  expect(counted.lead_id).toBeTruthy();
+});

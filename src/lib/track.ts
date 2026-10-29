@@ -4,7 +4,7 @@ import { logEvent } from "./site-log";
 
 type Params = Record<string, string | number | undefined>;
 
-export type TrackEvent = "generate_lead" | "form_start" | "find_home_step" | "whatsapp_click" | "call_click" | "view_property" | "video_play";
+export type TrackEvent = "generate_lead" | "contact_lead" | "form_start" | "find_home_step" | "whatsapp_click" | "call_click" | "view_property" | "video_play";
 
 declare global {
   interface Window {
@@ -37,8 +37,11 @@ export function track(event: TrackEvent, params: Params = {}) {
 
   if (mode !== "direct") return;
   window.gtag?.("event", event, params);
-  if (event === "generate_lead" && adsId && adsLeadLabel) {
-    window.gtag?.("event", "conversion", { send_to: `${adsId}/${adsLeadLabel}` });
+  // Google Ads counts a lead once the visitor's contact details are saved,
+  // which is when the lead reaches Zoho: about half never send the last step.
+  // The lead's id lets Google drop a repeat of the same lead.
+  if (event === "contact_lead" && adsId && adsLeadLabel) {
+    window.gtag?.("event", "conversion", { send_to: `${adsId}/${adsLeadLabel}`, transaction_id: params.lead_id });
   }
   const metaEvent = metaEvents[event];
   if (metaEvent) window.fbq?.("track", metaEvent, params);
