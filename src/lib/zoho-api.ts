@@ -92,8 +92,9 @@ export function toZoho(i: ZohoLeadInput): Record<string, string> {
   const home = i.property ? getProperty(i.property) : undefined;
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.ff21.in";
   const r: Record<string, string | undefined> = {
-    First_Name: i.firstName,
-    Last_Name: i.lastName,
+    // Zoho needs a last name; when only one name is given it goes there.
+    First_Name: i.lastName ? i.firstName : undefined,
+    Last_Name: i.lastName || i.firstName,
     Phone: i.phone,
     Email: i.email,
     Lead_Source: i.source,

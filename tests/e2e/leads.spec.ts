@@ -24,18 +24,23 @@ test("a complete lead is accepted", async ({ request }) => {
 });
 
 test("missing details are refused with reasons", async ({ request }) => {
-  const res = await request.post("/api/lead", { data: { ...lead, phone: "", email: "nope", property: "nowhere" } });
+  const res = await request.post("/api/lead", { data: { ...lead, firstName: "", phone: "", property: "nowhere" } });
   expect(res.status()).toBe(422);
   const body = await res.json();
-  expect(Object.keys(body.errors)).toEqual(expect.arrayContaining(["phone", "email", "property"]));
+  expect(Object.keys(body.errors)).toEqual(expect.arrayContaining(["firstName", "phone", "property"]));
 });
 
-// One way to reach them is enough (28 Oct 2026): a wrong email with a good
-// phone, or a wrong phone with a good email, still goes through.
-test("a lead with only one good contact is accepted", async ({ request }) => {
-  for (const data of [{ ...lead, email: "name@gmail.com3" }, { ...lead, phone: "12345" }]) {
+// A name and a mobile number are the only must-haves (29 Oct 2026): no last
+// name, no email or a mistyped email still goes through; no good mobile number
+// never does, whatever the email.
+test("a name and a mobile number are enough, and both are required", async ({ request }) => {
+  for (const data of [{ ...lead, lastName: "" }, { ...lead, email: "" }, { ...lead, email: "name@gmail.com3" }]) {
     const res = await request.post("/api/lead", { data });
-    expect(res.status(), JSON.stringify({ phone: data.phone, email: data.email })).toBe(200);
+    expect(res.status(), JSON.stringify({ lastName: data.lastName, email: data.email })).toBe(200);
+  }
+  for (const data of [{ ...lead, phone: "12345" }, { ...lead, phone: "" }, { ...lead, firstName: "" }]) {
+    const res = await request.post("/api/lead", { data });
+    expect(res.status(), JSON.stringify({ firstName: data.firstName, phone: data.phone })).toBe(422);
   }
 });
 

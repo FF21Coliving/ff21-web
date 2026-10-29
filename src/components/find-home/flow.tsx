@@ -58,10 +58,11 @@ const emailPattern = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[a-z]{2,24}$/i;
 // The same checks the server makes, so mistakes show before anything is sent.
 function checkField(name: string, value: string): string | undefined {
   const v = value.trim();
-  if (name === "firstName" && !v) return "Please add your first name.";
-  if (name === "lastName" && !v) return "Please add your last name.";
+  // Only the name and mobile number are required; the email is checked only
+  // when one is typed.
+  if (name === "firstName" && !v) return "Please add your name.";
   if (name === "phone" && !normalizePhone(v)) return "Enter a 10-digit mobile number, like 98765 43210.";
-  if (name === "email" && !emailPattern.test(v)) return "Enter an email like name@example.com.";
+  if (name === "email" && v && !emailPattern.test(v)) return "Enter an email like name@example.com.";
   return undefined;
 }
 
@@ -366,8 +367,8 @@ export function FindMyHome() {
   // The contact step's save, still in flight while the visitor answers the
   // next question; later saves wait for it so they carry the Zoho reference.
   const contactSaved = useRef<Promise<void>>(Promise.resolve());
-  // A wrong phone or email when the other is fine: point it out once, then let
-  // them through (Madhvik, 28 Oct 2026: one right is enough to reach them).
+  // A mistyped email (the phone is required): point it out once, then let
+  // them through: name and mobile number are the only must-haves (29 Oct 2026).
   const nudged = useRef("");
   const [answers, setAnswers] = useState<Answers>(() => ({
     places: startProperty ? [getProperty(startProperty)!.area] : [],
@@ -494,19 +495,18 @@ export function FindMyHome() {
       const msg = checkField(k, c[k] ?? "");
       if (msg) found[k] = msg;
     }
-    const oneWrong = Boolean(found.phone) !== Boolean(found.email);
-    if (found.firstName || found.lastName || (found.phone && found.email)) {
+    if (found.firstName || found.phone) {
       setErrors(found);
-      document.getElementById(Object.keys(found)[0])?.focus();
+      document.getElementById(found.firstName ? "firstName" : "phone")?.focus();
       return;
     }
-    if (oneWrong) {
-      const field = found.phone ? "phone" : "email";
-      const key = `${field}:${(c[field] ?? "").trim()}`;
+    // A mistyped email is pointed out once; Continue again goes on without it.
+    if (found.email) {
+      const key = `email:${(c.email ?? "").trim()}`;
       if (nudged.current !== key) {
         nudged.current = key;
-        setErrors({ [field]: `${found[field]} Or tap Continue to skip it: we'll use your ${field === "phone" ? "email" : "phone"}.` });
-        document.getElementById(field)?.focus();
+        setErrors({ email: `${found.email} Or tap Continue to skip it: we'll use your number.` });
+        document.getElementById("email")?.focus();
         return;
       }
     }
@@ -1003,7 +1003,7 @@ export function FindMyHome() {
                     <form id="contact" onSubmit={submitContact} noValidate className="space-y-6">
                       <div className="grid gap-6 sm:grid-cols-2">
                         <TextField name="firstName" label="First name" autoComplete="given-name" defaultValue={contact?.firstName} error={errors.firstName} onCheck={setFieldError} />
-                        <TextField name="lastName" label="Last name" autoComplete="family-name" defaultValue={contact?.lastName} error={errors.lastName} onCheck={setFieldError} />
+                        <TextField name="lastName" label="Last name" optional autoComplete="family-name" defaultValue={contact?.lastName} error={errors.lastName} onCheck={setFieldError} />
                       </div>
                       <TextField
                         name="phone"
@@ -1018,7 +1018,7 @@ export function FindMyHome() {
                         error={errors.phone}
                         onCheck={setFieldError}
                       />
-                      <TextField name="email" label="Email" type="email" inputMode="email" autoComplete="email" placeholder="name@example.com" defaultValue={contact?.email} error={errors.email} onCheck={setFieldError} />
+                      <TextField name="email" label="Email" optional type="email" inputMode="email" autoComplete="email" placeholder="name@example.com" defaultValue={contact?.email} error={errors.email} onCheck={setFieldError} />
                       {/* Hidden from people; bots fill it in. */}
                       <div aria-hidden className="absolute left-[-9999px] h-px w-px overflow-hidden">
                         <label htmlFor="website">Website</label>

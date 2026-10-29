@@ -155,21 +155,17 @@ export function validateContact(body: unknown): { ok: true; contact: Contact } |
   const phone = normalizePhone(typedPhone);
   const source = str(b.source) as Source;
 
-  if (!firstName) errors.firstName = "Please add your first name.";
-  if (!lastName) errors.lastName = "Please add your last name.";
+  // A first name and a mobile number are all a lead needs (29 Oct 2026): the
+  // team calls or WhatsApps everyone. The last name and email are optional; a
+  // typed email that looks wrong goes to Zoho as a note instead of blocking.
+  if (!firstName) errors.firstName = "Please add your name.";
+  if (!phone) errors.phone = "Please add a valid 10-digit mobile number.";
   // The ending must be letters only: "gmail.com3" got past the old check and
   // Zoho refused it (28 Oct 2026).
   const emailOk = isEmail(email);
-  // One right is enough to reach someone, so the lead goes through; only when
-  // both are wrong (or missing) is the visitor asked to fix them.
-  if (!phone && !emailOk) {
-    errors.phone = "Please add a valid mobile number.";
-    errors.email = "Please check your email address.";
-  }
   if (source && !sources.includes(source)) errors.source = "Please choose how you heard about us.";
   if (Object.keys(errors).length) return { ok: false, errors };
   const unverified: Unverified = {};
-  if (!phone && typedPhone) unverified.phone = typedPhone;
   if (!emailOk && typedEmail) unverified.email = typedEmail;
   return {
     ok: true,
