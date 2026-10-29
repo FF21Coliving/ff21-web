@@ -534,7 +534,7 @@ export function FindMyHome() {
           return;
         }
         if (typeof body.zohoRef === "string") zohoRef.current = body.zohoRef;
-        if (body.ok === true && !contactCounted.current) {
+        if (body.lead === true && !contactCounted.current) {
           contactCounted.current = true;
           track("contact_lead", { form: "find-my-home", lead_id: idFor() });
         }
