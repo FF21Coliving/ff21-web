@@ -361,6 +361,8 @@ export function FindMyHome() {
   // The signed Zoho reference the server returns at the contact step; it lets
   // later saves update that one lead and nothing else.
   const zohoRef = useRef<string | undefined>(undefined);
+  // The contact step counts as a lead for the ad platforms once per form run.
+  const contactCounted = useRef(false);
   // The contact step's save, still in flight while the visitor answers the
   // next question; later saves wait for it so they carry the Zoho reference.
   const contactSaved = useRef<Promise<void>>(Promise.resolve());
@@ -532,6 +534,10 @@ export function FindMyHome() {
           return;
         }
         if (typeof body.zohoRef === "string") zohoRef.current = body.zohoRef;
+        if (body.lead === true && !contactCounted.current) {
+          contactCounted.current = true;
+          track("contact_lead", { form: "find-my-home", lead_id: idFor() });
+        }
       })
       .catch(() => {
         // Offline for a moment: carry on; the final step sends everything again.

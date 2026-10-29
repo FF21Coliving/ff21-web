@@ -52,7 +52,7 @@ Field mapping is in `zohoFields()` in `src/lib/zoho.ts`. Add the Description fie
 - `gtm`: only GTM-W2P98LL loads; GTM fires GA4, Google Ads and Meta from dataLayer events
 - `direct`: GA4, Google Ads and the Meta Pixel load without GTM
 
-Never run both. Events pushed to the dataLayer: `form_start`, `find_home_step`, `generate_lead`, `whatsapp_click`, `call_click`, `view_property`, `video_play`.
+Never run both. Events pushed to the dataLayer: `form_start`, `find_home_step`, `contact_lead` (contact details saved: the Google Ads lead conversion), `generate_lead` (form finished), `whatsapp_click`, `call_click`, `view_property`, `video_play`.
 
 ## Search engines
 

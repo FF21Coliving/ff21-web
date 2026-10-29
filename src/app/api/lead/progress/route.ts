@@ -145,5 +145,8 @@ export async function POST(request: Request) {
   }
 
   const saved = await saveLead(row);
-  return Response.json({ ok: saved.ok, zohoRef });
+  // "lead": a real person's contact details were kept (saved here or sent to
+  // Zoho), so the ad platforms may count a lead. Never set on the bot path.
+  const lead = step === "you" && (saved.ok || Boolean(zohoRef));
+  return Response.json({ ok: saved.ok, zohoRef, lead });
 }
