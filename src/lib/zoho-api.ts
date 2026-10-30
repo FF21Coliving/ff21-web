@@ -256,26 +256,35 @@ async function request<T>(path: string, init?: RequestInit): Promise<T | undefin
 // The latest lead with this mobile number in Phone or Mobile, whatever its
 // format ("+919…", "9…", "0…" or "90134 42509"). Undefined when there is none
 // or Zoho can't be asked; the visitor then gets a new lead, never none.
-export async function findLeadByPhone(phone: string): Promise<string | undefined> {
+export async function findLeadByPhone(phone: string): Promise<{ id: string; createdAt: number } | undefined> {
   const digits = phone.replace(/\D/g, "").slice(-10);
   if (digits.length !== 10) return undefined;
   for (const d of [digits, `${digits.slice(0, 5)} ${digits.slice(5)}`]) {
-    const body = await request<{ data?: { id?: string }[] }>("coql", {
+    const body = await request<{ data?: { id?: string; Created_Time?: string }[] }>("coql", {
       method: "POST",
       body: JSON.stringify({ select_query: `select id, Created_Time from Leads where (Phone like '%${d}' or Mobile like '%${d}') order by Created_Time desc limit 1` }),
     });
-    const id = body?.data?.[0]?.id;
-    if (id) return id;
+    const row = body?.data?.[0];
+    if (row?.id) return { id: row.id, createdAt: Date.parse(row.Created_Time ?? "") || 0 };
   }
   return undefined;
 }
 
+// A lead made this recently with the same number is the same visit: going
+// back and sending the details again, or a final step whose reference was
+// lost. It's updated quietly, not shown to the team as a return.
+const SAME_VISIT_MS = 2 * 60 * 60_000;
+
 // Puts this visit's note at the top of the lead's Description and keeps the
-// rest, replacing only an earlier copy of the same visit's note.
-async function withVisitNote(id: string, at: string, text: string | undefined) {
+// rest, replacing only an earlier copy of the same visit's note. Undefined if
+// the Description couldn't be read: then it must not be written either, or
+// the team's notes would be lost (review, 30 Oct 2026).
+async function withVisitNote(id: string, at: string, text: string | undefined): Promise<string | undefined> {
   const body = await request<{ data?: { Description?: string | null }[] }>(`Leads/${id}?fields=Description`);
+  const lead = body?.data?.[0];
+  if (!lead) return undefined;
   const start = visitStart(at);
-  let rest = body?.data?.[0]?.Description ?? "";
+  let rest = lead.Description ?? "";
   const from = rest.indexOf(start);
   if (from >= 0) {
     const to = rest.indexOf(END, from);
@@ -288,16 +297,32 @@ async function withVisitNote(id: string, at: string, text: string | undefined) {
 // are, who owns them or where they first came from.
 function returningFields(input: ZohoLeadInput) {
   const record: Record<string, unknown> = toZoho(input);
-  for (const f of ["Phone", "Email", "First_Name", "Last_Name", "Lead_Source", "Campaign_Source1", "Campaign_Medium", "Campaign_Name", "Campaign_Term", "Campaign_Content", "GCLID"]) delete record[f];
+  // The team's own Hot/Warm/Cold call stays; the website's guess is in the note.
+  for (const f of ["Phone", "Email", "First_Name", "Last_Name", "Lead_Source", "Campaign_Source1", "Campaign_Medium", "Campaign_Name", "Campaign_Term", "Campaign_Content", "GCLID", "Lead_Qualification"]) delete record[f];
   return record;
+}
+
+// This visit's answers and note on the lead. The note is left out (and the
+// rest of Description untouched) when Description couldn't be read.
+async function visitRecord(id: string, input: ZohoLeadInput, at: string) {
+  const record = returningFields(input);
+  const description = await withVisitNote(id, at, record.Description as string | undefined);
+  if (description === undefined) delete record.Description;
+  else record.Description = description;
+  return { record, noted: description !== undefined };
 }
 
 // The visitor came back: update their latest lead and show it to the team as
 // new. Lead Status and the tag are nice-to-haves; if Zoho refuses either
 // (the blueprint may lock the status), the answers and the note still land.
-async function returnToLead(id: string, input: ZohoLeadInput, at: string): Promise<ZohoResult> {
-  const record = returningFields(input);
-  record.Description = await withVisitNote(id, at, record.Description as string | undefined);
+async function returnToLead(id: string, input: ZohoLeadInput, at: string, sameVisit: boolean): Promise<ZohoResult> {
+  const { record, noted } = await visitRecord(id, input, at);
+  // Without the note the team couldn't tell why it changed: make a new lead.
+  if (!noted) return { ok: false, detail: "couldn't read the existing lead's Description" };
+  if (sameVisit) {
+    const quiet = await call("PUT", `Leads/${id}`, record, []);
+    return quiet.ok ? { ok: true, id, note: `${RETURNING}${at}` } : quiet;
+  }
   let result = await call("PUT", `Leads/${id}`, { ...record, Lead_Status: NEW_LEAD_STATUS }, ["workflow"]);
   if (!result.ok) {
     console.error("[lead:zoho] returning visitor: saving without the status reset after", result.detail);
@@ -327,7 +352,7 @@ async function addTags(id: string, names: string[]) {
 export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> {
   const existing = input.phone ? await findLeadByPhone(input.phone) : undefined;
   if (existing) {
-    const back = await returnToLead(existing, input, new Date().toISOString());
+    const back = await returnToLead(existing.id, input, new Date().toISOString(), Date.now() - existing.createdAt < SAME_VISIT_MS);
     if (back.ok) return back;
     console.error("[lead:zoho] couldn't update the returning visitor's lead, making a new one", back.detail);
   }
@@ -402,8 +427,7 @@ export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> 
 export async function updateZohoLead(ref: ZohoRef, input: ZohoLeadInput) {
   // A returning visitor's lead: their new answers and this visit's note only.
   if (ref.note?.startsWith(RETURNING)) {
-    const record = returningFields(input);
-    record.Description = await withVisitNote(ref.id, ref.note.slice(RETURNING.length), record.Description as string | undefined);
+    const { record } = await visitRecord(ref.id, input, ref.note.slice(RETURNING.length));
     return call("PUT", `Leads/${ref.id}`, record, []);
   }
   const record = toZoho(input);
