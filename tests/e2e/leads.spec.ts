@@ -30,17 +30,14 @@ test("missing details are refused with reasons", async ({ request }) => {
   expect(Object.keys(body.errors)).toEqual(expect.arrayContaining(["firstName", "phone", "property"]));
 });
 
-// A name and a mobile number are the only must-haves (29 Oct 2026): no last
-// name, no email or a mistyped email still goes through; no good mobile number
-// never does, whatever the email.
-test("a name and a mobile number are enough, and both are required", async ({ request }) => {
-  for (const data of [{ ...lead, lastName: "" }, { ...lead, email: "" }, { ...lead, email: "name@gmail.com3" }]) {
+// Name, mobile number and email are required (30 Oct 2026); the last name is
+// optional.
+test("name, mobile number and email are required; last name is not", async ({ request }) => {
+  const ok = await request.post("/api/lead", { data: { ...lead, lastName: "" } });
+  expect(ok.status()).toBe(200);
+  for (const data of [{ ...lead, phone: "12345" }, { ...lead, phone: "" }, { ...lead, firstName: "" }, { ...lead, email: "" }, { ...lead, email: "name@gmail.com3" }]) {
     const res = await request.post("/api/lead", { data });
-    expect(res.status(), JSON.stringify({ lastName: data.lastName, email: data.email })).toBe(200);
-  }
-  for (const data of [{ ...lead, phone: "12345" }, { ...lead, phone: "" }, { ...lead, firstName: "" }]) {
-    const res = await request.post("/api/lead", { data });
-    expect(res.status(), JSON.stringify({ firstName: data.firstName, phone: data.phone })).toBe(422);
+    expect(res.status(), JSON.stringify({ firstName: data.firstName, phone: data.phone, email: data.email })).toBe(422);
   }
 });
 
