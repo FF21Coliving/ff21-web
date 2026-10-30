@@ -5,15 +5,22 @@ import { getProperty } from "./properties";
 // Leads go straight into Zoho CRM through its API (LEADS_MODE=zoho-api):
 // created when a visitor gives their contact details, then updated as they
 // answer more. Rules, agreed with Madhvik:
-//   - The site only ever CREATES leads, and UPDATES leads it created itself.
-//     Every lead it creates comes back to the browser as a signed reference;
-//     an update without a valid signature is refused, so the site can never be
-//     pointed at an existing lead.
-//   - It writes only the fields listed in toZoho() below. Nothing else in Zoho
-//     (fields, picklists, workflows, other records) is read or changed.
+//   - The site CREATES leads, and UPDATES leads it created itself. Every lead
+//     it creates comes back to the browser as a signed reference; an update
+//     without a valid signature is refused.
+//   - One exception (30 Oct 2026): when a visitor's mobile number is already
+//     on a lead, the site doesn't make another one. It updates the latest
+//     lead with that number instead: the new answers, a "came back" note at
+//     the top of Description (the rest of Description is kept), the
+//     "Returned via website" tag, and Lead Status back to the start, so the
+//     team sees it as new. The owner, name, phone, email, Lead Source and
+//     campaign fields stay as they were.
+//   - It writes only the fields listed in toZoho() below, plus Lead Status
+//     and tags for returning visitors.
 //   - Picklist values are sent exactly as they exist in Zoho (checked 16 Oct 2026).
-// The API token needs ZohoCRM.modules.leads.CREATE and .UPDATE; the daily
-// outcome check (lead-outcomes.ts) also reads leads, contacts and deals.
+// The API token needs ZohoCRM.modules.leads.CREATE, .UPDATE and .READ and
+// ZohoCRM.coql.READ (finding a returning visitor); the daily outcome check
+// (lead-outcomes.ts) also reads contacts and deals.
 
 const accountsUrl = () => process.env.ZOHO_ACCOUNTS_URL ?? "https://accounts.zoho.in";
 export const apiUrl = () => process.env.ZOHO_API_URL ?? "https://www.zohoapis.in";
@@ -217,6 +224,100 @@ const canDrop = (record: Record<string, unknown>, field: string) =>
 // team can keep them in their own list view.
 export const WEBSITE_TAG = "New FF21 Website 2026";
 
+// --- returning visitors ----------------------------------------------------
+
+// A reference to a lead the visitor already had carries this note, with the
+// time they came back, so every later update only rewrites that visit's note.
+const RETURNING = "returning:";
+export const RETURNED_TAG = "Returned via website";
+// Where the team's new leads start (Lead Management Blueprint).
+const NEW_LEAD_STATUS = "01. Site Visit To Be Scheduled";
+const END = "[/website]";
+const visitStart = (at: string) => {
+  const when = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(at));
+  return `[Came back on the website, ${when} IST]`;
+};
+
+async function request<T>(path: string, init?: RequestInit): Promise<T | undefined> {
+  try {
+    const res = await fetch(`${apiUrl()}/crm/v8/${path}`, {
+      ...init,
+      headers: { Authorization: `Zoho-oauthtoken ${await accessToken()}`, "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (res.status === 204) return undefined;
+    return (await res.json().catch(() => undefined)) as T | undefined;
+  } catch (err) {
+    console.error("[lead:zoho] read failed", err instanceof Error ? err.message : err);
+    return undefined;
+  }
+}
+
+// The latest lead with this mobile number in Phone or Mobile, whatever its
+// format ("+919…", "9…", "0…" or "90134 42509"). Undefined when there is none
+// or Zoho can't be asked; the visitor then gets a new lead, never none.
+export async function findLeadByPhone(phone: string): Promise<string | undefined> {
+  const digits = phone.replace(/\D/g, "").slice(-10);
+  if (digits.length !== 10) return undefined;
+  for (const d of [digits, `${digits.slice(0, 5)} ${digits.slice(5)}`]) {
+    const body = await request<{ data?: { id?: string }[] }>("coql", {
+      method: "POST",
+      body: JSON.stringify({ select_query: `select id, Created_Time from Leads where (Phone like '%${d}' or Mobile like '%${d}') order by Created_Time desc limit 1` }),
+    });
+    const id = body?.data?.[0]?.id;
+    if (id) return id;
+  }
+  return undefined;
+}
+
+// Puts this visit's note at the top of the lead's Description and keeps the
+// rest, replacing only an earlier copy of the same visit's note.
+async function withVisitNote(id: string, at: string, text: string | undefined) {
+  const body = await request<{ data?: { Description?: string | null }[] }>(`Leads/${id}?fields=Description`);
+  const start = visitStart(at);
+  let rest = body?.data?.[0]?.Description ?? "";
+  const from = rest.indexOf(start);
+  if (from >= 0) {
+    const to = rest.indexOf(END, from);
+    rest = (rest.slice(0, from) + (to >= 0 ? rest.slice(to + END.length) : "")).trim();
+  }
+  return [`${start} ${text ?? ""} ${END}`, rest].filter(Boolean).join("\n\n").slice(0, 32_000);
+}
+
+// The fields a returning visit may change: their new answers, never who they
+// are, who owns them or where they first came from.
+function returningFields(input: ZohoLeadInput) {
+  const record: Record<string, unknown> = toZoho(input);
+  for (const f of ["Phone", "Email", "First_Name", "Last_Name", "Lead_Source", "Campaign_Source1", "Campaign_Medium", "Campaign_Name", "Campaign_Term", "Campaign_Content", "GCLID"]) delete record[f];
+  return record;
+}
+
+// The visitor came back: update their latest lead and show it to the team as
+// new. Lead Status and the tag are nice-to-haves; if Zoho refuses either
+// (the blueprint may lock the status), the answers and the note still land.
+async function returnToLead(id: string, input: ZohoLeadInput, at: string): Promise<ZohoResult> {
+  const record = returningFields(input);
+  record.Description = await withVisitNote(id, at, record.Description as string | undefined);
+  let result = await call("PUT", `Leads/${id}`, { ...record, Lead_Status: NEW_LEAD_STATUS }, ["workflow"]);
+  if (!result.ok) {
+    console.error("[lead:zoho] returning visitor: saving without the status reset after", result.detail);
+    result = await call("PUT", `Leads/${id}`, record, ["workflow"]);
+  }
+  if (!result.ok) return result;
+  await addTags(id, [WEBSITE_TAG, RETURNED_TAG]);
+  return { ok: true, id, note: `${RETURNING}${at}` };
+}
+
+// Adds tags without touching the ones the lead already has (an update's Tag
+// field could replace them). Best effort: the note says it all anyway.
+async function addTags(id: string, names: string[]) {
+  const body = await request<{ data?: { status?: string; message?: string }[] }>("Leads/actions/add_tags", {
+    method: "POST",
+    body: JSON.stringify({ tags: names.map((name) => ({ name })), ids: [id] }),
+  });
+  if (body?.data?.[0]?.status !== "success") console.error("[lead:zoho] returning visitor: tags not added", body?.data?.[0]?.message ?? "no answer");
+}
+
 // A new lead. Runs the same workflow rules a web-form lead would. If Zoho says
 // a unique field (phone or email) matches an existing lead, that lead is left
 // alone: the new lead is created without that field (a phone moves to Mobile
@@ -224,6 +325,12 @@ export const WEBSITE_TAG = "New FF21 Website 2026";
 // and Description says which existing value it matched, so the team can link
 // them.
 export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> {
+  const existing = input.phone ? await findLeadByPhone(input.phone) : undefined;
+  if (existing) {
+    const back = await returnToLead(existing, input, new Date().toISOString());
+    if (back.ok) return back;
+    console.error("[lead:zoho] couldn't update the returning visitor's lead, making a new one", back.detail);
+  }
   const record: Record<string, unknown> = withOwner(toZoho(input), input.ownerId);
   // An email that looked wrong starts the notes, so it travels in the
   // lead's signed ref and every later update keeps it (review, 28 Oct 2026).
@@ -293,6 +400,12 @@ export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> 
 // them, which sending them again would make Zoho refuse), so updates never
 // send them; the note about a returning visitor stays first in Description.
 export async function updateZohoLead(ref: ZohoRef, input: ZohoLeadInput) {
+  // A returning visitor's lead: their new answers and this visit's note only.
+  if (ref.note?.startsWith(RETURNING)) {
+    const record = returningFields(input);
+    record.Description = await withVisitNote(ref.id, ref.note.slice(RETURNING.length), record.Description as string | undefined);
+    return call("PUT", `Leads/${ref.id}`, record, []);
+  }
   const record = toZoho(input);
   delete record.Phone;
   delete record.Email;
