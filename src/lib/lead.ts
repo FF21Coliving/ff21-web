@@ -156,25 +156,24 @@ export function validateContact(body: unknown): { ok: true; contact: Contact } |
   const phone = normalizePhone(typedPhone);
   const source = str(b.source) as Source;
 
-  // A first name and a mobile number are all a lead needs (29 Oct 2026): the
-  // team calls or WhatsApps everyone. The last name and email are optional; a
-  // typed email that looks wrong goes to Zoho as a note instead of blocking.
+  // A first name, a mobile number and an email are required (the sales team,
+  // 30 Oct 2026); the last name is optional.
   if (!firstName) errors.firstName = "Please add your name.";
   if (!phone) errors.phone = "Please add a valid 10-digit mobile number.";
   // The ending must be letters only: "gmail.com3" got past the old check and
   // Zoho refused it (28 Oct 2026).
   const emailOk = isEmail(email);
+  if (!emailOk) errors.email = typedEmail ? "Please check your email address." : "Please add your email.";
   if (source && !sources.includes(source)) errors.source = "Please choose how you heard about us.";
   if (Object.keys(errors).length) return { ok: false, errors };
   const unverified: Unverified = {};
-  if (!emailOk && typedEmail) unverified.email = typedEmail;
   return {
     ok: true,
     contact: {
       firstName,
       lastName,
       phone: phone ?? "",
-      email: emailOk ? email : "",
+      email,
       ...(Object.keys(unverified).length ? { unverified } : {}),
       source: source || undefined,
       referralCode: str(b.referralCode, 40) || undefined,
