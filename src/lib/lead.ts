@@ -167,14 +167,13 @@ export function validateContact(body: unknown): { ok: true; contact: Contact } |
   if (source && !sources.includes(source)) errors.source = "Please choose how you heard about us.";
   if (Object.keys(errors).length) return { ok: false, errors };
   const unverified: Unverified = {};
-  if (!emailOk && typedEmail) unverified.email = typedEmail;
   return {
     ok: true,
     contact: {
       firstName,
       lastName,
       phone: phone ?? "",
-      email: emailOk ? email : "",
+      email,
       ...(Object.keys(unverified).length ? { unverified } : {}),
       source: source || undefined,
       referralCode: str(b.referralCode, 40) || undefined,

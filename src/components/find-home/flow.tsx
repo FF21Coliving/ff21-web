@@ -1004,7 +1004,7 @@ export function FindMyHome() {
                         error={errors.phone}
                         onCheck={setFieldError}
                       />
-                      <TextField name="email" label="Email" type="email" inputMode="email" autoComplete="email" placeholder="name@example.com" defaultValue={contact?.email} error={errors.email} onCheck={setFieldError} />
+                      <TextField name="email" label="Email" type="email" maxLength={120} inputMode="email" autoComplete="email" placeholder="name@example.com" defaultValue={contact?.email} error={errors.email} onCheck={setFieldError} />
                       {/* Hidden from people; bots fill it in. */}
                       <div aria-hidden className="absolute left-[-9999px] h-px w-px overflow-hidden">
                         <label htmlFor="website">Website</label>
