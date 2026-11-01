@@ -351,3 +351,13 @@
 /terms-and-conditions
 /things-to-do-in-indiranagar-bangalore
 /whitefield-zhub
+# Wix pages only Google Ads linked to (read from the Ads account, 1 Nov 2026).
+/gallery
+/foto-gallery
+/fullscreen-page/comp-jfrzfr33/d9e53aa1-d60d-455e-b9b4-211a8e62a864/26/%3Fi%3D26%26p%3Dxmekc%26s%3Dstyle-jh0k2p1q
+/faqs
+/facilities
+/ffers-speak
+/find-us
+/phoenix-market-city
+/ff21pods15
