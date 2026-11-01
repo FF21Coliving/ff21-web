@@ -55,6 +55,18 @@ const nextConfig: NextConfig = {
         ["/blog-feed.xml", "/blog"],
         // Old pages and misspellings Search Console still shows (24 Oct
         // 2026), some with clicks, that aren't in Wix's sitemap.
+        // Wix pages only Google Ads linked to (ads and sitelinks, read from
+        // the Ads account on 1 Nov 2026): not in Wix's sitemap or Search
+        // Console, so missed at launch, and Google disapproved the ads.
+        ["/gallery", "/properties"],
+        ["/foto-gallery", "/properties"],
+        ["/fullscreen-page/:path*", "/properties"],
+        ["/faqs", "/#faq"],
+        ["/facilities", "/#inside"],
+        ["/ffers-speak", "/#reviews"],
+        ["/find-us", "/properties"],
+        ["/phoenix-market-city", "/properties/pmc-mahadevapura"],
+        ["/ff21pods15", "/properties/pods-marathahalli"],
         ["/sjr-sarjapur", "/properties/sjr-sarjapur"],
         ["/ff21-indiranagar-kora-koramangala", "/properties/kora-koramangala"],
         ["/ff21-btm-layout-area-kora-kora", "/properties/kora-koramangala"],

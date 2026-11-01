@@ -139,7 +139,7 @@ export default function Home() {
 
         <LifeSection />
 
-        <section aria-labelledby="inside-title" className={`${container} ${sectionY}`}>
+        <section id="inside" aria-labelledby="inside-title" className={`${container} scroll-mt-24 ${sectionY}`}>
           <SectionHeader
             id="inside-title"
             eyebrow="Inside every home"
@@ -156,7 +156,7 @@ export default function Home() {
         </section>
 
 
-        <section aria-labelledby="reviews-title" className={`bg-blue-50 ${sectionY}`}>
+        <section id="reviews" aria-labelledby="reviews-title" className={`bg-blue-50 scroll-mt-24 ${sectionY}`}>
           <div className={container}>
             <SectionHeader
               id="reviews-title"
