@@ -420,6 +420,8 @@ export function FindMyHome({ thankYou = false }: { thankYou?: boolean }) {
   useEffect(() => {
     if (thankYou) return;
     try {
+      // A new run: the last person's thank-you page isn't kept around.
+      sessionStorage.removeItem(FINISHED);
       if (sessionStorage.getItem("ff21-opened")) return;
       sessionStorage.setItem("ff21-opened", "1");
     } catch {
@@ -638,8 +640,8 @@ export function FindMyHome({ thankYou = false }: { thankYou?: boolean }) {
         try {
           sessionStorage.setItem(FINISHED, JSON.stringify({ done: result, answers } satisfies Finished));
           // A full page load, not router.push: the ad tags only see a new page.
-          // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-          window.location.assign("/thank-you");
+          // replace, so Back doesn't reopen a sent form to be sent again.
+          window.location.replace("/thank-you");
           return;
         } catch {}
         // No sessionStorage (some private windows): thank them here instead.

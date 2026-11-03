@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
 // The lead form is the site's job. These run only on our own build (never
@@ -78,15 +79,28 @@ test("the ad platforms count a lead at the contact step, once", async ({ page })
   expect(counted.lead_id).toBeTruthy();
 });
 
-const leadsCounted = (page: import("@playwright/test").Page) =>
-  page.evaluate(() => ((window as unknown as { dataLayer?: { event?: string }[] }).dataLayer ?? []).filter((e) => e.event === "generate_lead").length);
+// Every dataLayer event, kept across page loads in the tab's sessionStorage,
+// so a count covers the form page and /thank-you together.
+async function recordEvents(page: Page) {
+  await page.addInitScript(() => {
+    const dl: unknown[] = [];
+    dl.push = (...items: unknown[]) => {
+      for (const e of items) {
+        const name = (e as { event?: string })?.event;
+        if (name) sessionStorage.setItem("test-events", `${sessionStorage.getItem("test-events") ?? ""}${name},`);
+      }
+      return Array.prototype.push.apply(dl, items);
+    };
+    (window as unknown as { dataLayer: unknown[] }).dataLayer = dl;
+  });
+}
+const events = (page: Page, name: string) => page.evaluate((n) => (sessionStorage.getItem("test-events") ?? "").split(",").filter((e) => e === n).length, name);
 
-// The team's ad conversions fire on an address with "thank-you" in it, as on
-// the Wix site (3 Nov 2026): a finished form opens /thank-you as a new page,
-// which counts the lead once, even if it's reloaded.
-test("a finished form opens /thank-you and counts the lead there, once", async ({ page }) => {
+// Fills the contact step, then answers or skips every question up to "Book now".
+async function finishForm(page: Page) {
   await page.route("**/api/lead/progress", (route) => route.fulfill({ json: { ok: true, lead: true } }));
   await page.route("**/api/lead", (route) => route.fulfill({ json: { ok: true, mode: "test" } }));
+  await page.goto("/");
   await page.goto("/find-my-home?property=kdh-kundanahalli");
   await page.getByLabel("First name").fill("Test");
   await page.locator('input[name="phone"]').fill("9876543210");
@@ -106,21 +120,55 @@ test("a finished form opens /thank-you and counts the lead there, once", async (
   }
   await page.getByRole("list", { name: "How you heard of us" }).getByRole("button").first().click();
   await bookNow.click();
+}
+
+// The team's ad conversions fire on an address with "thank-you" in it, as on
+// the Wix site (3 Nov 2026): a finished form opens /thank-you as a new page,
+// which counts the lead once, even if it's reloaded.
+test("a finished form opens /thank-you and counts the lead there, once", async ({ page }) => {
+  await recordEvents(page);
+  await finishForm(page);
   await page.waitForURL("**/thank-you");
   await expect(page.getByRole("heading", { name: "You're all set, Test." })).toBeVisible();
   await expect(page.getByText("FF21 KDH")).not.toHaveCount(0);
-  await expect.poll(() => leadsCounted(page)).toBe(1);
+  await expect.poll(() => events(page, "generate_lead")).toBe(1);
   await page.reload();
   await expect(page.getByRole("heading", { name: "You're all set, Test." })).toBeVisible();
   await page.waitForTimeout(500);
-  expect(await leadsCounted(page)).toBe(0);
+  expect(await events(page, "generate_lead")).toBe(1);
+  // Back skips the sent form, so it can't be sent twice.
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
 });
 
-test("/thank-you opened on its own thanks the visitor and counts nothing", async ({ page }) => {
+test("without sessionStorage the form thanks people in place, and counts once", async ({ page }) => {
+  await page.addInitScript(() => {
+    const setItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key: string, value: string) {
+      if (key === "ff21-finished") throw new Error("storage is off");
+      return setItem.call(this, key, value);
+    };
+  });
+  await recordEvents(page);
+  await finishForm(page);
+  await expect(page.getByRole("heading", { name: "You're all set, Test." })).toBeVisible();
+  await expect(page).toHaveURL(/\/find-my-home/);
+  expect(await events(page, "generate_lead")).toBe(1);
+});
+
+test("/thank-you opened on its own thanks the visitor and logs nothing", async ({ page }) => {
+  await recordEvents(page);
+  const progress: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().includes("/api/lead")) progress.push(r.url());
+  });
   await page.goto("/thank-you");
   await expect(page.getByRole("heading", { name: "Thank you." })).toBeVisible();
   await expect(page.getByText("Our team will be in touch to set up your visit")).toBeVisible();
-  expect(await leadsCounted(page)).toBe(0);
+  await page.waitForTimeout(500);
+  expect(await events(page, "generate_lead")).toBe(0);
+  expect(await events(page, "find_home_step")).toBe(0);
+  expect(progress).toEqual([]);
   expect(await page.locator('meta[name="robots"]').getAttribute("content")).toContain("noindex");
 });
 
