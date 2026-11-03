@@ -67,7 +67,7 @@ test("the ad platforms count a lead at the contact step, once", async ({ page })
     await page.locator('input[name="phone"]').fill("9876543210");
     await page.getByLabel("Email").fill("test@example.com");
     const replied = page.waitForResponse("**/api/lead/progress");
-    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "Save & continue" }).click();
     await replied;
     await expect.poll(async () => (await contactLeads()).length).toBe(1);
     // Let the reply's handler run before counting again.
@@ -105,7 +105,7 @@ async function finishForm(page: Page) {
   await page.getByLabel("First name").fill("Test");
   await page.locator('input[name="phone"]').fill("9876543210");
   await page.getByLabel("Email").fill("test@example.com");
-  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Save & continue" }).click();
   const bookNow = page.getByRole("button", { name: "Book now" });
   const question = page.locator("h1");
   await expect(question).not.toHaveText("");
@@ -115,7 +115,7 @@ async function finishForm(page: Page) {
     const skip = page.getByRole("button", { name: "Skip for now" });
     if (await woman.isVisible()) await woman.click();
     else if (await skip.isVisible()) await skip.click();
-    else await page.getByRole("button", { name: "Continue" }).click();
+    else await page.locator('[id^="find-home-next-"]').click();
     await expect(question).not.toHaveText(asked ?? "");
   }
   await page.getByRole("list", { name: "How you heard of us" }).getByRole("button").first().click();
@@ -172,6 +172,35 @@ test("/thank-you opened on its own thanks the visitor and logs nothing", async (
   expect(await page.locator('meta[name="robots"]').getAttribute("content")).toContain("noindex");
 });
 
+// Each step's button says where it leads and has a fixed id, so the team's
+// click tracking can tell every step apart (3 Nov 2026).
+test("every step's button has its own text and id", async ({ page }) => {
+  await page.route("**/api/lead/progress", (route) => route.fulfill({ json: { ok: true, lead: true } }));
+  await page.goto("/find-my-home");
+  const seen: string[] = [];
+  await expect(page.locator("#find-home-next-you")).toHaveText("Save & continue");
+  await page.getByLabel("First name").fill("Test");
+  await page.locator('input[name="phone"]').fill("9876543210");
+  await page.getByLabel("Email").fill("test@example.com");
+  await page.locator("#find-home-next-you").click();
+  for (const step of ["where", "movein", "stay", "budget", "room"]) {
+    const button = page.locator(`#find-home-next-${step}`);
+    await expect(button).toBeVisible();
+    seen.push((await button.textContent()) ?? "");
+    await page.locator(`#find-home-skip-${step}`).or(button).first().click();
+  }
+  await page.getByRole("button", { name: "A woman" }).click();
+  for (const step of ["home", "visit"]) {
+    const button = page.locator(`#find-home-next-${step}`);
+    await expect(button).toBeVisible();
+    seen.push((await button.textContent()) ?? "");
+    await button.click();
+  }
+  await expect(page.locator("#find-home-book")).toHaveText("Book now");
+  expect(new Set(seen).size).toBe(seen.length);
+  expect(seen.every((t) => t.startsWith("Next: "))).toBe(true);
+});
+
 test("a bot's quiet yes is not counted as a lead", async ({ page }) => {
   await page.route("**/api/lead/progress", (route) => route.fulfill({ json: { ok: true } }));
   await page.goto("/find-my-home");
@@ -180,7 +209,7 @@ test("a bot's quiet yes is not counted as a lead", async ({ page }) => {
   await page.locator('input[name="phone"]').fill("9876543210");
   await page.getByLabel("Email").fill("test@example.com");
   const replied = page.waitForResponse("**/api/lead/progress");
-  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Save & continue" }).click();
   await replied;
   await page.waitForTimeout(300);
   const counted = await page.evaluate(() => ((window as unknown as { dataLayer?: { event?: string }[] }).dataLayer ?? []).filter((e) => e.event === "contact_lead").length);

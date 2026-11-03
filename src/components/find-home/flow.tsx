@@ -19,6 +19,22 @@ import { button } from "../ui";
 // the team can call, even if the visitor stops halfway.
 const STEPS = ["you", "where", "movein", "stay", "budget", "room", "who", "home", "visit", "heard"] as const;
 
+// Each step's button names where it leads, and has a fixed id
+// (find-home-next-<step>, find-home-skip-<step>, find-home-book), so the
+// team's click tracking can tell every step apart (3 Nov 2026).
+const nextLabels: Record<StepId, string> = {
+  you: "Save & continue",
+  where: "Next: move-in date",
+  movein: "Next: length of stay",
+  stay: "Next: budget",
+  budget: "Next: room type",
+  room: "Next: about you",
+  who: "Next: pick a home",
+  home: "Next: visit time",
+  visit: "Next: last question",
+  heard: "Book now",
+};
+
 // What the progress line says: speed and momentum, not steps to go.
 const cheer = (i: number) =>
   i === 0 ? "About a minute · no sign-up" : i === STEPS.length - 1 ? "Last one!" : i <= 2 ? "Great start" : i <= 5 ? "Halfway there" : "Almost done";
@@ -1082,28 +1098,28 @@ export function FindMyHome({ thankYou = false }: { thankYou?: boolean }) {
               {step === "you" ? (
                 <>
                   <span className="text-[14px] text-ink-3">Your answers save as you go</span>
-                  <button type="submit" form="contact" className={button.primary}>
-                    Continue
+                  <button type="submit" form="contact" id="find-home-next-you" className={button.primary}>
+                    {nextLabels.you}
                   </button>
                 </>
               ) : step === "heard" ? (
                 <>
                   <span className="truncate text-[14px] text-ink-3">{chosen ? `Visit to FF21 ${chosen.code}` : ""}</span>
-                  <button type="button" onClick={submit} disabled={status === "sending" || !answers.source} className={button.primary}>
+                  <button type="button" id="find-home-book" onClick={submit} disabled={status === "sending" || !answers.source} className={button.primary}>
                     {status === "sending" ? "Sending…" : "Book now"}
                   </button>
                 </>
               ) : (
                 <>
                   {step === "where" || step === "movein" || step === "budget" || step === "room" || step === "visit" ? (
-                    <button type="button" onClick={next} className="rounded-full px-4 py-2.5 text-[15px] font-semibold text-ink transition-colors hover:bg-mist">
+                    <button type="button" id={`find-home-skip-${step}`} onClick={next} className="rounded-full px-4 py-2.5 text-[15px] font-semibold text-ink transition-colors hover:bg-mist">
                       Skip for now
                     </button>
                   ) : (
                     <span />
                   )}
-                  <button type="button" onClick={next} disabled={(step === "who" && !answers.gender) || (step === "home" && !answers.property) || (step === "visit" && Boolean(answers.visitDay) && !answers.visitWindow)} className={button.primary}>
-                    Continue
+                  <button type="button" id={`find-home-next-${step}`} onClick={next} disabled={(step === "who" && !answers.gender) || (step === "home" && !answers.property) || (step === "visit" && Boolean(answers.visitDay) && !answers.visitWindow)} className={button.primary}>
+                    {nextLabels[step]}
                   </button>
                 </>
               )}
