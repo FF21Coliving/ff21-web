@@ -78,6 +78,52 @@ test("the ad platforms count a lead at the contact step, once", async ({ page })
   expect(counted.lead_id).toBeTruthy();
 });
 
+const leadsCounted = (page: import("@playwright/test").Page) =>
+  page.evaluate(() => ((window as unknown as { dataLayer?: { event?: string }[] }).dataLayer ?? []).filter((e) => e.event === "generate_lead").length);
+
+// The team's ad conversions fire on an address with "thank-you" in it, as on
+// the Wix site (3 Nov 2026): a finished form opens /thank-you as a new page,
+// which counts the lead once, even if it's reloaded.
+test("a finished form opens /thank-you and counts the lead there, once", async ({ page }) => {
+  await page.route("**/api/lead/progress", (route) => route.fulfill({ json: { ok: true, lead: true } }));
+  await page.route("**/api/lead", (route) => route.fulfill({ json: { ok: true, mode: "test" } }));
+  await page.goto("/find-my-home?property=kdh-kundanahalli");
+  await page.getByLabel("First name").fill("Test");
+  await page.locator('input[name="phone"]').fill("9876543210");
+  await page.getByLabel("Email").fill("test@example.com");
+  await page.getByRole("button", { name: "Continue" }).click();
+  const bookNow = page.getByRole("button", { name: "Book now" });
+  const question = page.locator("h1");
+  await expect(question).not.toHaveText("");
+  for (let i = 0; i < 12 && !(await bookNow.isVisible()); i++) {
+    const asked = await question.textContent();
+    const woman = page.getByRole("button", { name: "A woman" });
+    const skip = page.getByRole("button", { name: "Skip for now" });
+    if (await woman.isVisible()) await woman.click();
+    else if (await skip.isVisible()) await skip.click();
+    else await page.getByRole("button", { name: "Continue" }).click();
+    await expect(question).not.toHaveText(asked ?? "");
+  }
+  await page.getByRole("list", { name: "How you heard of us" }).getByRole("button").first().click();
+  await bookNow.click();
+  await page.waitForURL("**/thank-you");
+  await expect(page.getByRole("heading", { name: "You're all set, Test." })).toBeVisible();
+  await expect(page.getByText("FF21 KDH")).not.toHaveCount(0);
+  await expect.poll(() => leadsCounted(page)).toBe(1);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "You're all set, Test." })).toBeVisible();
+  await page.waitForTimeout(500);
+  expect(await leadsCounted(page)).toBe(0);
+});
+
+test("/thank-you opened on its own thanks the visitor and counts nothing", async ({ page }) => {
+  await page.goto("/thank-you");
+  await expect(page.getByRole("heading", { name: "Thank you." })).toBeVisible();
+  await expect(page.getByText("Our team will be in touch to set up your visit")).toBeVisible();
+  expect(await leadsCounted(page)).toBe(0);
+  expect(await page.locator('meta[name="robots"]').getAttribute("content")).toContain("noindex");
+});
+
 test("a bot's quiet yes is not counted as a lead", async ({ page }) => {
   await page.route("**/api/lead/progress", (route) => route.fulfill({ json: { ok: true } }));
   await page.goto("/find-my-home");

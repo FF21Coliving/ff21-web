@@ -194,6 +194,28 @@ const label = "text-[14px] font-semibold text-ink";
 const noSubscribe = () => () => {};
 const inferredSource = () => inferSource(readAttribution());
 
+// A finished form opens /thank-you as a new page (3 Nov 2026): the team's ad
+// conversions fire on an address with "thank-you" in it, as they did on Wix.
+// The answers travel in the tab's sessionStorage; "counted" stops a reload
+// from sending the lead to the ad platforms twice.
+const FINISHED = "ff21-finished";
+type Done = { name: string; phone: string; email: string; testMode: boolean };
+type Finished = { done: Done; answers: Answers; counted?: boolean };
+const finishedRaw = () => {
+  try {
+    return sessionStorage.getItem(FINISHED) ?? "";
+  } catch {
+    return "";
+  }
+};
+const parseFinished = (raw: string): Finished | undefined => {
+  try {
+    return (JSON.parse(raw) as Finished) ?? undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 // Milliseconds since the visitor opened the flow (a spam check), read in handlers.
 const since = (start: number) => Date.now() - start;
 
@@ -343,7 +365,7 @@ function VisitPicker({ answers, onChange }: { answers: Answers; onChange: (patch
   );
 }
 
-export function FindMyHome() {
+export function FindMyHome({ thankYou = false }: { thankYou?: boolean }) {
   const params = useSearchParams();
   const startProperty = getProperty(params.get("property") ?? "")?.slug;
   // Everyone starts with their contact details; links like ?step=budget pick
@@ -374,10 +396,16 @@ export function FindMyHome() {
     visitType: "Physical",
   }));
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">(thankYou ? "done" : "idle");
   const [errors, setErrors] = useState<LeadErrors>({});
   const [message, setMessage] = useState("");
-  const [done, setDone] = useState<{ name: string; phone: string; email: string; testMode: boolean } | null>(null);
+  const [shownHere, setDone] = useState<Done | null>(null);
+  // On /thank-you: "pending" until the browser has read the stored answers,
+  // then the finished form, or nothing for someone who opened the page directly.
+  const stored = useSyncExternalStore(noSubscribe, () => (thankYou ? finishedRaw() : ""), () => (thankYou ? "pending" : ""));
+  const finished = useMemo(() => (stored && stored !== "pending" ? parseFinished(stored) : undefined), [stored]);
+  const done = thankYou ? (stored === "pending" ? null : (finished?.done ?? { name: "", phone: "", email: "", testMode: false })) : shownHere;
+  const shown = finished?.answers ?? answers;
   const [pickDate, setPickDate] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const startedAt = useRef(0);
@@ -390,6 +418,7 @@ export function FindMyHome() {
   // Count each visit to the form once (no personal details), for the
   // drop-off chart's first bar.
   useEffect(() => {
+    if (thankYou) return;
     try {
       if (sessionStorage.getItem("ff21-opened")) return;
       sessionStorage.setItem("ff21-opened", "1");
@@ -403,13 +432,23 @@ export function FindMyHome() {
       keepalive: true,
       body: JSON.stringify({ id: leadId.current, step: "open" }),
     }).catch(() => {});
-  }, []);
+  }, [thankYou]);
 
   useEffect(() => {
     if (!startedAt.current) startedAt.current = Date.now();
     heading.current?.focus();
-    track("find_home_step", { step, index: index + 1 });
-  }, [step, index]);
+    if (!thankYou) track("find_home_step", { step, index: index + 1 });
+  }, [step, index, thankYou]);
+
+  // The lead counts on /thank-you, once: tags sent while the form page is
+  // being left can be lost.
+  useEffect(() => {
+    if (!finished || finished.counted) return;
+    track("generate_lead", { form: "find-my-home", property: getProperty(finished.answers.property ?? "")?.code, source: finished.answers.source });
+    try {
+      sessionStorage.setItem(FINISHED, JSON.stringify({ ...finished, counted: true }));
+    } catch {}
+  }, [finished]);
 
   const update = (patch: Partial<Answers>) => {
     if (!started.current) {
@@ -594,10 +633,19 @@ export function FindMyHome() {
       });
       const body = await res.json().catch(() => ({}));
       if (res.ok && body.ok) {
+        // The number or email as the team will use it: a wrong one isn't promised.
+        const result: Done = { name: contact.firstName, phone: normalizePhone(contact.phone) ? contact.phone : "", email: emailPattern.test(contact.email) ? contact.email : "", testMode: body.mode === "test" };
+        try {
+          sessionStorage.setItem(FINISHED, JSON.stringify({ done: result, answers } satisfies Finished));
+          // A full page load, not router.push: the ad tags only see a new page.
+          // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+          window.location.assign("/thank-you");
+          return;
+        } catch {}
+        // No sessionStorage (some private windows): thank them here instead.
         const p = getProperty(answers.property ?? "");
         track("generate_lead", { form: "find-my-home", property: p?.code, source: answers.source });
-        // The number or email as the team will use it: a wrong one isn't promised.
-        setDone({ name: contact.firstName, phone: normalizePhone(contact.phone) ? contact.phone : "", email: emailPattern.test(contact.email) ? contact.email : "", testMode: body.mode === "test" });
+        setDone(result);
         setStatus("done");
         window.scrollTo({ top: 0 });
         return;
@@ -621,8 +669,8 @@ export function FindMyHome() {
   }
 
   const exitHref = startProperty ? `/properties/${startProperty}` : "/";
-  const chosen = getProperty(answers.property ?? "");
-  const visit = answers.visitDay ? visitLabel(answers.visitDay, answers.visitWindow, answers.visitType) : undefined;
+  const chosen = getProperty(shown.property ?? "");
+  const visit = shown.visitDay ? visitLabel(shown.visitDay, shown.visitWindow, shown.visitType) : undefined;
 
   return (
     <div className="min-h-dvh bg-surface lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,44%)]">
@@ -645,28 +693,29 @@ export function FindMyHome() {
 
         {/* Taps inside the form aren't logged (the steps are, as events): its buttons can show what the visitor typed. */}
         <div data-notrack className="mx-auto w-full max-w-[660px] flex-1 px-5 pb-36 pt-4 md:px-10 md:pt-8">
-          {status === "done" && done ? (
+          {status === "done" ? (
+            !done ? null : (
             <div className="rise" role="status">
               <span className="grid h-12 w-12 place-items-center rounded-full bg-blue text-on-blue">
                 <Check className="h-6 w-6" strokeWidth={2.5} />
               </span>
               <h1 ref={heading} tabIndex={-1} className="mt-6 text-[34px] font-extrabold leading-[40px] tracking-[-0.025em] text-ink focus:outline-none md:text-[44px] md:leading-[50px]">
-                You&apos;re all set, {done.name}.
+                {done.name ? <>You&apos;re all set, {done.name}.</> : <>Thank you.</>}
               </h1>
               <p className="mt-3 text-[17px] leading-[27px] text-ink-2">
                 {visit
-                  ? `Our team will confirm your ${answers.visitType === "Virtual" ? "video tour" : "visit"}${chosen ? ` of FF21 ${chosen.code}` : ""} for ${visitLabel(answers.visitDay!, answers.visitWindow)} ${done.phone ? `by WhatsApp or a call on ${done.phone}` : `by email at ${done.email}`}.`
-                  : `Our team will ${done.phone ? `call you on ${done.phone}` : `email you at ${done.email}`} to set up your visit${chosen ? ` to FF21 ${chosen.code}` : ""}. Visits ${site.visitHours}.`}
+                  ? `Our team will confirm your ${shown.visitType === "Virtual" ? "video tour" : "visit"}${chosen ? ` of FF21 ${chosen.code}` : ""} for ${visitLabel(shown.visitDay!, shown.visitWindow)} ${done.phone ? `by WhatsApp or a call on ${done.phone}` : `by email at ${done.email}`}.`
+                  : `Our team will ${done.phone ? `call you on ${done.phone}` : done.email ? `email you at ${done.email}` : "be in touch"} to set up your visit${chosen ? ` to FF21 ${chosen.code}` : ""}. Visits ${site.visitHours}.`}
               </p>
               <dl className="mt-8 divide-y divide-line rounded-lg border border-line">
                 {[
                   ["Home", chosen ? `FF21 ${chosen.code} · ${chosen.area}` : undefined],
                   ["Visit", visit],
-                  ["Move in", answers.moveIn],
-                  ["Stay", answers.stay],
-                  ["Budget", answers.budget?.label],
-                  ["Room", answers.room ? (answers.room === "unsure" ? "Not sure yet" : roomKindLabels[answers.room]) : undefined],
-                  ["Near", answers.places.join(", ") || undefined],
+                  ["Move in", shown.moveIn],
+                  ["Stay", shown.stay],
+                  ["Budget", shown.budget?.label],
+                  ["Room", shown.room ? (shown.room === "unsure" ? "Not sure yet" : roomKindLabels[shown.room]) : undefined],
+                  ["Near", shown.places.join(", ") || undefined],
                 ]
                   .filter(([, v]) => v)
                   .map(([k, v]) => (
@@ -677,7 +726,7 @@ export function FindMyHome() {
                   ))}
               </dl>
               <div className="mt-8 flex flex-wrap gap-3">
-                <TrackedLink event="whatsapp_click" params={{ placement: "find_home_done" }} href={whatsappLink(`Hi FF21! I just used Find my home on your website. I'm ${done.name}.`)} className={button.primary}>
+                <TrackedLink event="whatsapp_click" params={{ placement: "find_home_done" }} href={whatsappLink(`Hi FF21! I just used Find my home on your website.${done.name ? ` I'm ${done.name}.` : ""}`)} className={button.primary}>
                   WhatsApp us now
                 </TrackedLink>
                 <Link href="/properties" className={button.secondary}>
@@ -688,6 +737,7 @@ export function FindMyHome() {
                 <p className="mt-8 rounded-md bg-sun/35 px-4 py-3 text-[14px] text-ink">Test mode: these answers were checked and logged, but not sent to Zoho.</p>
               )}
             </div>
+            )
           ) : (
             <>
               {/* Progress: encouragement and a bar that starts a little way in,
