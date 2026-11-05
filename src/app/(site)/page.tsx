@@ -23,10 +23,10 @@ import {
 import { container, sectionY } from "@/components/ui";
 import { faqs } from "@/lib/content";
 import { photos } from "@/lib/photos";
-import { inrK, prices, site } from "@/lib/site";
+import { rentK, site } from "@/lib/site";
 import { homesList } from "@/lib/schema";
 
-// The ITP lounge opens the film: Madhvik's pick for the best first photo (28 Oct 2026).
+// The teal lounge (from FF21 ITP, closed 5 Nov 2026) opens the film: Madhvik's pick for the best first photo (28 Oct 2026).
 const frames = [photos.loungeTeal, photos.rooftopSunset, photos.diningFamily, photos.rooftopDusk, photos.workspace];
 
 // One JSON-LD object with a @graph, the form every structured-data reader expects.
@@ -62,7 +62,7 @@ const jsonLd = {
 // 23 Oct 2026); Wix's were brand-first and said "Forget PGs".
 export const metadata: Metadata = {
   title: { absolute: "Coliving & PGs in Bangalore with Meals & WiFi | FF21" },
-  description: "Coliving rooms in Whitefield, Marathahalli, Mahadevapura, Koramangala, HBR Layout and Sarjapur from ₹12,000 a month, with meals, WiFi and housekeeping included.",
+  description: "Coliving rooms in Whitefield, Marathahalli, Mahadevapura, Koramangala, HBR Layout and Sarjapur for ₹12,000 to ₹14,000 a month, with meals, WiFi and housekeeping included.",
   alternates: { canonical: "/" },
 };
 
@@ -76,7 +76,7 @@ export default function Home() {
         left={{ inner: [{ photo: photos.partyFriends, grow: 1.25 }, { photo: photos.loungeBright }], outer: { photo: photos.diwali } }}
         right={{ inner: [{ photo: photos.poolGame }, { photo: photos.diningHall, grow: 1.25 }], outer: { photo: photos.holi } }}
         founded={site.founded}
-        from={inrK(prices.twinFrom)}
+        rent={rentK}
       />
 
       {/* Below the opening, each block renders as it scrolls near (cv-children). */}

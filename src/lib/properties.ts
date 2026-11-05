@@ -3,9 +3,6 @@ import { own, type Photo } from "./photos";
 export type Room = {
   name: string;
   description: string;
-  // Per person per month, food and taxes included, as listed on ff21.in on
-  // 15 Oct 2026. Confirm before launch (open question in the plan doc).
-  price?: number;
 };
 
 export type Zone = "whitefield" | "marathahalli" | "mahadevapura" | "hbr" | "koramangala" | "sarjapur";
@@ -25,9 +22,6 @@ export type Property = {
   tagline: string;
   nearby: string[];
   rooms: Room[];
-  // The lowest rent at this home, per person per month, all-inclusive.
-  // Confirmed by Madhvik on 17 Oct 2026.
-  from: number;
   // Every home serves breakfast and dinner Monday to Friday; these two serve
   // weekend meals too (confirmed 24 Oct 2026).
   weekendMeals?: boolean;
@@ -48,41 +42,8 @@ const pod: Room = { name: "Pod", description: "A compact private pod of your own
 
 export const properties: Property[] = [
   {
-    code: "ITP",
-    weekendMeals: true,
-    from: 12000,
-    slug: "itp-whitefield",
-    area: "Whiterose Layout",
-    zone: "whitefield",
-    highlight: "Near ITPL",
-    tour: "_Z9cfRDyXZw",
-    tagline: "Near ITPL, EPIP Zone and Whitefield",
-    nearby: ["Whitefield", "ITPL", "EPIP Zone", "AECS Layout", "Brookefield", "Hope Farm", "Nallurahalli", "Prestige Shantiniketan"],
-    rooms: [
-      { ...twin, price: 12000 },
-      privateRoom,
-      { ...studio, price: 18500 },
-    ],
-    hero: own("itp-lounge-fireplace", "Lounge with a fireplace, guitars and teal armchairs"),
-    gallery: [
-      own("itp-room-twin", "Twin room with two beds and shelves"),
-      own("itp-room-private", "Private room with a bed, wardrobe and framed prints"),
-      own("itp-room-loft", "Room with a loft bed above a single bed"),
-      own("itp-lounge-long", "Long lounge with teal sofas and tall windows"),
-      own("itp-pool-library", "Pool table beside a wall of bookshelves"),
-      own("itp-work-table", "Resident working on a laptop at a wooden table"),
-      own("itp-lounge-lamps", "Lounge with a teal sofa, bean bags and floor lamps"),
-      own("itp-rooftop-night", "Rooftop terrace with lights at night"),
-      own("itp-home-sign", "Bench with a HOME sign, cushions and plants"),
-    ],
-    maps: "https://www.google.com/maps/place/FF21-ITP+%7C+ITPB/@12.9804074,77.7470304,17z/data=!4m6!3m5!1s0x3bae0f673d52cc83:0x6cee8d0639170687!8m2!3d12.9804074!4d77.7470304",
-    zohoValue: "FF21-ITP - ITPL/GR Tech Park/EPIP",
-    oldPath: "/coliving-pgs-near-itpl",
-  },
-  {
     code: "WFD",
     weekendMeals: true,
-    from: 14000,
     slug: "wfd-whitefield",
     area: "Whitefield",
     zone: "whitefield",
@@ -105,7 +66,6 @@ export const properties: Property[] = [
   },
   {
     code: "KDH",
-    from: 15750,
     slug: "kdh-kundanahalli",
     area: "Kundanahalli",
     zone: "marathahalli",
@@ -133,7 +93,6 @@ export const properties: Property[] = [
   },
   {
     code: "PODS",
-    from: 14000,
     slug: "pods-marathahalli",
     area: "Marathahalli",
     zone: "marathahalli",
@@ -146,7 +105,7 @@ export const properties: Property[] = [
     rooms: [
       twin,
       { name: "King size room", description: "A larger private room with a king size bed." },
-      { name: "Single pod", description: "A private pod of your own, food included.", price: 14000 },
+      { name: "Single pod", description: "A private pod of your own, food included." },
     ],
     hero: own("pods-room-teal-wall", "Bright room with a teal accent wall"),
     gallery: [
@@ -165,7 +124,6 @@ export const properties: Property[] = [
   },
   {
     code: "LIT",
-    from: 17000,
     slug: "lit-thubarahalli",
     area: "Thubarahalli",
     zone: "marathahalli",
@@ -174,9 +132,9 @@ export const properties: Property[] = [
     tagline: "Near Kadubeesanahalli, Thubarahalli and Marathahalli",
     nearby: ["Kadubeesanahalli", "Thubarahalli"],
     rooms: [
-      { ...twin, price: 17000 },
-      { ...studio, price: 20350 },
-      { ...privateRoom, price: 31000 },
+      twin,
+      studio,
+      privateRoom,
     ],
     hero: own("lit-atrium", "Indoor atrium with a lawn, bean bags and skylights"),
     gallery: [
@@ -191,7 +149,6 @@ export const properties: Property[] = [
   },
   {
     code: "BGM",
-    from: 15750,
     slug: "bgm-doddanekundi",
     area: "Doddanekundi",
     zone: "marathahalli",
@@ -221,7 +178,6 @@ export const properties: Property[] = [
   },
   {
     code: "PMC",
-    from: 16450,
     slug: "pmc-mahadevapura",
     area: "Mahadevapura",
     zone: "mahadevapura",
@@ -230,10 +186,10 @@ export const properties: Property[] = [
     tagline: "Near Phoenix Marketcity, Bagmane Tech Park and Whitefield Road",
     nearby: ["Phoenix Marketcity", "Bagmane Tech Park", "Mahadevapura", "Whitefield Road"],
     rooms: [
-      { ...twin, price: 16450 },
-      { ...privateRoom, price: 29900 },
+      twin,
+      privateRoom,
       pod,
-      { ...studio, price: 19800 },
+      studio,
     ],
     hero: own("pmc-rooftop-deck", "Deck chairs on a rooftop lawn at sunset"),
     gallery: [
@@ -252,7 +208,6 @@ export const properties: Property[] = [
   },
   {
     code: "HBR",
-    from: 15750,
     slug: "hbr-hennur",
     area: "HBR Layout",
     zone: "hbr",
@@ -284,7 +239,6 @@ export const properties: Property[] = [
   },
   {
     code: "KORA",
-    from: 17300,
     slug: "kora-koramangala",
     area: "Koramangala",
     zone: "koramangala",
@@ -309,7 +263,6 @@ export const properties: Property[] = [
   },
   {
     code: "SJR",
-    from: 17800,
     slug: "sjr-sarjapur",
     area: "Sarjapur",
     zone: "sarjapur",
@@ -331,10 +284,6 @@ export const tourCover = (p: Property) => p.tourCover ?? p.hero;
 
 export function getProperty(slug: string) {
   return properties.find((p) => p.slug === slug);
-}
-
-export function fromPrice(p: Property): number | undefined {
-  return p.from;
 }
 
 export const zones: { id: Zone; label: string }[] = [
@@ -380,9 +329,9 @@ export function roomKinds(p: Property): RoomKind[] {
 // in search, never shown as buttons. From general knowledge (17 Oct 2026):
 // worth a check by the team, like the pincodes.
 export const colleges: Record<string, { homes: string[]; aliases?: string[] }> = {
-  "CMR Institute of Technology": { homes: ["ITP", "KDH"], aliases: ["CMRIT"] },
-  "Vydehi Institute of Medical Sciences": { homes: ["ITP", "WFD"], aliases: ["Vydehi"] },
-  "MVJ College of Engineering": { homes: ["ITP", "WFD"], aliases: ["MVJCE", "MVJ"] },
+  "CMR Institute of Technology": { homes: ["KDH"], aliases: ["CMRIT"] },
+  "Vydehi Institute of Medical Sciences": { homes: ["WFD"], aliases: ["Vydehi"] },
+  "MVJ College of Engineering": { homes: ["WFD"], aliases: ["MVJCE", "MVJ"] },
   "New Horizon College of Engineering": { homes: ["LIT", "KDH", "PODS"], aliases: ["NHCE", "New Horizon"] },
   "Cambridge Institute of Technology": { homes: ["PMC", "BGM"], aliases: ["CIT"] },
   "Kristu Jayanti College": { homes: ["HBR"], aliases: ["Kristu Jayanti", "KJC"] },

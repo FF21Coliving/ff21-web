@@ -15,7 +15,7 @@ const heading = "text-[12.5px] font-semibold uppercase tracking-[0.14em] text-in
 const item = "inline-flex text-[15px] text-ink-2 transition-[color,transform] duration-200 hover:translate-x-0.5 hover:text-ink";
 
 const areaPages: [string, string][] = [
-  ["PG near ITPL, Whitefield", "/coliving-pgs-near-itpl"],
+  ["PG near ITPL, Whitefield", "/pg-near-itpl-bangalore"],
   ["PG in Marathahalli", "/coliving-pg-near-marathahalli"],
   ["PG in Bellandur", "/coliving-pg-near-bellandur"],
   ["PG near Bagmane Tech Park", "/coliving-pg-near-bagmane-tech-park"],

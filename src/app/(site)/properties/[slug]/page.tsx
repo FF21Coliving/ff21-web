@@ -18,8 +18,8 @@ import { TrackView } from "@/components/track-view";
 import { button, container, listingTitle } from "@/components/ui";
 import { ogImage } from "@/lib/photos";
 import { pins } from "@/lib/schema";
-import { fromPrice, getProperty, mealsAt, properties, roomKindLabels, roomKindOf, roomKinds, tourCover, zones, type Property } from "@/lib/properties";
-import { inr, site, terms } from "@/lib/site";
+import { getProperty, mealsAt, properties, roomKindLabels, roomKindOf, roomKinds, tourCover, zones, type Property } from "@/lib/properties";
+import { rent, rentK, site, terms } from "@/lib/site";
 import { areaPagesFor, landingName } from "@/lib/wix-content";
 
 export function generateStaticParams() {
@@ -37,17 +37,15 @@ export async function generateMetadata({ params }: PageProps<"/properties/[slug]
   const { slug } = await params;
   const p = getProperty(slug);
   if (!p) return {};
-  const from = fromPrice(p);
   return {
     title: `FF21 ${p.code}: coliving in ${placeName(p)}`,
-    description: `${p.tagline}. Furnished rooms with meals, WiFi and housekeeping${from ? ` from ${inr(from)} a month` : ""}. Visit any day, 9am to 8pm.`,
+    description: `${p.tagline}. Furnished rooms with meals, WiFi and housekeeping for ${rent} a month. Visit any day, 9am to 8pm.`,
     alternates: { canonical: `/properties/${p.slug}` },
     openGraph: { images: [{ url: ogImage(p.hero), width: 1200, height: 630, alt: p.hero.alt }] },
   };
 }
 
 function jsonLd(p: Property) {
-  const from = fromPrice(p);
   const url = `${site.url}/properties/${p.slug}`;
   return {
     "@context": "https://schema.org",
@@ -61,7 +59,7 @@ function jsonLd(p: Property) {
         // Structured data needs a full URL; the site's own photos are paths.
         image: new URL(ogImage(p.hero), site.url).href,
         telephone: site.phone,
-        ...(from ? { priceRange: `From ${inr(from)} per month` } : {}),
+        priceRange: `${rent} per month`,
         address: { "@type": "PostalAddress", addressLocality: `${p.area}, Bangalore`, addressRegion: "Karnataka", addressCountry: "IN" },
         ...(pins[p.slug] ? { geo: { "@type": "GeoCoordinates", latitude: pins[p.slug][0], longitude: pins[p.slug][1] }, hasMap: p.maps } : {}),
         amenityFeature: included.map((i) => ({ "@type": "LocationFeatureSpecification", name: i.label, value: true })),
@@ -89,7 +87,6 @@ export default async function PropertyPage({ params }: PageProps<"/properties/[s
   const p = getProperty(slug);
   if (!p) notFound();
 
-  const from = fromPrice(p);
   const kinds = roomKinds(p);
   const zone = zones.find((z) => z.id === p.zone)!;
   const title = `FF21 ${p.code} · ${p.area}`;
@@ -174,7 +171,7 @@ export default async function PropertyPage({ params }: PageProps<"/properties/[s
               <div className="mt-8 rounded-2xl bg-blue-50 p-6 md:p-8">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <h3 className="text-[22px] font-bold tracking-[-0.02em] text-ink">Included in your rent</h3>
-                  <p className="text-[14px] font-medium text-blue-ink">{from ? `From ${inr(from)} a month, per person` : "Per person, per month"}</p>
+                  <p className="text-[14px] font-medium text-blue-ink">{rent} a month, per person</p>
                 </div>
                 <ul className="mt-6 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
                   {included.map((i) => (
@@ -223,13 +220,7 @@ export default async function PropertyPage({ params }: PageProps<"/properties/[s
                         <h3 className="mt-4 text-[20px] font-bold tracking-[-0.015em] text-ink">{r.name}</h3>
                         <p className="mt-1 text-[15px] leading-6 text-ink-2">{r.description}</p>
                         <p className="mt-5 text-[15px] text-ink-2">
-                          {r.price ? (
-                            <>
-                              <span className="tabular font-display text-[24px] font-bold text-ink">{inr(r.price)}</span> a month
-                            </>
-                          ) : (
-                            "Price on request"
-                          )}
+                          <span className="tabular font-display text-[24px] font-bold text-ink">{rentK}</span> a month
                         </p>
                       </li>
                     );
@@ -332,7 +323,7 @@ export default async function PropertyPage({ params }: PageProps<"/properties/[s
 
           <aside className="hidden lg:block">
             <div className="sticky top-[calc(var(--header-space)+72px)]">
-              <BookingCard slug={p.slug} code={p.code} area={p.area} from={from} rooms={p.rooms.map((r) => ({ name: r.name, kind: roomKindOf(r.name) }))} />
+              <BookingCard slug={p.slug} code={p.code} area={p.area} rooms={p.rooms.map((r) => ({ name: r.name, kind: roomKindOf(r.name) }))} />
             </div>
           </aside>
         </div>
@@ -368,7 +359,7 @@ export default async function PropertyPage({ params }: PageProps<"/properties/[s
       {/* Phones: the price and the action, always in reach */}
       <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-4 bg-surface px-5 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_28px_rgb(23_43_45/0.1)] lg:hidden">
         <div>
-          <p className="text-[16px] font-semibold text-ink">{from ? <span className="tabular"><span className="font-normal text-ink-2">From </span>{inr(from)} <span className="font-normal text-ink-2">a month</span></span> : "Prices on request"}</p>
+          <p className="text-[16px] font-semibold text-ink"><span className="tabular">{rentK} <span className="font-normal text-ink-2">a month</span></span></p>
           <p className="flex items-center gap-1 text-[13px] font-semibold text-blue-ink">
             <Check aria-hidden className="h-3.5 w-3.5" strokeWidth={2.75} />
             All-inclusive

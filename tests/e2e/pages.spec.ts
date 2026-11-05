@@ -32,7 +32,7 @@ test("homepage states the facts @smoke", async ({ page }) => {
   // textContent, not innerText: sections below the first screen aren't
   // rendered until they're near (content-visibility), but they're there.
   const text = (await page.locator("body").textContent()) ?? "";
-  expect(text).toContain("₹12K");
+  expect(text).toContain("₹12K to ₹14K");
   expect(text).toContain("12,559");
   expect(text).not.toMatch(/11,?200/);
   expect(text).not.toMatch(/meals every day/i);
@@ -89,11 +89,23 @@ test("no page is called a student PG @smoke", async ({ page }) => {
 });
 
 test("every home shows a price and its meals @smoke", async ({ page }) => {
-  await page.goto("/properties/itp-whitefield");
-  await expect(page.locator("p", { hasText: "Meals at FF21 ITP:" })).toContainText("weekends included");
+  await page.goto("/properties/wfd-whitefield");
+  await expect(page.locator("p", { hasText: "Meals at FF21 WFD:" })).toContainText("weekends included");
   await page.goto("/properties/kdh-kundanahalli");
   await expect(page.locator("p", { hasText: "Meals at FF21 KDH:" })).toContainText("Monday to Friday");
-  await expect(page.locator("body")).toContainText("₹15,750");
+  await expect(page.locator("body")).toContainText("₹12,000 to ₹14,000");
+  await expect(page.locator("body")).not.toContainText("₹15,750");
+});
+
+test("FF21 ITP is gone, and its pages go to its neighbours @smoke", async ({ page }) => {
+  await page.goto("/properties/itp-whitefield");
+  await expect(page).toHaveURL(/\/properties\/wfd-whitefield$/);
+  await page.goto("/coliving-pgs-near-itpl");
+  await expect(page).toHaveURL(/\/pg-near-itpl-bangalore$/);
+  for (const path of ["/properties", "/luxury-pg-in-bangalore", "/whitefield-zhub"]) {
+    await page.goto(path);
+    expect((await page.locator("body").textContent()) ?? "", path).not.toMatch(/FF21[- ]ITP\b/);
+  }
 });
 
 test("structured data parses on key pages @smoke", async ({ page }) => {

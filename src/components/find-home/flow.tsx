@@ -8,9 +8,9 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "reac
 import { readAttribution } from "@/lib/attribution";
 import { genders, inferSource, istDay, normalizePhone, stays, visitLabel, visitWindowHours, visitWindows, type Gender, type LeadErrors, type Source, type Stay, type VisitType, type VisitWindow } from "@/lib/lead";
 import { own, photos, type Photo } from "@/lib/photos";
-import { fromPrice, getProperty, homesNear, isCollege, nearPlace, places, properties, roomKindLabels, roomKinds, searchNames, zones, type RoomKind } from "@/lib/properties";
+import { getProperty, homesNear, isCollege, nearPlace, places, properties, roomKindLabels, roomKinds, searchNames, zones, type RoomKind } from "@/lib/properties";
 import { isFullPincode, isPincodeQuery, pincodes } from "@/lib/pincodes";
-import { inr, site, whatsappLink } from "@/lib/site";
+import { prices, rentK, site, whatsappLink } from "@/lib/site";
 import { track } from "@/lib/track";
 import { TrackedLink } from "../tracked-link";
 import { button } from "../ui";
@@ -158,9 +158,8 @@ function rank(answers: Answers) {
         score += 3 * near.length;
         reasons.push(`Near ${near[0]}`);
       }
-      const from = fromPrice(p);
-      if (answers.budget?.max && from) {
-        if (from <= answers.budget.max) {
+      if (answers.budget?.max) {
+        if (prices.rentFrom <= answers.budget.max) {
           score += 2;
           reasons.push("Within budget");
         } else score -= 1;
@@ -969,7 +968,6 @@ export function FindMyHome({ thankYou = false }: { thankYou?: boolean }) {
                     <ul className="grid gap-3">
                       {ranked.map(({ p, reasons }, i) => {
                         const on = answers.property === p.slug;
-                        const from = fromPrice(p);
                         return (
                           <li key={p.slug}>
                             <button type="button" aria-pressed={on} onClick={() => update({ property: p.slug })} className={`flex w-full items-center gap-4 rounded-lg border p-3 pr-5 text-left transition-[border-color,box-shadow] ${on ? optionOn : optionOff}`}>
@@ -982,7 +980,7 @@ export function FindMyHome({ thankYou = false }: { thankYou?: boolean }) {
                                   {i === 0 && reasons.length > 0 && <span className="shrink-0 rounded-full bg-sun px-2 py-0.5 text-[12px] font-bold text-ink">Best match</span>}
                                 </span>
                                 <span className="block truncate text-[14px] text-ink-2">
-                                  FF21 {p.code} · {from ? `from ${inr(from)}` : "prices on request"}
+                                  FF21 {p.code} · {rentK}
                                 </span>
                                 {reasons.length > 0 && <span className="mt-1 block truncate text-[13px] font-medium text-blue-ink">{reasons.join(" · ")}</span>}
                               </span>

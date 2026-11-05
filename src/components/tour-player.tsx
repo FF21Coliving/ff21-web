@@ -4,8 +4,8 @@ import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, LoaderCircle, Play
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { fromPrice, tourCover, type Property } from "@/lib/properties";
-import { inr } from "@/lib/site";
+import { tourCover, type Property } from "@/lib/properties";
+import { rentK } from "@/lib/site";
 import { track } from "@/lib/track";
 import { highlightIcons, included } from "./icons";
 import { ScrollRail } from "./scroll-rail";
@@ -55,7 +55,6 @@ export function TourDialog({ homes, index, onIndex, onClose, onHomePage }: Dialo
     return () => window.removeEventListener("keydown", onKey);
   }, [open, many, index, homes.length, onIndex]);
 
-  const from = home ? fromPrice(home) : undefined;
   const Highlight = home ? highlightIcons[home.slug] : undefined;
   const round = "grid shrink-0 place-items-center rounded-full bg-white/12 text-white ring-1 ring-white/20 transition-colors hover:bg-white/25";
 
@@ -113,11 +112,9 @@ export function TourDialog({ homes, index, onIndex, onClose, onHomePage }: Dialo
                   </li>
                 ))}
               </ul>
-              {from && (
-                <p className="mt-5 text-[15px] text-white/70">
-                  From <span className="tabular font-display text-[26px] font-bold text-white">{inr(from)}</span> a month
-                </p>
-              )}
+              <p className="mt-5 text-[15px] text-white/70">
+                <span className="tabular font-display text-[26px] font-bold text-white">{rentK}</span> a month
+              </p>
             </div>
 
             <div className="mt-7 flex flex-wrap gap-3">

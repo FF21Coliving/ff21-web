@@ -1,15 +1,11 @@
 {
   "_about": "Site photos from the FF21 Image Library (Drive, madhvik@wagwanworld.in). Key = file name under public/photos, value = row in the library's picking sheet (Inventory tab), or a Drive file id for photos from folders shared later (Inventory 2 and 3 tabs). og = also make a 1200x630 link-preview JPEG. A Wix media id (\"...~mv2.jpg\") is a photo copied off the old Wix site on 27 Oct 2026; its file is saved under that id.",
   "photos": {
-    "itp-lounge-fireplace": 45,
-    "itp-room-twin": 42,
     "itp-room-private": 41,
     "itp-room-loft": 46,
     "itp-lounge-long": 38,
     "itp-pool-library": 40,
     "itp-work-table": 39,
-    "itp-lounge-lamps": 43,
-    "itp-rooftop-night": 35,
     "itp-home-sign": 44,
     "kdh-rooftop-dusk": 68,
     "kdh-room-twin": 80,
@@ -89,7 +85,6 @@
     "room-studio": "c1f9d0_6ef55ed51c4449e5ae8cf86a556856b3~mv2.jpg"
   },
   "og": [
-    "itp-lounge-fireplace",
     "kdh-rooftop-dusk",
     "lit-atrium",
     "pmc-rooftop-deck",

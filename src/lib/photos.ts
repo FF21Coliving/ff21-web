@@ -42,7 +42,7 @@ export const photos = {
 // 1200x630 JPEG for link previews (WhatsApp, Facebook, X, LinkedIn).
 // Our own photos have one only where scripts/photos/manifest.json lists it
 // under "og" (the home heroes); others fall back to the large WebP.
-const ownOg = new Set(["pods-room-teal-wall", "kora-studio-deluxe", "kora-studio-premium", "itp-lounge-fireplace", "kdh-rooftop-dusk", "lit-atrium", "pmc-rooftop-deck", "wfd-pool-turf", "pods-lounge-view", "hbr-dining", "pmc-rooftop-dusk"]);
+const ownOg = new Set(["pods-room-teal-wall", "kora-studio-deluxe", "kora-studio-premium", "kdh-rooftop-dusk", "lit-atrium", "pmc-rooftop-deck", "wfd-pool-turf", "pods-lounge-view", "hbr-dining", "pmc-rooftop-dusk"]);
 export const ogImage = (photo: Photo) =>
   photo.id.startsWith("/photos/")
     ? `${photo.id}-${ownOg.has(photo.id.slice(8)) ? "og.jpg" : "1600.webp"}`

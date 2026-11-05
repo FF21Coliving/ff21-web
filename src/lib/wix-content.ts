@@ -4,6 +4,7 @@ import blogData from "@/content/wix/blog.json";
 import landingData from "@/content/wix/landing.json";
 import metaData from "@/content/wix/meta.json";
 import { homesNear, places, properties, roomKinds, type Property } from "./properties";
+import { rent } from "./site";
 
 // Everything below was carried over from the Wix site (www.ff21.in, read 17
 // Oct 2026) so the SEO it built keeps working: the same URLs, titles,
@@ -45,7 +46,57 @@ const firstPhoto = (blocks: Block[]) => blocks.flatMap((b) => (b.t === "img" ? [
 // description loses the phrase.
 const notStudent = (l: Landing): Landing =>
   l.path === "/bangalore-student-pg" ? { ...l, description: l.description?.replace(/Bangalore student PG,\s*/i, "") ?? null } : l;
-export const landingPages = (landingData as unknown as Landing[]).map(tidy).map(notStudent);
+// FF21 ITP closed (Madhvik, 5 Nov 2026). Its own page, /coliving-pgs-near-itpl,
+// redirects to the other ITPL page (next.config.ts). Elsewhere its listing
+// (an "FF21 ITP" heading and what follows, up to the next heading) and the
+// "(Areas accessible from FF21-ITP …)" line come out.
+const itpPage = "/coliving-pgs-near-itpl";
+const withoutItp = (blocks: Block[]): Block[] => {
+  let inItp = false;
+  return blocks.filter((b) => {
+    if (b.t === "h2") inItp = />FF21 ITP</.test(b.h);
+    return !inItp && !(b.t === "p" && b.h.startsWith("(Areas accessible from FF21-ITP"));
+  });
+};
+// Every home's rent is ₹12,000 to ₹14,000 (Madhvik, 5 Nov 2026), so FF21's
+// own prices in the Wix copy say that. Sentences that listed several prices
+// are rewritten whole; any other price on an area page becomes the range.
+// Posts keep their prices of other PGs; only the three that named an FF21
+// price change.
+const priceRewrites: [string, string][] = [
+  ["a double-occupancy bed costs ₹16,450, a studio room ₹19,800 and a private room ₹29,900 per person per month", `every room costs ${rent} per person per month`],
+  ["a double-occupancy bed costs ₹17,000, a studio ₹20,350 and a private room ₹31,000 per person per month, and a 1 BHK costs ₹45,200 per month", `every room costs ${rent} per person per month`],
+  ["Twin Sharing rooms start from ₹15,750, while more private Studio and Single Room options go up to ₹36,600.", `Twin Sharing, Studio and Single Rooms all cost ${rent} a month.`],
+  ["Twin Sharing rooms start at ₹15,750 and range up to ₹16,950 for the premium range.", `Twin Sharing rooms cost ${rent} a month.`],
+  ["start at ₹28,900/month (Deluxe) and ₹32,000/month (Premium)", `cost ${rent} a month`],
+  ["which start at ₹14,000/month (Basic), ₹17,350/month (Deluxe), and ₹18,450/month (Premium)", `which cost ${rent} a month`],
+  ["are available in Deluxe (₹34,700/month) and Premium (₹36,950/month) categories", `cost ${rent} a month`],
+  ["Starting from ₹15,750 for Twin Sharing Deluxe to ₹32,000 for Premium Single Rooms, each stay", `At ${rent} a month for every room, each stay`],
+  ["private rooms starting from Rs 15,000 per month", `private rooms at ${rent} per month`],
+  ["cost starting at ₹13,100/Month.", `costs ${rent} a month.`],
+  ["Prices starting at ₹10,000/month.", `Rent is ${rent} a month.`],
+  ["Twin Sharing starts at ₹15,750/month,", `Twin Sharing costs ${rent} a month,`],
+  ["Studio Rooms start from ₹19,800/month", `Studio Rooms cost ${rent} a month`],
+  ["With rates starting at ₹15,750/month,", `With rent at ${rent} a month,`],
+  ["Single Rooms begin at ₹28,900.", `Single Rooms cost ${rent} a month.`],
+  ["Bellandur starts at ₹14,000 per month", `Bellandur costs ${rent} per month`],
+];
+const ourPrice = /(?:₹|INR)\s?\d{1,2},\d{3}(?:\/-)?/g;
+// The range goes in last, so its own "₹12,000" isn't read as an old price.
+const mark = "\u0000rent\u0000";
+// Links to ITP's old page go straight to where it now redirects.
+const fixCopy = (h: string, anyPrice: boolean) => {
+  const fixed = priceRewrites.reduce((s, [from, to]) => s.replace(from, to.replace(rent, mark)), h);
+  return (anyPrice ? fixed.replace(ourPrice, mark) : fixed).replaceAll(mark, rent).replaceAll(`href="${itpPage}"`, 'href="/pg-near-itpl-bangalore"');
+};
+const withFixes = (blocks: Block[], anyPrice: boolean): Block[] =>
+  blocks.map((b) => (b.t === "ul" ? { ...b, items: b.items.map((i) => fixCopy(i, anyPrice)) } : b.t === "img" ? b : { ...b, h: fixCopy(b.h, anyPrice) }));
+
+export const landingPages = (landingData as unknown as Landing[])
+  .filter((l) => l.path !== itpPage)
+  .map((l) => ({ ...l, blocks: withFixes(withoutItp(l.blocks), true) }))
+  .map(tidy)
+  .map(notStudent);
 // Posts taken down on 24 Oct 2026: they listed made-up "FF21 … PG" homes at
 // rents below FF21's real ones. next.config.ts redirects each to its area.
 export const takenDown = new Set([
@@ -59,7 +110,7 @@ export const takenDown = new Set([
 // scripts/photos/build-blog.py; the image loader picks the width.
 const local = (id: string) => `/blog-photos/${id.split("~")[0]}`;
 export const articles = (blogData as unknown as Article[]).filter((a) => !takenDown.has(a.path)).map((a) => {
-  const blocks = withAlts(a.blocks.filter((b) => !(b.t === "img" && retired.has(b.id))));
+  const blocks = withFixes(withAlts(a.blocks.filter((b) => !(b.t === "img" && retired.has(b.id)))), false);
   const image = a.image && retired.has(a.image) ? firstPhoto(blocks) : a.image;
   return {
     ...tidy(a),
@@ -86,11 +137,11 @@ export const getArticle = (prefix: "blog" | "post", slug: string) => articles.fi
 const homesByPage: Record<string, string[] | "all" | "studio"> = {
   "/bangalore-student-pg": "all",
   "/best-pg-in-sarjapur": ["SJR", "KORA"],
-  "/coliving-near-brookefield": ["ITP", "KDH", "WFD", "LIT"],
+  "/coliving-near-brookefield": ["KDH", "WFD", "LIT"],
   "/coliving-near-kadubeesanahalli": ["LIT", "KDH", "PODS"],
   "/coliving-near-kaggadasapura": ["BGM", "PMC", "PODS"],
   "/coliving-near-koramangala": ["KORA", "SJR"],
-  "/coliving-near-kundalahalli": ["KDH", "ITP", "LIT"],
+  "/coliving-near-kundalahalli": ["KDH", "LIT"],
   "/coliving-near-kundanahalli": ["KDH", "PODS", "LIT"],
   "/coliving-pg-bangalore-smart-living": "all",
   "/coliving-pg-in-bangalore": "all",
@@ -99,62 +150,61 @@ const homesByPage: Record<string, string[] | "all" | "studio"> = {
   "/coliving-pg-in-kr-puram": ["PMC", "BGM"],
   "/coliving-pg-near-bagmane-tech-park": ["BGM", "PMC"],
   "/coliving-pg-near-bellandur": ["PODS", "KDH", "LIT"],
-  "/coliving-pg-near-brigade-software-park-bangalore": ["ITP", "WFD", "KDH"],
+  "/coliving-pg-near-brigade-software-park-bangalore": ["WFD", "KDH"],
   "/coliving-pg-near-eco-space": ["PODS", "KDH", "LIT"],
   "/coliving-pg-near-mahadevapura": ["PMC", "BGM"],
   "/coliving-pg-near-manyata-tech-park": ["HBR"],
   "/coliving-pg-near-marathahalli": ["PODS", "KDH", "LIT", "BGM"],
   "/coliving-pg-near-phoenix-marketcity-bangalore": ["PMC", "BGM"],
-  "/coliving-pg-near-vr-bengaluru-whitefield": ["PMC", "WFD", "ITP"],
-  "/coliving-pgs-near-aecs-layout": ["ITP", "KDH"],
-  "/coliving-pgs-near-beml-layout": ["LIT", "KDH", "ITP"],
+  "/coliving-pg-near-vr-bengaluru-whitefield": ["PMC", "WFD"],
+  "/coliving-pgs-near-aecs-layout": ["KDH"],
+  "/coliving-pgs-near-beml-layout": ["LIT", "KDH"],
   "/coliving-pgs-near-doddanekundi": ["BGM", "PMC"],
   "/coliving-pgs-near-hbr-layout": ["HBR"],
-  "/coliving-pgs-near-hoodi": ["PMC", "WFD", "ITP"],
-  "/coliving-pgs-near-hope-farm": ["WFD", "ITP"],
-  "/coliving-pgs-near-itpl": ["ITP", "WFD"],
+  "/coliving-pgs-near-hoodi": ["PMC", "WFD"],
+  "/coliving-pgs-near-hope-farm": ["WFD"],
   "/coliving-pgs-near-karthik-nagar": ["BGM", "PODS", "KDH"],
   "/coliving-pgs-near-nagawara": ["HBR"],
-  "/coliving-pgs-near-nallurahalli": ["ITP", "WFD"],
+  "/coliving-pgs-near-nallurahalli": ["WFD"],
   "/coliving-space-bangalore-smart-urban-living": "all",
   "/luxury-pg-in-bangalore": "all",
   "/monthly-stay-in-bangalore": "all",
-  "/pg-coliving-near-kalyani-tech-park-bangalore": ["ITP", "WFD"],
-  "/pg-coliving-near-mind-comp-tech-park-bangalore": ["ITP", "WFD"],
+  "/pg-coliving-near-kalyani-tech-park-bangalore": ["WFD"],
+  "/pg-coliving-near-mind-comp-tech-park-bangalore": ["WFD"],
   "/pg-in-adugodi": ["KORA"],
   "/pg-in-btm-layout": ["KORA", "SJR"],
   "/pg-in-hsr-layout": ["KORA", "SJR"],
   "/pg-in-indiranagar": ["KORA"],
   "/pg-in-jayanagar": ["KORA"],
   "/pg-in-kadubeesanahalli": ["LIT", "KDH", "PODS"],
-  "/pg-in-kadugodi": ["ITP", "WFD"],
+  "/pg-in-kadugodi": ["WFD"],
   "/pg-in-kr-puram": ["PMC", "BGM"],
-  "/pg-in-kundalahalli-gate": ["KDH", "ITP", "LIT"],
+  "/pg-in-kundalahalli-gate": ["KDH", "LIT"],
   "/pg-in-kundanahalli": ["KDH", "PODS", "LIT"],
   "/pg-in-kundanhalli-bangalore": ["KDH", "PODS", "LIT"],
   "/pg-in-madiwala": ["KORA"],
   "/pg-in-varthur": ["KDH", "PODS", "LIT"],
-  "/pg-near-aecs-layout": ["ITP", "KDH"],
+  "/pg-near-aecs-layout": ["KDH"],
   "/pg-near-bagmane-tech-park": ["BGM", "PMC"],
   "/pg-near-bellandur": ["PODS", "KDH", "LIT"],
-  "/pg-near-beml-layout": ["LIT", "KDH", "ITP"],
-  "/pg-near-brookefield": ["ITP", "KDH", "WFD", "LIT"],
+  "/pg-near-beml-layout": ["LIT", "KDH"],
+  "/pg-near-brookefield": ["KDH", "WFD", "LIT"],
   "/pg-near-doddanekundi": ["BGM", "PMC"],
   "/pg-near-ecospace": ["PODS", "KDH", "LIT"],
   "/pg-near-hbr-layout": ["HBR"],
-  "/pg-near-hoodi": ["PMC", "WFD", "ITP"],
-  "/pg-near-hopefarm": ["WFD", "ITP"],
-  "/pg-near-itpl-bangalore": ["ITP", "WFD"],
+  "/pg-near-hoodi": ["PMC", "WFD"],
+  "/pg-near-hopefarm": ["WFD"],
+  "/pg-near-itpl-bangalore": ["WFD"],
   "/pg-near-kaggadasapura": ["BGM", "PMC", "PODS"],
   "/pg-near-kalyan-nagar": ["HBR"],
   "/pg-near-karthik-nagar": ["BGM", "PODS", "KDH"],
   "/pg-near-koramangala": ["KORA", "SJR"],
-  "/pg-near-kundalahalli": ["KDH", "ITP", "LIT"],
+  "/pg-near-kundalahalli": ["KDH", "LIT"],
   "/pg-near-mahadevapura": ["PMC", "BGM"],
   "/pg-near-manyata-tech-park": ["HBR"],
   "/pg-near-marathahalli": ["PODS", "KDH", "LIT", "BGM"],
   "/pg-near-nagawara": ["HBR"],
-  "/pg-near-nallurahalli": ["ITP", "WFD"],
+  "/pg-near-nallurahalli": ["WFD"],
   "/pg-near-prestige-tech-park": ["LIT", "PODS", "KDH"],
   "/pg-near-rga-tech-park": ["SJR", "KORA"],
   "/pg-near-rmz-ecoworld": ["PODS", "LIT", "KDH"],
@@ -163,7 +213,7 @@ const homesByPage: Record<string, string[] | "all" | "studio"> = {
   "/pgs-near-prestige-tech-park": ["LIT", "PODS", "KDH"],
   "/properties-near-office-techparks": "all",
   "/studio-pg-in-bangalore": "studio",
-  "/whitefield-zhub": ["WFD", "ITP"],
+  "/whitefield-zhub": ["WFD"],
 };
 
 export function homesFor(path: string): Property[] {

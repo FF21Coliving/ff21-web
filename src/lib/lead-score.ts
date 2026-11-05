@@ -1,4 +1,5 @@
-import { fromPrice, getProperty, properties } from "./properties";
+import { getProperty } from "./properties";
+import { prices } from "./site";
 
 // A first guess at how warm a website lead is, out of 10, written to Zoho's
 // Lead Qualification (Hot / Warm / Cold) so the team knows whom to call first.
@@ -67,9 +68,10 @@ function budgetPoints(budget: string | undefined, property: string | undefined):
   if (max === undefined) return [0];
   if (max === null) return [2, "budget open"];
   const chosen = property ? getProperty(property) : undefined;
-  const chosenFrom = chosen ? fromPrice(chosen) : undefined;
+  // Every home's rent starts at the same amount (5 Nov 2026).
+  const chosenFrom = chosen ? prices.rentFrom : undefined;
   if (chosenFrom !== undefined && chosenFrom <= max) return [2, "within budget"];
-  if (properties.some((p) => (fromPrice(p) ?? Infinity) <= max)) return [1, "budget fits some homes"];
+  if (prices.rentFrom <= max) return [1, "budget fits some homes"];
   return [0, "below our prices"];
 }
 
