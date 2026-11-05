@@ -1,6 +1,6 @@
 // Copy carried over from ff21.in and tightened. Facts only.
 import { properties } from "./properties";
-import { inr, prices, site } from "./site";
+import { rent, site } from "./site";
 
 export type AmenityIcon = "meals" | "wifi" | "housekeeping" | "work" | "play" | "security" | "community" | "app";
 
@@ -81,11 +81,11 @@ export const faqs = [
   },
   {
     q: "How much is the rent?",
-    a: `A bed in a twin room starts at ${inr(prices.twinFrom)} a month, and a pod of your own at ${inr(prices.privateFrom)}, with meals, taxes and charges included. Each home's page lists its rooms and prices.`,
+    a: `Rent is ${rent} a month per person at every FF21 home, with meals, taxes and charges included. Each home's page lists its rooms.`,
   },
   {
     q: "Which meals are included?",
-    a: "Breakfast and dinner, Monday to Friday, at every FF21 home. FF21 ITP and FF21 WFD serve meals on weekends too.",
+    a: "Breakfast and dinner, Monday to Friday, at every FF21 home. FF21 WFD serves meals on weekends too.",
   },
   {
     q: "Are FF21 homes for men, women or both?",

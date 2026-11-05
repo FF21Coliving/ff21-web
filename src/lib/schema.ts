@@ -1,5 +1,5 @@
-import { properties, fromPrice, type Property } from "./properties";
-import { site } from "./site";
+import { properties, type Property } from "./properties";
+import { rent, site } from "./site";
 
 // Structured data shared by several pages (JSON-LD). Kept to what each page
 // visibly shows, so search engines and AI assistants read the same facts as
@@ -7,7 +7,6 @@ import { site } from "./site";
 
 // Each home's Google Maps pin (the same pins scripts/make-maps.py uses).
 export const pins: Record<string, [number, number]> = {
-  "itp-whitefield": [12.9804074, 77.7470304],
   "wfd-whitefield": [12.9843719, 77.733698],
   "kdh-kundanahalli": [12.951442, 77.7175013],
   "pods-marathahalli": [12.9478046, 77.7182353],
@@ -28,12 +27,11 @@ export function homesList(list: Property[] = properties, name = "FF21 coliving h
     name,
     numberOfItems: list.length,
     itemListElement: list.map((p, i) => {
-      const from = fromPrice(p);
       return {
         "@type": "ListItem",
         position: i + 1,
         url: homeUrl(p),
-        name: `FF21 ${p.code}, ${p.area}${from ? ` (from ₹${from.toLocaleString("en-IN")} a month)` : ""}`,
+        name: `FF21 ${p.code}, ${p.area} (${rent} a month)`,
       };
     }),
   };

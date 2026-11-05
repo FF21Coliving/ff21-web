@@ -58,7 +58,6 @@ export const roomIcons: Record<RoomKind, LucideIcon> = {
 
 // One icon per home, matching its highlight.
 export const highlightIcons: Record<string, LucideIcon> = {
-  "itp-whitefield": Building2,
   "wfd-whitefield": Footprints,
   "kdh-kundanahalli": Sunset,
   "pods-marathahalli": BedSingle,

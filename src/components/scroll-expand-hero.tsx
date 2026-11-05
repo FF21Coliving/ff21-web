@@ -14,7 +14,7 @@ type Props = {
   left: { inner: [Tile, Tile]; outer: Tile };
   right: { inner: [Tile, Tile]; outer: Tile };
   founded: number;
-  from: string;
+  rent: string;
 };
 
 const clamp = (v: number) => Math.min(1, Math.max(0, v));
@@ -32,7 +32,7 @@ function CollageTile({ tile, sizes, className = "" }: { tile: Tile; sizes: strin
 // community around one window; scrolling slides the collage away and opens
 // the window to the whole screen while the photo inside zooms out. Pure CSS
 // does the drawing: this only turns scroll position into three numbers.
-export function ScrollExpandHero({ frames, left, right, founded, from }: Props) {
+export function ScrollExpandHero({ frames, left, right, founded, rent }: Props) {
   const root = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   // Opens the window all the way (the "Scroll down" button, a sideways swipe).
@@ -275,7 +275,7 @@ export function ScrollExpandHero({ frames, left, right, founded, from }: Props) 
                 Your <em className="accent">home</em> in Bangalore.
               </h2>
               <p className="mt-3 max-w-xl text-[15px] leading-[23px] text-white/85 md:mt-5 md:text-[19px] md:leading-[30px]">
-                Furnished rooms near the city&apos;s tech parks, with meals, WiFi and housekeeping in one rent. Starts from {from} a month.
+                Furnished rooms near the city&apos;s tech parks, with meals, WiFi and housekeeping in one rent. Rent is {rent} a month.
               </p>
               <div className="mt-5 flex gap-3 md:mt-8">
                 <Link href="/find-my-home" className={`${button.onMediaPrimary} group flex-1 md:flex-none`}>

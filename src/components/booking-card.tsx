@@ -3,7 +3,7 @@
 import { Check, ChevronDown, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { site, whatsappLink } from "@/lib/site";
+import { rentK, site, whatsappLink } from "@/lib/site";
 import { included } from "./icons";
 import { TrackedLink } from "./tracked-link";
 import { button } from "./ui";
@@ -12,7 +12,6 @@ type Props = {
   slug: string;
   code: string;
   area: string;
-  from?: number;
   rooms: { name: string; kind?: string }[];
 };
 
@@ -20,7 +19,7 @@ const moveIns = ["As soon as possible", "Next month", "In two months", "I'm flex
 
 // Sticky on the right of a home's page: the price, what it covers, and the
 // way to book. Hands its answers to Find my home.
-export function BookingCard({ slug, code, area, from, rooms }: Props) {
+export function BookingCard({ slug, code, area, rooms }: Props) {
   const [moveIn, setMoveIn] = useState(moveIns[0]);
   const [room, setRoom] = useState("");
 
@@ -31,15 +30,8 @@ export function BookingCard({ slug, code, area, from, rooms }: Props) {
   return (
     <div className="rounded-2xl border border-line bg-surface p-6 shadow-[0_14px_40px_rgb(23_43_45/0.12)]">
       <p className="text-ink">
-        {from ? (
-          <>
-            <span className="text-[16px] text-ink-2">From </span>
-            <span className="tabular font-display text-[30px] font-extrabold tracking-[-0.02em]">₹{from.toLocaleString("en-IN")}</span>{" "}
-            <span className="text-[16px] text-ink-2">a month</span>
-          </>
-        ) : (
-          <span className="font-display text-[22px] font-bold">Prices on request</span>
-        )}
+        <span className="tabular font-display text-[30px] font-extrabold tracking-[-0.02em]">{rentK}</span>{" "}
+        <span className="text-[16px] text-ink-2">a month</span>
       </p>
       <p className="mt-1 text-[14px] text-ink-3">Per person, all-inclusive</p>
 

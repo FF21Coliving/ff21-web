@@ -4,7 +4,6 @@ import type { Page } from "@playwright/test";
 // Every page we promise works: the homepage, each home, the main area pages,
 // the blog, a post, and the legal pages.
 export const homes = [
-  "itp-whitefield",
   "wfd-whitefield",
   "kdh-kundanahalli",
   "pods-marathahalli",

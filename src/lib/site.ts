@@ -24,10 +24,10 @@ export const site = {
 };
 
 export const prices = {
-  // The lowest rent across all homes (FF21 ITP), confirmed 17 Oct 2026.
-  twinFrom: 12000,
-  // The lowest rent for a space of your own: FF21 PODS' single pod.
-  privateFrom: 14000,
+  // Every home and room is ₹12,000 to ₹14,000 a month per person, all
+  // inclusive (Madhvik, 5 Nov 2026).
+  rentFrom: 12000,
+  rentTo: 14000,
   bookingAmount: 6000,
   moveOutCharge: 2999,
 };
@@ -51,3 +51,7 @@ export const inrK = (n: number) => `₹${Number((n / 1000).toFixed(2))}K`;
 export function inr(amount: number) {
   return `₹${amount.toLocaleString("en-IN")}`;
 }
+
+// The rent, written out ("₹12,000 to ₹14,000") and short ("₹12K to ₹14K").
+export const rent = `${inr(prices.rentFrom)} to ${inr(prices.rentTo)}`;
+export const rentK = `${inrK(prices.rentFrom)} to ${inrK(prices.rentTo)}`;

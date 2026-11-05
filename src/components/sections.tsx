@@ -23,7 +23,7 @@ import Link from "next/link";
 import { amenities, faqs, steps, testimonials, type AmenityIcon } from "@/lib/content";
 import { photos, type Photo as PhotoType } from "@/lib/photos";
 import { properties, roomKindLabels, type RoomKind } from "@/lib/properties";
-import { inrK, prices, site, terms, whatsappLink } from "@/lib/site";
+import { inrK, prices, rentK, site, terms, whatsappLink } from "@/lib/site";
 import { amenityIcons, included, roomIcons, stepIcons, termIcons } from "./icons";
 import { Splash, Stamp } from "./splash";
 import { Tag } from "./tag";
@@ -168,10 +168,10 @@ export function IncludedBand() {
             </ul>
             <div className="mt-5 flex items-end justify-between gap-4 rounded-xl bg-mist px-4 py-3.5 md:mt-6 md:px-5 md:py-4">
               <span className="text-[14px] leading-5 text-ink-2">
-                Starts from, per
-                <br />person a month
+                Per person,
+                <br />a month
               </span>
-              <span className="tabular font-display text-[30px] font-extrabold leading-none tracking-[-0.02em] text-ink md:text-[36px]">{inrK(prices.twinFrom)}</span>
+              <span className="tabular whitespace-nowrap font-display text-[28px] font-extrabold leading-none tracking-[-0.02em] text-ink md:text-[36px]">{rentK}</span>
             </div>
           </div>
           <Stamp id="stamp-rent" text={`ALL-INCLUSIVE RENT · SINCE ${site.founded} · `} className="absolute -right-3 -top-10 h-24 w-24 md:-right-12 md:-top-14 md:h-32 md:w-32" />
@@ -372,7 +372,7 @@ export function FindHomeBand() {
             <p className="mt-6 font-display text-[23px] font-bold leading-7 tracking-[-0.02em] text-ink">Where do you work or study?</p>
             <div className="mt-5 grid gap-2">
               {[
-                ["ITPL", "2 homes close by", true],
+                ["ITPL", "1 home close by", true],
                 ["Bagmane Tech Park", "2 homes close by", true],
                 ["Manyata Tech Park", "1 home close by", false],
               ].map(([name, note, on]) => (
@@ -708,14 +708,24 @@ export function Numbers({ className = "" }: { className?: string }) {
     { value: site.residents.toLocaleString("en-IN"), label: "FFers so far, and counting" },
     { value: String(properties.length), label: "homes across Bangalore" },
     { value: String(site.founded), label: "the year FF21 opened" },
-    { value: inrK(prices.twinFrom), label: "starting rent, everything included" },
+    // Two lines: the range is too wide for a quarter-width tile on one.
+    {
+      value: (
+        <>
+          {inrK(prices.rentFrom)} to{" "}
+          <br />
+          {inrK(prices.rentTo)}
+        </>
+      ),
+      label: "rent a month, everything included",
+    },
   ];
   return (
     <dl className={`grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5 ${className}`}>
       {stats.map((s) => (
         <div key={s.label} className="flex flex-col-reverse rounded-2xl bg-surface p-5 md:p-7">
           <dt className="mt-2 text-[14.5px] leading-5 text-ink-2 md:text-[15.5px]">{s.label}</dt>
-          <dd className="tabular font-display text-[34px] font-extrabold leading-none tracking-[-0.03em] text-ink md:text-[48px]">{s.value}</dd>
+          <dd className="tabular font-display text-[30px] font-extrabold leading-none tracking-[-0.03em] text-ink md:text-[48px]">{s.value}</dd>
         </div>
       ))}
     </dl>
