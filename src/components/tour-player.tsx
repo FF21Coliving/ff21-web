@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { tourCover, type Property } from "@/lib/properties";
-import { rentK } from "@/lib/site";
+import { rent } from "@/lib/site";
 import { track } from "@/lib/track";
 import { highlightIcons, included } from "./icons";
 import { ScrollRail } from "./scroll-rail";
@@ -113,7 +113,7 @@ export function TourDialog({ homes, index, onIndex, onClose, onHomePage }: Dialo
                 ))}
               </ul>
               <p className="mt-5 text-[15px] text-white/70">
-                <span className="tabular font-display text-[26px] font-bold text-white">{rentK}</span> a month
+                From <span className="tabular font-display text-[26px] font-bold text-white">{rent}</span> a month
               </p>
             </div>
 

@@ -58,39 +58,49 @@ const withoutItp = (blocks: Block[]): Block[] => {
     return !inItp && !(b.t === "p" && b.h.startsWith("(Areas accessible from FF21-ITP"));
   });
 };
-// Every home's rent is ₹12,000 to ₹14,000 (Madhvik, 5 Nov 2026), so FF21's
-// own prices in the Wix copy say that. Sentences that listed several prices
-// are rewritten whole; any other price on an area page becomes the range.
-// Posts keep their prices of other PGs; only the three that named an FF21
-// price change.
+// Rent starts from ₹14,000 at every home (Madhvik, 11 Nov 2026), so FF21's
+// own prices in the Wix copy say that, and never a top price. Sentences that
+// listed several prices are rewritten whole; any other price on an area page
+// becomes "from ₹14,000". Posts keep their prices of other PGs; only the
+// three that named an FF21 price change.
 const priceRewrites: [string, string][] = [
-  ["a double-occupancy bed costs ₹16,450, a studio room ₹19,800 and a private room ₹29,900 per person per month", `every room costs ${rent} per person per month`],
-  ["a double-occupancy bed costs ₹17,000, a studio ₹20,350 and a private room ₹31,000 per person per month, and a 1 BHK costs ₹45,200 per month", `every room costs ${rent} per person per month`],
-  ["Twin Sharing rooms start from ₹15,750, while more private Studio and Single Room options go up to ₹36,600.", `Twin Sharing, Studio and Single Rooms all cost ${rent} a month.`],
-  ["Twin Sharing rooms start at ₹15,750 and range up to ₹16,950 for the premium range.", `Twin Sharing rooms cost ${rent} a month.`],
-  ["start at ₹28,900/month (Deluxe) and ₹32,000/month (Premium)", `cost ${rent} a month`],
-  ["which start at ₹14,000/month (Basic), ₹17,350/month (Deluxe), and ₹18,450/month (Premium)", `which cost ${rent} a month`],
-  ["are available in Deluxe (₹34,700/month) and Premium (₹36,950/month) categories", `cost ${rent} a month`],
-  ["Starting from ₹15,750 for Twin Sharing Deluxe to ₹32,000 for Premium Single Rooms, each stay", `At ${rent} a month for every room, each stay`],
-  ["private rooms starting from Rs 15,000 per month", `private rooms at ${rent} per month`],
-  ["cost starting at ₹13,100/Month.", `costs ${rent} a month.`],
-  ["Prices starting at ₹10,000/month.", `Rent is ${rent} a month.`],
-  ["Twin Sharing starts at ₹15,750/month,", `Twin Sharing costs ${rent} a month,`],
-  ["Studio Rooms start from ₹19,800/month", `Studio Rooms cost ${rent} a month`],
-  ["With rates starting at ₹15,750/month,", `With rent at ${rent} a month,`],
-  ["Single Rooms begin at ₹28,900.", `Single Rooms cost ${rent} a month.`],
-  ["Bellandur starts at ₹14,000 per month", `Bellandur costs ${rent} per month`],
+  ["a double-occupancy bed costs ₹16,450, a studio room ₹19,800 and a private room ₹29,900 per person per month", `rooms start from ${rent} per person per month`],
+  ["a double-occupancy bed costs ₹17,000, a studio ₹20,350 and a private room ₹31,000 per person per month, and a 1 BHK costs ₹45,200 per month", `rooms start from ${rent} per person per month`],
+  ["Twin Sharing rooms start from ₹15,750, while more private Studio and Single Room options go up to ₹36,600.", `Twin Sharing, Studio and Single Rooms start from ${rent} a month.`],
+  ["Twin Sharing rooms start at ₹15,750 and range up to ₹16,950 for the premium range.", `Twin Sharing rooms start from ${rent} a month.`],
+  ["start at ₹28,900/month (Deluxe) and ₹32,000/month (Premium)", `start from ${rent} a month`],
+  ["which start at ₹14,000/month (Basic), ₹17,350/month (Deluxe), and ₹18,450/month (Premium)", `which start from ${rent} a month`],
+  ["are available in Deluxe (₹34,700/month) and Premium (₹36,950/month) categories", `start from ${rent} a month`],
+  ["Starting from ₹15,750 for Twin Sharing Deluxe to ₹32,000 for Premium Single Rooms, each stay", `With every room from ${rent} a month, each stay`],
+  ["private rooms starting from Rs 15,000 per month", `private rooms from ${rent} per month`],
+  ["cost starting at ₹13,100/Month.", `starts from ${rent} a month.`],
+  ["Prices starting at ₹10,000/month.", `Rent starts from ${rent} a month.`],
+  ["Twin Sharing starts at ₹15,750/month,", `Twin Sharing starts from ${rent} a month,`],
+  ["Studio Rooms start from ₹19,800/month", `Studio Rooms start from ${rent} a month`],
+  ["With rates starting at ₹15,750/month,", `With rent from ${rent} a month,`],
+  ["Single Rooms begin at ₹28,900.", `Single Rooms start from ${rent} a month.`],
+  ["Bellandur starts at ₹14,000 per month", `Bellandur starts from ${rent} per month`],
 ];
 const ourPrice = /(?:₹|INR)\s?\d{1,2},\d{3}(?:\/-)?/g;
-// The range goes in last, so its own "₹12,000" isn't read as an old price.
+// The new price goes in last, so its own "₹14,000" isn't read as an old one.
+// A bare price becomes "from ₹14,000", and "at from" or "for from" reads
+// "from". Price cards put "Starts at" in a block of its own above the price:
+// that reads "Starts from", and the price after it stays bare.
 const mark = "\u0000rent\u0000";
+const isStartsAt = (h: string) => h.replace(/<[^>]+>/g, "").trim() === "Starts at";
 // Links to ITP's old page go straight to where it now redirects.
-const fixCopy = (h: string, anyPrice: boolean) => {
+const fixCopy = (h: string, anyPrice: boolean, bare = false) => {
+  if (anyPrice && isStartsAt(h)) return h.replace("Starts at", "Starts from");
   const fixed = priceRewrites.reduce((s, [from, to]) => s.replace(from, to.replace(rent, mark)), h);
-  return (anyPrice ? fixed.replace(ourPrice, mark) : fixed).replaceAll(mark, rent).replaceAll(`href="${itpPage}"`, 'href="/pg-near-itpl-bangalore"');
+  const priced = anyPrice ? fixed.replace(ourPrice, bare ? mark : `from ${mark}`).replace(/\b(?:at|for|for just|from) from \u0000/g, "from \u0000") : fixed;
+  return priced.replaceAll(mark, rent).replaceAll(`href="${itpPage}"`, 'href="/pg-near-itpl-bangalore"');
 };
-const withFixes = (blocks: Block[], anyPrice: boolean): Block[] =>
-  blocks.map((b) => (b.t === "ul" ? { ...b, items: b.items.map((i) => fixCopy(i, anyPrice)) } : b.t === "img" ? b : { ...b, h: fixCopy(b.h, anyPrice) }));
+// Fixes a run of texts (blocks, or a list's items), each knowing the one before.
+const fixRun = (texts: string[], anyPrice: boolean) => texts.map((t, i) => fixCopy(t, anyPrice, i > 0 && isStartsAt(texts[i - 1])));
+const withFixes = (blocks: Block[], anyPrice: boolean): Block[] => {
+  const texts = fixRun(blocks.map((b) => (b.t === "ul" || b.t === "img" ? "" : b.h)), anyPrice);
+  return blocks.map((b, i) => (b.t === "ul" ? { ...b, items: fixRun(b.items, anyPrice) } : b.t === "img" ? b : { ...b, h: texts[i] }));
+};
 
 export const landingPages = (landingData as unknown as Landing[])
   .filter((l) => l.path !== itpPage)

@@ -32,7 +32,9 @@ test("homepage states the facts @smoke", async ({ page }) => {
   // textContent, not innerText: sections below the first screen aren't
   // rendered until they're near (content-visibility), but they're there.
   const text = (await page.locator("body").textContent()) ?? "";
-  expect(text).toContain("₹12K to ₹14K");
+  // Rent is "from ₹14,000", never a range or a top price (11 Nov 2026).
+  expect(text).toContain("Rent starts from ₹14,000 a month");
+  expect(text).not.toMatch(/₹12|12K|14K|₹14,000 to/);
   expect(text).toContain("12,559");
   expect(text).not.toMatch(/11,?200/);
   expect(text).not.toMatch(/meals every day/i);
@@ -93,8 +95,16 @@ test("every home shows a price and its meals @smoke", async ({ page }) => {
   await expect(page.locator("p", { hasText: "Meals at FF21 WFD:" })).toContainText("weekends included");
   await page.goto("/properties/kdh-kundanahalli");
   await expect(page.locator("p", { hasText: "Meals at FF21 KDH:" })).toContainText("Monday to Friday");
-  await expect(page.locator("body")).toContainText("₹12,000 to ₹14,000");
+  await expect(page.locator("body")).toContainText("From ₹14,000 a month");
+  await expect(page.locator("body")).not.toContainText("₹12,000");
   await expect(page.locator("body")).not.toContainText("₹15,750");
+});
+
+test("old Wix price cards read \"Starts from ₹14,000\"", async ({ page }) => {
+  await page.goto("/coliving-pg-in-bangalore");
+  const text = (await page.locator("main").textContent()) ?? "";
+  expect(text).toContain("Starts from");
+  expect(text).not.toMatch(/at from|for from|₹1[0-35-9],\d{3}|INR ?\d/);
 });
 
 test("FF21 ITP is gone, and its pages go to its neighbours @smoke", async ({ page }) => {

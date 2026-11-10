@@ -31,7 +31,7 @@ export function homesList(list: Property[] = properties, name = "FF21 coliving h
         "@type": "ListItem",
         position: i + 1,
         url: homeUrl(p),
-        name: `FF21 ${p.code}, ${p.area} (${rent} a month)`,
+        name: `FF21 ${p.code}, ${p.area} (from ${rent} a month)`,
       };
     }),
   };

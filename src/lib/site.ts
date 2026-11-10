@@ -24,10 +24,9 @@ export const site = {
 };
 
 export const prices = {
-  // Every home and room is ₹12,000 to ₹14,000 a month per person, all
-  // inclusive (Madhvik, 5 Nov 2026).
-  rentFrom: 12000,
-  rentTo: 14000,
+  // Rent starts from ₹14,000 a month per person, all inclusive, at every
+  // home (Madhvik, 11 Nov 2026). The site never names a top price.
+  rentFrom: 14000,
   bookingAmount: 6000,
   moveOutCharge: 2999,
 };
@@ -45,13 +44,10 @@ export function whatsappLink(message: string) {
   return `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(message)}`;
 }
 
-// "₹12K": short rupees for headline prices, as the team writes them.
-export const inrK = (n: number) => `₹${Number((n / 1000).toFixed(2))}K`;
-
 export function inr(amount: number) {
   return `₹${amount.toLocaleString("en-IN")}`;
 }
 
-// The rent, written out ("₹12,000 to ₹14,000") and short ("₹12K to ₹14K").
-export const rent = `${inr(prices.rentFrom)} to ${inr(prices.rentTo)}`;
-export const rentK = `${inrK(prices.rentFrom)} to ${inrK(prices.rentTo)}`;
+// The starting rent, "₹14,000". Copy always puts "from" or "starts from"
+// before it, never a plain "costs".
+export const rent = inr(prices.rentFrom);

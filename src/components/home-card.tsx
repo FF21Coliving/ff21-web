@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState, ViewTransition } from "react";
 import { roomKindLabels, roomKinds, type Property } from "@/lib/properties";
-import { rentK } from "@/lib/site";
+import { rent } from "@/lib/site";
 import { highlightIcons, roomIcons } from "./icons";
 import { Tag } from "./tag";
 
@@ -128,7 +128,7 @@ export function HomeCard({ property: p, sizes, eager, priority, rail }: Props) {
         </div>
         <div className="mt-3 flex items-center justify-between gap-3">
           <p className="text-[15px] text-ink-2">
-            <span className="tabular text-[17px] font-semibold text-ink">{rentK}</span> a month
+            From <span className="tabular text-[17px] font-semibold text-ink">{rent}</span> a month
           </p>
           <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-blue-ink">
             <Check aria-hidden className="h-3.5 w-3.5" strokeWidth={2.75} />
