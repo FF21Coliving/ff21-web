@@ -3,7 +3,7 @@
 import { Check, ChevronDown, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { rentK, site, whatsappLink } from "@/lib/site";
+import { rent, site, whatsappLink } from "@/lib/site";
 import { included } from "./icons";
 import { TrackedLink } from "./tracked-link";
 import { button } from "./ui";
@@ -30,7 +30,8 @@ export function BookingCard({ slug, code, area, rooms }: Props) {
   return (
     <div className="rounded-2xl border border-line bg-surface p-6 shadow-[0_14px_40px_rgb(23_43_45/0.12)]">
       <p className="text-ink">
-        <span className="tabular font-display text-[30px] font-extrabold tracking-[-0.02em]">{rentK}</span>{" "}
+        <span className="text-[16px] text-ink-2">From</span>{" "}
+        <span className="tabular font-display text-[30px] font-extrabold tracking-[-0.02em]">{rent}</span>{" "}
         <span className="text-[16px] text-ink-2">a month</span>
       </p>
       <p className="mt-1 text-[14px] text-ink-3">Per person, all-inclusive</p>

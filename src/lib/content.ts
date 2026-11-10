@@ -81,7 +81,7 @@ export const faqs = [
   },
   {
     q: "How much is the rent?",
-    a: `Rent is ${rent} a month per person at every FF21 home, with meals, taxes and charges included. Each home's page lists its rooms.`,
+    a: `Rent starts from ${rent} a month per person at every FF21 home, with meals, taxes and charges included. Each home's page lists its rooms.`,
   },
   {
     q: "Which meals are included?",

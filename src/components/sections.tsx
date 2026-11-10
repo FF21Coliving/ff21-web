@@ -23,7 +23,7 @@ import Link from "next/link";
 import { amenities, faqs, steps, testimonials, type AmenityIcon } from "@/lib/content";
 import { photos, type Photo as PhotoType } from "@/lib/photos";
 import { properties, roomKindLabels, type RoomKind } from "@/lib/properties";
-import { inrK, prices, rentK, site, terms, whatsappLink } from "@/lib/site";
+import { rent, site, terms, whatsappLink } from "@/lib/site";
 import { amenityIcons, included, roomIcons, stepIcons, termIcons } from "./icons";
 import { Splash, Stamp } from "./splash";
 import { Tag } from "./tag";
@@ -171,7 +171,9 @@ export function IncludedBand() {
                 Per person,
                 <br />a month
               </span>
-              <span className="tabular whitespace-nowrap font-display text-[28px] font-extrabold leading-none tracking-[-0.02em] text-ink md:text-[36px]">{rentK}</span>
+              <span className="tabular whitespace-nowrap font-display text-[28px] font-extrabold leading-none tracking-[-0.02em] text-ink md:text-[36px]">
+                <span className="font-sans text-[15px] font-semibold tracking-normal text-ink-2 md:text-[17px]">from</span> {rent}
+              </span>
             </div>
           </div>
           <Stamp id="stamp-rent" text={`ALL-INCLUSIVE RENT · SINCE ${site.founded} · `} className="absolute -right-3 -top-10 h-24 w-24 md:-right-12 md:-top-14 md:h-32 md:w-32" />
@@ -708,17 +710,7 @@ export function Numbers({ className = "" }: { className?: string }) {
     { value: site.residents.toLocaleString("en-IN"), label: "FFers so far, and counting" },
     { value: String(properties.length), label: "homes across Bangalore" },
     { value: String(site.founded), label: "the year FF21 opened" },
-    // Two lines: the range is too wide for a quarter-width tile on one.
-    {
-      value: (
-        <>
-          {inrK(prices.rentFrom)} to{" "}
-          <br />
-          {inrK(prices.rentTo)}
-        </>
-      ),
-      label: "rent a month, everything included",
-    },
+    { value: rent, label: "starting rent a month, everything included" },
   ];
   return (
     <dl className={`grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5 ${className}`}>

@@ -10,7 +10,7 @@ import { genders, inferSource, istDay, normalizePhone, stays, visitLabel, visitW
 import { own, photos, type Photo } from "@/lib/photos";
 import { getProperty, homesNear, isCollege, nearPlace, places, properties, roomKindLabels, roomKinds, searchNames, zones, type RoomKind } from "@/lib/properties";
 import { isFullPincode, isPincodeQuery, pincodes } from "@/lib/pincodes";
-import { prices, rentK, site, whatsappLink } from "@/lib/site";
+import { prices, rent, site, whatsappLink } from "@/lib/site";
 import { track } from "@/lib/track";
 import { TrackedLink } from "../tracked-link";
 import { button } from "../ui";
@@ -980,7 +980,7 @@ export function FindMyHome({ thankYou = false }: { thankYou?: boolean }) {
                                   {i === 0 && reasons.length > 0 && <span className="shrink-0 rounded-full bg-sun px-2 py-0.5 text-[12px] font-bold text-ink">Best match</span>}
                                 </span>
                                 <span className="block truncate text-[14px] text-ink-2">
-                                  FF21 {p.code} · {rentK}
+                                  FF21 {p.code} · from {rent}
                                 </span>
                                 {reasons.length > 0 && <span className="mt-1 block truncate text-[13px] font-medium text-blue-ink">{reasons.join(" · ")}</span>}
                               </span>
