@@ -16,7 +16,10 @@ import { getProperty } from "./properties";
 //     team sees it as new. The owner, name, phone, email, Lead Source and
 //     campaign fields stay as they were.
 //   - It writes only the fields listed in toZoho() below, plus Lead Status
-//     and tags for returning visitors.
+//     (on every new lead, and for returning visitors) and tags.
+//   - Every new lead starts at Lead Status "01. Site Visit To Be Scheduled".
+//     Zoho requires it, and the team's AI calling bot only picks up leads at
+//     that status; until 12 Nov 2026 Zoho filled it in itself, then stopped.
 //   - Picklist values are sent exactly as they exist in Zoho (checked 16 Oct 2026).
 // The API token needs ZohoCRM.modules.leads.CREATE, .UPDATE and .READ and
 // ZohoCRM.coql.READ (finding a returning visitor); the daily outcome check
@@ -230,7 +233,8 @@ export const WEBSITE_TAG = "New FF21 Website 2026";
 // time they came back, so every later update only rewrites that visit's note.
 const RETURNING = "returning:";
 export const RETURNED_TAG = "Returned via website";
-// Where the team's new leads start (Lead Management Blueprint).
+// Where the team's new leads start (Lead Management Blueprint), and where
+// the AI calling bot looks for them.
 const NEW_LEAD_STATUS = "01. Site Visit To Be Scheduled";
 const END = "[/website]";
 const visitStart = (at: string) => {
@@ -356,7 +360,7 @@ export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> 
     if (back.ok) return back;
     console.error("[lead:zoho] couldn't update the returning visitor's lead, making a new one", back.detail);
   }
-  const record: Record<string, unknown> = withOwner(toZoho(input), input.ownerId);
+  const record: Record<string, unknown> = { ...withOwner(toZoho(input), input.ownerId), Lead_Status: NEW_LEAD_STATUS };
   // An email that looked wrong starts the notes, so it travels in the
   // lead's signed ref and every later update keeps it (review, 28 Oct 2026).
   const notes: string[] = [
@@ -391,7 +395,7 @@ export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> 
     // A field Zoho calls invalid (an email typed as "name@gmail.com3") must
     // not cost the whole lead: save it without that field and keep what was
     // typed in Description, so the team still has the phone (28 Oct 2026).
-    const refused = (result.invalidFields ?? []).filter((f) => record[f] !== undefined && f !== "Tag" && f !== "Owner");
+    const refused = (result.invalidFields ?? []).filter((f) => record[f] !== undefined && f !== "Tag" && f !== "Owner" && f !== "Lead_Status");
     let dropped = false;
     for (const field of refused) {
       if (!canDrop(record, field)) continue;
@@ -404,6 +408,13 @@ export async function createZohoLead(input: ZohoLeadInput): Promise<ZohoResult> 
     if (tag && /\bTag\b|scope|permission/i.test(result.detail)) {
       console.error("[lead:zoho] tag refused, saving without it", result.detail);
       tag = false;
+      continue;
+    }
+    // The status matters (the calling bot needs it), but never more than the
+    // lead: if Zoho refuses it, save without it and say so in the logs.
+    if (record.Lead_Status && /Lead_Status/.test(result.detail)) {
+      console.error("[lead:zoho] Lead Status refused, saving without it", result.detail);
+      delete record.Lead_Status;
       continue;
     }
     // So is the owner. Whatever Zoho says (a refused owner may come back as
