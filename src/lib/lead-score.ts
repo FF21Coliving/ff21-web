@@ -68,8 +68,7 @@ function budgetPoints(budget: string | undefined, property: string | undefined):
   if (max === undefined) return [0];
   if (max === null) return [2, "budget open"];
   const chosen = property ? getProperty(property) : undefined;
-  // Every home's rent starts at the same amount (5 Nov 2026).
-  const chosenFrom = chosen ? prices.rentFrom : undefined;
+  const chosenFrom = chosen?.from;
   if (chosenFrom !== undefined && chosenFrom <= max) return [2, "within budget"];
   if (prices.rentFrom <= max) return [1, "budget fits some homes"];
   return [0, "below our prices"];

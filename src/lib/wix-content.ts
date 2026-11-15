@@ -3,7 +3,7 @@ import altData from "@/content/wix/alt-text.json";
 import blogData from "@/content/wix/blog.json";
 import landingData from "@/content/wix/landing.json";
 import metaData from "@/content/wix/meta.json";
-import { homesNear, places, properties, roomKinds, type Property } from "./properties";
+import { homesNear, places, properties, rentAt, roomKinds, type Property } from "./properties";
 import { rent } from "./site";
 
 // Everything below was carried over from the Wix site (www.ff21.in, read 17
@@ -58,53 +58,87 @@ const withoutItp = (blocks: Block[]): Block[] => {
     return !inItp && !(b.t === "p" && b.h.startsWith("(Areas accessible from FF21-ITP"));
   });
 };
-// Rent starts from ₹14,000 at every home (Madhvik, 11 Nov 2026), so FF21's
-// own prices in the Wix copy say that, and never a top price. Sentences that
-// listed several prices are rewritten whole; any other price on an area page
-// becomes "from ₹14,000". Posts keep their prices of other PGs; only the
-// three that named an FF21 price change.
+// FF21's own prices in the Wix copy say "from" a home's starting rent (its
+// `from` in properties.ts, from the 17 Oct 2026 price sheet), never a top
+// price. A price under an "FF21 PMC" style heading is that home's; elsewhere
+// it's the home the page is about (pageHome), or FF21's lowest, ₹14,000.
+// Sentences that listed several prices are rewritten whole; room types that
+// cost more than a home's starting rent lose their price. Posts keep their
+// prices of other PGs; only the three that named an FF21 price change.
+const mark = "\u0000rent\u0000";
 const priceRewrites: [string, string][] = [
-  ["a double-occupancy bed costs ₹16,450, a studio room ₹19,800 and a private room ₹29,900 per person per month", `rooms start from ${rent} per person per month`],
-  ["a double-occupancy bed costs ₹17,000, a studio ₹20,350 and a private room ₹31,000 per person per month, and a 1 BHK costs ₹45,200 per month", `rooms start from ${rent} per person per month`],
-  ["Twin Sharing rooms start from ₹15,750, while more private Studio and Single Room options go up to ₹36,600.", `Twin Sharing, Studio and Single Rooms start from ${rent} a month.`],
-  ["Twin Sharing rooms start at ₹15,750 and range up to ₹16,950 for the premium range.", `Twin Sharing rooms start from ${rent} a month.`],
-  ["start at ₹28,900/month (Deluxe) and ₹32,000/month (Premium)", `start from ${rent} a month`],
-  ["which start at ₹14,000/month (Basic), ₹17,350/month (Deluxe), and ₹18,450/month (Premium)", `which start from ${rent} a month`],
-  ["are available in Deluxe (₹34,700/month) and Premium (₹36,950/month) categories", `start from ${rent} a month`],
-  ["Starting from ₹15,750 for Twin Sharing Deluxe to ₹32,000 for Premium Single Rooms, each stay", `With every room from ${rent} a month, each stay`],
-  ["private rooms starting from Rs 15,000 per month", `private rooms from ${rent} per month`],
-  ["cost starting at ₹13,100/Month.", `starts from ${rent} a month.`],
-  ["Prices starting at ₹10,000/month.", `Rent starts from ${rent} a month.`],
-  ["Twin Sharing starts at ₹15,750/month,", `Twin Sharing starts from ${rent} a month,`],
-  ["Studio Rooms start from ₹19,800/month", `Studio Rooms start from ${rent} a month`],
-  ["With rates starting at ₹15,750/month,", `With rent from ${rent} a month,`],
-  ["Single Rooms begin at ₹28,900.", `Single Rooms start from ${rent} a month.`],
-  ["Bellandur starts at ₹14,000 per month", `Bellandur starts from ${rent} per month`],
+  ["a double-occupancy bed costs ₹16,450, a studio room ₹19,800 and a private room ₹29,900 per person per month", `rooms start from ${mark} per person per month`],
+  ["a double-occupancy bed costs ₹17,000, a studio ₹20,350 and a private room ₹31,000 per person per month, and a 1 BHK costs ₹45,200 per month", `rooms start from ${mark} per person per month`],
+  ["Twin Sharing rooms start from ₹15,750, while more private Studio and Single Room options go up to ₹36,600.", `Twin Sharing rooms start from ${mark} a month, with Studio and Single Rooms for more privacy.`],
+  ["Twin Sharing rooms start at ₹15,750 and range up to ₹16,950 for the premium range.", `Twin Sharing rooms start from ${mark} a month.`],
+  ["start at ₹28,900/month (Deluxe) and ₹32,000/month (Premium)", "come in Deluxe and Premium"],
+  ["which start at ₹14,000/month (Basic), ₹17,350/month (Deluxe), and ₹18,450/month (Premium)", `which start from ${mark} a month`],
+  ["are available in Deluxe (₹34,700/month) and Premium (₹36,950/month) categories", "are available in Deluxe and Premium categories"],
+  ["Starting from ₹15,750 for Twin Sharing Deluxe to ₹32,000 for Premium Single Rooms, each stay", `With rooms from ${mark} a month, each stay`],
+  ["private rooms starting from Rs 15,000 per month", `private rooms from ${mark} per month`],
+  ["cost starting at ₹13,100/Month.", `starts from ${mark} a month.`],
+  ["Prices starting at ₹10,000/month.", `Rent starts from ${mark} a month.`],
+  ["Twin Sharing starts at ₹15,750/month,", `Twin Sharing starts from ${mark} a month,`],
+  ["Studio Rooms start from ₹19,800/month and include", "Studio Rooms include"],
+  ["With rates starting at ₹15,750/month,", `With rent from ${mark} a month,`],
+  ["Single Rooms begin at ₹28,900.", "Single Rooms are available too."],
+  ["Bellandur starts at ₹14,000 per month", `Bellandur starts from ${mark} per month`],
 ];
+// Area pages whose copy, and so whose prices, are about one home.
+const pageHome: Record<string, string> = Object.fromEntries(
+  Object.entries({
+    PMC: ["/coliving-near-brookefield", "/coliving-pg-bangalore-smart-living", "/coliving-pg-in-bangalore-flexible-living", "/coliving-pg-in-kr-puram", "/coliving-pg-near-mahadevapura", "/coliving-pg-near-phoenix-marketcity-bangalore", "/coliving-pg-near-vr-bengaluru-whitefield", "/coliving-pgs-near-hoodi", "/coliving-space-bangalore-smart-urban-living", "/pg-in-kr-puram", "/pg-near-brookefield", "/pg-near-hoodi", "/pg-near-mahadevapura"],
+    LIT: ["/coliving-near-kadubeesanahalli", "/pg-in-kadubeesanahalli", "/pgs-near-prestige-tech-park"],
+    KDH: ["/pg-near-aecs-layout"],
+    BGM: ["/pg-near-bagmane-tech-park", "/pg-near-doddanekundi"],
+    HBR: ["/pg-near-kalyan-nagar", "/pg-near-nagawara"],
+    PODS: ["/pg-near-marathahalli", "/coliving-pg-near-bellandur"],
+  }).flatMap(([code, paths]) => paths.map((p) => [p, code])),
+);
+const rentOf = (code: string | undefined) => {
+  const home = code ? properties.find((p) => p.code === code) : undefined;
+  return home ? rentAt(home) : rent;
+};
+const homeHeading = (h: string) => h.replace(/<[^>]+>/g, "").match(/\bFF21[\s-]?([a-z]+)\b/i)?.[1].toUpperCase();
 const ourPrice = /(?:₹|INR)\s?\d{1,2},\d{3}(?:\/-)?/g;
 // The new price goes in last, so its own "₹14,000" isn't read as an old one.
 // A bare price becomes "from ₹14,000", and "at from" or "for from" reads
 // "from". Price cards put "Starts at" in a block of its own above the price:
 // that reads "Starts from", and the price after it stays bare.
-const mark = "\u0000rent\u0000";
 const isStartsAt = (h: string) => h.replace(/<[^>]+>/g, "").trim() === "Starts at";
 // Links to ITP's old page go straight to where it now redirects.
-const fixCopy = (h: string, anyPrice: boolean, bare = false) => {
-  if (anyPrice && isStartsAt(h)) return h.replace("Starts at", "Starts from");
-  const fixed = priceRewrites.reduce((s, [from, to]) => s.replace(from, to.replace(rent, mark)), h);
-  const priced = anyPrice ? fixed.replace(ourPrice, bare ? mark : `from ${mark}`).replace(/\b(?:at|for|for just|from) from \u0000/g, "from \u0000") : fixed;
-  return priced.replaceAll(mark, rent).replaceAll(`href="${itpPage}"`, 'href="/pg-near-itpl-bangalore"');
+const fixCopy = (h: string, price: string | null, bare = false) => {
+  if (price && isStartsAt(h)) return h.replace("Starts at", "Starts from");
+  const fixed = priceRewrites.reduce((s, [from, to]) => s.replace(from, to), h);
+  const priced = price ? fixed.replace(ourPrice, bare ? mark : `from ${mark}`).replace(/\b(?:at|for|for just|from) from \u0000/g, "from \u0000") : fixed;
+  return priced.replaceAll(mark, price ?? rent).replaceAll(`href="${itpPage}"`, 'href="/pg-near-itpl-bangalore"');
 };
 // Fixes a run of texts (blocks, or a list's items), each knowing the one before.
-const fixRun = (texts: string[], anyPrice: boolean) => texts.map((t, i) => fixCopy(t, anyPrice, i > 0 && isStartsAt(texts[i - 1])));
-const withFixes = (blocks: Block[], anyPrice: boolean): Block[] => {
-  const texts = fixRun(blocks.map((b) => (b.t === "ul" || b.t === "img" ? "" : b.h)), anyPrice);
-  return blocks.map((b, i) => (b.t === "ul" ? { ...b, items: fixRun(b.items, anyPrice) } : b.t === "img" ? b : { ...b, h: texts[i] }));
+const fixRun = (texts: string[], price: string | null) => texts.map((t, i) => fixCopy(t, price, i > 0 && isStartsAt(texts[i - 1])));
+// `page` is the page's home, or "" for none; null leaves prices alone (posts).
+const withFixes = (blocks: Block[], page: string | null): Block[] => {
+  let section: string | undefined;
+  let prev = "";
+  return blocks.map((b) => {
+    if (b.t === "img") return b;
+    if (b.t === "h2" || b.t === "h3") {
+      const code = homeHeading(b.h);
+      if (code || b.t === "h2") section = code;
+    }
+    const price = page === null ? null : rentOf(section ?? (page || undefined));
+    if (b.t === "ul") {
+      prev = "";
+      return { ...b, items: fixRun(b.items, price) };
+    }
+    const h = fixCopy(b.h, price, isStartsAt(prev));
+    prev = b.h;
+    return { ...b, h };
+  });
 };
 
 export const landingPages = (landingData as unknown as Landing[])
   .filter((l) => l.path !== itpPage)
-  .map((l) => ({ ...l, blocks: withFixes(withoutItp(l.blocks), true) }))
+  .map((l) => ({ ...l, blocks: withFixes(withoutItp(l.blocks), pageHome[l.path] ?? "") }))
   .map(tidy)
   .map(notStudent);
 // Posts taken down on 24 Oct 2026: they listed made-up "FF21 … PG" homes at
@@ -120,7 +154,7 @@ export const takenDown = new Set([
 // scripts/photos/build-blog.py; the image loader picks the width.
 const local = (id: string) => `/blog-photos/${id.split("~")[0]}`;
 export const articles = (blogData as unknown as Article[]).filter((a) => !takenDown.has(a.path)).map((a) => {
-  const blocks = withFixes(withAlts(a.blocks.filter((b) => !(b.t === "img" && retired.has(b.id)))), false);
+  const blocks = withFixes(withAlts(a.blocks.filter((b) => !(b.t === "img" && retired.has(b.id)))), null);
   const image = a.image && retired.has(a.image) ? firstPhoto(blocks) : a.image;
   return {
     ...tidy(a),
