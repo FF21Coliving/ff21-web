@@ -1,5 +1,5 @@
-import { properties, type Property } from "./properties";
-import { rent, site } from "./site";
+import { properties, rentAt, type Property } from "./properties";
+import { site } from "./site";
 
 // Structured data shared by several pages (JSON-LD). Kept to what each page
 // visibly shows, so search engines and AI assistants read the same facts as
@@ -31,7 +31,7 @@ export function homesList(list: Property[] = properties, name = "FF21 coliving h
         "@type": "ListItem",
         position: i + 1,
         url: homeUrl(p),
-        name: `FF21 ${p.code}, ${p.area} (from ${rent} a month)`,
+        name: `FF21 ${p.code}, ${p.area} (from ${rentAt(p)} a month)`,
       };
     }),
   };

@@ -1,4 +1,5 @@
 import { own, type Photo } from "./photos";
+import { inr } from "./site";
 
 export type Room = {
   name: string;
@@ -10,6 +11,9 @@ export type RoomKind = "twin" | "private" | "pod" | "studio";
 
 export type Property = {
   code: string;
+  // The home's starting rent a month per person, all-inclusive, from FF21's
+  // price sheet (17 Oct 2026; Madhvik asked for it per home on 15 Nov 2026).
+  from: number;
   slug: string;
   area: string;
   zone: Zone;
@@ -43,6 +47,7 @@ const pod: Room = { name: "Pod", description: "A compact private pod of your own
 export const properties: Property[] = [
   {
     code: "WFD",
+    from: 14000,
     weekendMeals: true,
     slug: "wfd-whitefield",
     area: "Whitefield",
@@ -66,6 +71,7 @@ export const properties: Property[] = [
   },
   {
     code: "KDH",
+    from: 15750,
     slug: "kdh-kundanahalli",
     area: "Kundanahalli",
     zone: "marathahalli",
@@ -93,6 +99,7 @@ export const properties: Property[] = [
   },
   {
     code: "PODS",
+    from: 14000,
     slug: "pods-marathahalli",
     area: "Marathahalli",
     zone: "marathahalli",
@@ -124,6 +131,7 @@ export const properties: Property[] = [
   },
   {
     code: "LIT",
+    from: 17000,
     slug: "lit-thubarahalli",
     area: "Thubarahalli",
     zone: "marathahalli",
@@ -149,6 +157,7 @@ export const properties: Property[] = [
   },
   {
     code: "BGM",
+    from: 15750,
     slug: "bgm-doddanekundi",
     area: "Doddanekundi",
     zone: "marathahalli",
@@ -178,6 +187,7 @@ export const properties: Property[] = [
   },
   {
     code: "PMC",
+    from: 16450,
     slug: "pmc-mahadevapura",
     area: "Mahadevapura",
     zone: "mahadevapura",
@@ -208,6 +218,7 @@ export const properties: Property[] = [
   },
   {
     code: "HBR",
+    from: 15750,
     slug: "hbr-hennur",
     area: "HBR Layout",
     zone: "hbr",
@@ -239,6 +250,7 @@ export const properties: Property[] = [
   },
   {
     code: "KORA",
+    from: 17300,
     slug: "kora-koramangala",
     area: "Koramangala",
     zone: "koramangala",
@@ -263,6 +275,7 @@ export const properties: Property[] = [
   },
   {
     code: "SJR",
+    from: 17800,
     slug: "sjr-sarjapur",
     area: "Sarjapur",
     zone: "sarjapur",
@@ -281,6 +294,9 @@ export const properties: Property[] = [
 
 // The picture shown on a home's tour before it plays.
 export const tourCover = (p: Property) => p.tourCover ?? p.hero;
+
+// A home's starting rent, "₹15,750". Copy always puts "from" before it.
+export const rentAt = (p: Pick<Property, "from">) => inr(p.from);
 
 export function getProperty(slug: string) {
   return properties.find((p) => p.slug === slug);

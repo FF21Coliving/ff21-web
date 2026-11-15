@@ -24,8 +24,10 @@ export const site = {
 };
 
 export const prices = {
-  // Rent starts from ₹14,000 a month per person, all inclusive, at every
-  // home (Madhvik, 11 Nov 2026). The site never names a top price.
+  // The lowest starting rent across the homes, ₹14,000 a month per person,
+  // all inclusive (FF21 WFD and PODS). Each home's own starting rent is its
+  // `from` in properties.ts; a test keeps this the lowest of them. The site
+  // never names a top price.
   rentFrom: 14000,
   bookingAmount: 6000,
   moveOutCharge: 2999,
@@ -48,6 +50,6 @@ export function inr(amount: number) {
   return `₹${amount.toLocaleString("en-IN")}`;
 }
 
-// The starting rent, "₹14,000". Copy always puts "from" or "starts from"
-// before it, never a plain "costs".
+// The lowest starting rent, "₹14,000", for copy about FF21 as a whole. Copy
+// always puts "from" or "starts from" before it, never a plain "costs".
 export const rent = inr(prices.rentFrom);

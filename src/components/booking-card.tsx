@@ -3,7 +3,7 @@
 import { Check, ChevronDown, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { rent, site, whatsappLink } from "@/lib/site";
+import { site, whatsappLink } from "@/lib/site";
 import { included } from "./icons";
 import { TrackedLink } from "./tracked-link";
 import { button } from "./ui";
@@ -12,6 +12,8 @@ type Props = {
   slug: string;
   code: string;
   area: string;
+  // This home's starting rent, "₹15,750".
+  rent: string;
   rooms: { name: string; kind?: string }[];
 };
 
@@ -19,7 +21,7 @@ const moveIns = ["As soon as possible", "Next month", "In two months", "I'm flex
 
 // Sticky on the right of a home's page: the price, what it covers, and the
 // way to book. Hands its answers to Find my home.
-export function BookingCard({ slug, code, area, rooms }: Props) {
+export function BookingCard({ slug, code, area, rent, rooms }: Props) {
   const [moveIn, setMoveIn] = useState(moveIns[0]);
   const [room, setRoom] = useState("");
 

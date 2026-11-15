@@ -3,6 +3,7 @@ import { homes, keyPages, openClean } from "./helpers";
 import { stories, storiesFor } from "../../src/lib/content";
 import { photos } from "../../src/lib/photos";
 import { properties } from "../../src/lib/properties";
+import { prices } from "../../src/lib/site";
 
 // @smoke tests are read-only and also run against the live site after every
 // production deploy and every morning (.github/workflows/production-check.yml).
@@ -95,16 +96,42 @@ test("every home shows a price and its meals @smoke", async ({ page }) => {
   await expect(page.locator("p", { hasText: "Meals at FF21 WFD:" })).toContainText("weekends included");
   await page.goto("/properties/kdh-kundanahalli");
   await expect(page.locator("p", { hasText: "Meals at FF21 KDH:" })).toContainText("Monday to Friday");
-  await expect(page.locator("body")).toContainText("From ₹14,000 a month");
   await expect(page.locator("body")).not.toContainText("₹12,000");
-  await expect(page.locator("body")).not.toContainText("₹15,750");
 });
 
-test("old Wix price cards read \"Starts from ₹14,000\"", async ({ page }) => {
-  await page.goto("/coliving-pg-in-bangalore");
-  const text = (await page.locator("main").textContent()) ?? "";
+// Each home's starting rent, from FF21's price sheet (17 Oct 2026).
+const sheet: Record<string, string> = { WFD: "₹14,000", PODS: "₹14,000", KDH: "₹15,750", HBR: "₹15,750", BGM: "₹15,750", PMC: "₹16,450", LIT: "₹17,000", KORA: "₹17,300", SJR: "₹17,800" };
+
+test("every home's page shows its own starting rent @smoke", async ({ page }) => {
+  expect(Object.keys(sheet).sort()).toEqual(properties.map((p) => p.code).sort());
+  for (const p of properties) {
+    await page.goto(`/properties/${p.slug}`);
+    await expect(page.getByText(`From ${sheet[p.code]} a month, per person`), p.code).toBeVisible();
+    expect(await page.locator('meta[name="description"]').getAttribute("content"), p.code).toContain(`from ${sheet[p.code]} a month`);
+  }
+});
+
+test("home cards and the lowest rent agree with the price sheet", async ({ page }) => {
+  expect(Math.min(...properties.map((p) => p.from))).toBe(prices.rentFrom);
+  await page.goto("/properties");
+  for (const p of properties) {
+    await expect(page.locator(`a[href="/properties/${p.slug}"]`).filter({ hasText: "a month" }).first(), p.code).toContainText(`From ${sheet[p.code]} a month`);
+  }
+});
+
+test("old Wix price cards read \"Starts from\" each home's own rent", async ({ page }) => {
+  await page.goto("/properties-near-office-techparks");
+  const text = ((await page.locator("main").textContent()) ?? "").replace(/\s+/g, " ");
   expect(text).toContain("Starts from");
-  expect(text).not.toMatch(/at from|for from|₹1[0-35-9],\d{3}|INR ?\d/);
+  expect(text).not.toMatch(/at from|for from|from from|INR ?\d/);
+  for (const [heading, price] of [["FF21 PODS", "₹14,000"], ["FF21 BGM", "₹15,750"], ["FF21 LIT", "₹17,000"], ["FF21 Kora", "₹17,300"], ["FF21 PMC", "₹16,450"], ["FF21 HBR", "₹15,750"]]) {
+    expect(text, heading).toMatch(new RegExp(`${heading}.{0,200}?Starts from ?${price}`));
+  }
+  await page.goto("/pg-near-hoodi");
+  const hoodi = (await page.locator("main").textContent()) ?? "";
+  // FF21 PMC's three room cards, each from PMC's starting rent.
+  expect(hoodi.match(/Price: from ₹16,450/g)).toHaveLength(3);
+  expect(hoodi).not.toMatch(/Price: from ₹1[0-57-9]|INR ?\d/);
 });
 
 test("FF21 ITP is gone, and its pages go to its neighbours @smoke", async ({ page }) => {
