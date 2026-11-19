@@ -137,21 +137,28 @@ test("old Wix price cards read \"Starts from\" each home's own rent", async ({ p
   expect(bgm).toContain("Studio Rooms start from ₹19,800 a month");
   expect(bgm).toContain("Single Rooms at FF21 start from ₹28,900 a month");
   expect(bgm).not.toContain("₹32,000");
+  // LIT's 1 BHK is ₹40,000 now (20 Nov 2026).
+  for (const path of ["/coliving-near-kadubeesanahalli", "/pg-in-kadubeesanahalli", "/pgs-near-prestige-tech-park"]) {
+    await page.goto(path);
+    const lit = ((await page.locator("main").textContent()) ?? "").replace(/\s+/g, " ");
+    expect(lit, path).toContain("₹40,000");
+    expect(lit, path).not.toContain("45,200");
+  }
 });
 
 // Each room's own starting rent, where FF21 has given one (19 Nov 2026).
-// FF21's price chart (Madhvik, 19 Nov 2026): each home's room types and
+// FF21's price chart (Madhvik, 19 Nov 2026; SJR, PODS and LIT updated 20 Nov): each home's room types and
 // their starting rents, cheapest first.
 const roomSheet: Record<string, [string, string][]> = {
   KDH: [["Twin room", "₹15,750"], ["Twin studio", "₹19,800"], ["Single room", "₹28,900"], ["Single studio", "₹36,600"]],
   HBR: [["Twin room", "₹15,750"], ["Single room", "₹28,900"]],
   BGM: [["Twin room", "₹15,750"], ["Twin studio", "₹19,800"], ["Single room", "₹28,900"], ["Single studio", "₹36,600"]],
   PMC: [["Twin room", "₹16,450"], ["Pod", "₹17,350"], ["Twin studio", "₹19,800"], ["Single room", "₹29,900"], ["Single studio", "₹36,600"]],
-  LIT: [["Twin room", "₹17,000"], ["Twin studio", "₹20,350"], ["Single room", "₹31,000"], ["Single studio", "₹37,150"], ["1 BHK", "₹45,200"]],
-  PODS: [["Pod", "₹14,000"], ["Single room", "₹34,700"]],
+  LIT: [["Twin room", "₹17,000"], ["Twin studio", "₹20,350"], ["Single room", "₹31,000"], ["Single studio", "₹37,150"], ["1 BHK", "₹40,000"]],
+  PODS: [["Pod", "₹14,000"], ["Twin room", "₹17,300"], ["Single room", "₹34,700"]],
   KORA: [["Twin room", "₹17,300"], ["Twin studio", "₹20,500"], ["Single room", "₹27,300"], ["Single studio", "₹38,100"]],
   WFD: [["Twin room", "₹17,000"], ["Single room", "₹31,500"]],
-  SJR: [["Twin studio", "₹17,800"], ["Single room", "₹34,600"], ["Single studio", "₹34,600"]],
+  SJR: [["Twin studio", "₹17,800"], ["Single room with balcony", "₹30,000"], ["Single studio", "₹34,600"]],
 };
 
 test("every home lists the chart's room types, each with its own price @smoke", async ({ page }) => {

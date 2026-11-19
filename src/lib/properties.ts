@@ -5,7 +5,7 @@ export type Room = {
   name: string;
   description: string;
   // The room's starting rent a month per person, all-inclusive, from FF21's
-  // price chart (Madhvik, 19 Nov 2026).
+  // price chart (Madhvik, 19 Nov 2026; SJR, PODS and LIT updated 20 Nov).
   from: number;
 };
 
@@ -124,6 +124,7 @@ export const properties: Property[] = [
     nearby: ["Ecospace", "Embassy Tech Village", "Cessna Business Park", "Bellandur", "Brigade Tech Gardens", "Kundanahalli", "Brookefield"],
     rooms: [
       { ...pod, description: "A private pod of your own, food included.", from: 14000 },
+      { ...twin, from: 17300 },
       { ...single, description: "A larger room to yourself, with a king size bed.", from: 34700 },
     ],
     hero: own("pods-room-teal-wall", "Bright room with a teal accent wall"),
@@ -156,7 +157,7 @@ export const properties: Property[] = [
       { ...twinStudio, from: 20350 },
       { ...single, from: 31000 },
       { ...singleStudio, from: 37150 },
-      { ...bhk, from: 45200 },
+      { ...bhk, from: 40000 },
     ],
     hero: own("lit-atrium", "Indoor atrium with a lawn, bean bags and skylights"),
     gallery: [
@@ -301,7 +302,7 @@ export const properties: Property[] = [
     nearby: ["Sarjapur Road", "Kodathi", "Chikkakannelli"],
     rooms: [
       { ...twinStudio, from: 17800 },
-      { ...single, from: 34600 },
+      { name: "Single room with balcony", description: "A room to yourself, with your own balcony.", from: 30000 },
       { ...singleStudio, from: 34600 },
     ],
     // The current SJR page reuses the KORA photo set. Replace with SJR photos.
