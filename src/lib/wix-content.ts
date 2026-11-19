@@ -67,6 +67,9 @@ const withoutItp = (blocks: Block[]): Block[] => {
 // of other PGs; only the three that named an FF21 price change.
 const mark = "\u0000rent\u0000";
 const priceRewrites: [string, string][] = [
+  // LIT's 1 BHK is ₹40,000 now (20 Nov 2026).
+  ["Price: INR 45,200 (Per month)", "Price: INR 40,000 (Per month)"],
+  ["a 1 BHK costs ₹45,200 per month", "a 1 BHK costs ₹40,000 per month"],
   ["Twin Sharing rooms start from ₹15,750, while more private Studio and Single Room options go up to ₹36,600.", `Twin Sharing rooms start from ${mark} a month, with Studio and Single Rooms for more privacy.`],
   ["Twin Sharing rooms start at ₹15,750 and range up to ₹16,950 for the premium range.", `Twin Sharing rooms start from ${mark} a month.`],
   ["start at ₹28,900/month (Deluxe) and ₹32,000/month (Premium)", "start from ₹28,900 a month"],
