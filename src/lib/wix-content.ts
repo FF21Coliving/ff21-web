@@ -4,7 +4,7 @@ import blogData from "@/content/wix/blog.json";
 import landingData from "@/content/wix/landing.json";
 import metaData from "@/content/wix/meta.json";
 import { homesNear, places, properties, rentAt, roomKinds, type Property } from "./properties";
-import { rent } from "./site";
+import { inr, rent } from "./site";
 
 // Everything below was carried over from the Wix site (www.ff21.in, read 17
 // Oct 2026) so the SEO it built keeps working: the same URLs, titles,
@@ -58,30 +58,28 @@ const withoutItp = (blocks: Block[]): Block[] => {
     return !inItp && !(b.t === "p" && b.h.startsWith("(Areas accessible from FF21-ITP"));
   });
 };
-// FF21's own prices in the Wix copy say "from" a home's starting rent (its
-// `from` in properties.ts, from the 17 Oct 2026 price sheet), never a top
-// price. A price under an "FF21 PMC" style heading is that home's; elsewhere
-// it's the home the page is about (pageHome), or FF21's lowest, ₹14,000.
-// Sentences that listed several prices are rewritten whole; room types that
-// cost more than a home's starting rent lose their price. Posts keep their
-// prices of other PGs; only the three that named an FF21 price change.
+// FF21's own prices in the Wix copy say "from", never a top price. A price
+// under an "FF21 PMC" style heading is that home's; elsewhere it's the home
+// the page is about (pageHome), or FF21's lowest, ₹14,000. A price that is one
+// of the home's room prices (`from` on its rooms in properties.ts) stays, as
+// "from ₹19,800"; any other becomes the home's starting rent. Sentences that
+// listed a top or premium price are rewritten whole. Posts keep their prices
+// of other PGs; only the three that named an FF21 price change.
 const mark = "\u0000rent\u0000";
 const priceRewrites: [string, string][] = [
-  ["a double-occupancy bed costs ₹16,450, a studio room ₹19,800 and a private room ₹29,900 per person per month", `rooms start from ${mark} per person per month`],
-  ["a double-occupancy bed costs ₹17,000, a studio ₹20,350 and a private room ₹31,000 per person per month, and a 1 BHK costs ₹45,200 per month", `rooms start from ${mark} per person per month`],
   ["Twin Sharing rooms start from ₹15,750, while more private Studio and Single Room options go up to ₹36,600.", `Twin Sharing rooms start from ${mark} a month, with Studio and Single Rooms for more privacy.`],
   ["Twin Sharing rooms start at ₹15,750 and range up to ₹16,950 for the premium range.", `Twin Sharing rooms start from ${mark} a month.`],
-  ["start at ₹28,900/month (Deluxe) and ₹32,000/month (Premium)", "come in Deluxe and Premium"],
+  ["start at ₹28,900/month (Deluxe) and ₹32,000/month (Premium)", "start from ₹28,900 a month"],
   ["which start at ₹14,000/month (Basic), ₹17,350/month (Deluxe), and ₹18,450/month (Premium)", `which start from ${mark} a month`],
-  ["are available in Deluxe (₹34,700/month) and Premium (₹36,950/month) categories", "are available in Deluxe and Premium categories"],
+  ["are available in Deluxe (₹34,700/month) and Premium (₹36,950/month) categories", "start from ₹34,700 a month"],
   ["Starting from ₹15,750 for Twin Sharing Deluxe to ₹32,000 for Premium Single Rooms, each stay", `With rooms from ${mark} a month, each stay`],
   ["private rooms starting from Rs 15,000 per month", `private rooms from ${mark} per month`],
   ["cost starting at ₹13,100/Month.", `starts from ${mark} a month.`],
   ["Prices starting at ₹10,000/month.", `Rent starts from ${mark} a month.`],
   ["Twin Sharing starts at ₹15,750/month,", `Twin Sharing starts from ${mark} a month,`],
-  ["Studio Rooms start from ₹19,800/month and include", "Studio Rooms include"],
+  ["Studio Rooms start from ₹19,800/month and include", "Studio Rooms start from ₹19,800 a month and include"],
   ["With rates starting at ₹15,750/month,", `With rent from ${mark} a month,`],
-  ["Single Rooms begin at ₹28,900.", "Single Rooms are available too."],
+  ["Single Rooms begin at ₹28,900.", "Single Rooms start from ₹28,900."],
   ["Bellandur starts at ₹14,000 per month", `Bellandur starts from ${mark} per month`],
 ];
 // Area pages whose copy, and so whose prices, are about one home.
@@ -95,9 +93,11 @@ const pageHome: Record<string, string> = Object.fromEntries(
     PODS: ["/pg-near-marathahalli", "/coliving-pg-near-bellandur"],
   }).flatMap(([code, paths]) => paths.map((p) => [p, code])),
 );
-const rentOf = (code: string | undefined) => {
+type Price = { rent: string; rooms: Set<number> };
+const priceOf = (code: string | undefined): Price => {
   const home = code ? properties.find((p) => p.code === code) : undefined;
-  return home ? rentAt(home) : rent;
+  if (!home) return { rent, rooms: new Set() };
+  return { rent: rentAt(home), rooms: new Set(home.rooms.map((r) => r.from)) };
 };
 const homeHeading = (h: string) => h.replace(/<[^>]+>/g, "").match(/\bFF21[\s-]?([a-z]+)\b/i)?.[1].toUpperCase();
 const ourPrice = /(?:₹|INR)\s?\d{1,2},\d{3}(?:\/-)?/g;
@@ -106,15 +106,23 @@ const ourPrice = /(?:₹|INR)\s?\d{1,2},\d{3}(?:\/-)?/g;
 // "from". Price cards put "Starts at" in a block of its own above the price:
 // that reads "Starts from", and the price after it stays bare.
 const isStartsAt = (h: string) => h.replace(/<[^>]+>/g, "").trim() === "Starts at";
+// A room price is held as "\u0000<number>\u0000" until the end, like `mark`.
 // Links to ITP's old page go straight to where it now redirects.
-const fixCopy = (h: string, price: string | null, bare = false) => {
+const fixCopy = (h: string, price: Price | null, bare = false) => {
   if (price && isStartsAt(h)) return h.replace("Starts at", "Starts from");
   const fixed = priceRewrites.reduce((s, [from, to]) => s.replace(from, to), h);
-  const priced = price ? fixed.replace(ourPrice, bare ? mark : `from ${mark}`).replace(/\b(?:at|for|for just|from) from \u0000/g, "from \u0000") : fixed;
-  return priced.replaceAll(mark, price ?? rent).replaceAll(`href="${itpPage}"`, 'href="/pg-near-itpl-bangalore"');
+  const held = (m: string) => {
+    const n = Number(m.replace(/\/-$/, "").replace(/\D/g, ""));
+    return price?.rooms.has(n) ? `\u0000${n}\u0000` : mark;
+  };
+  const priced = price ? fixed.replace(ourPrice, (m) => (bare ? "" : "from ") + held(m)).replace(/\b(?:at|for|for just|from) from \u0000/g, "from \u0000") : fixed;
+  return priced
+    .replace(/\u0000(\d+)\u0000/g, (_, n: string) => inr(Number(n)))
+    .replaceAll(mark, price?.rent ?? rent)
+    .replaceAll(`href="${itpPage}"`, 'href="/pg-near-itpl-bangalore"');
 };
 // Fixes a run of texts (blocks, or a list's items), each knowing the one before.
-const fixRun = (texts: string[], price: string | null) => texts.map((t, i) => fixCopy(t, price, i > 0 && isStartsAt(texts[i - 1])));
+const fixRun = (texts: string[], price: Price | null) => texts.map((t, i) => fixCopy(t, price, i > 0 && isStartsAt(texts[i - 1])));
 // `page` is the page's home, or "" for none; null leaves prices alone (posts).
 const withFixes = (blocks: Block[], page: string | null): Block[] => {
   let section: string | undefined;
@@ -125,7 +133,7 @@ const withFixes = (blocks: Block[], page: string | null): Block[] => {
       const code = homeHeading(b.h);
       if (code || b.t === "h2") section = code;
     }
-    const price = page === null ? null : rentOf(section ?? (page || undefined));
+    const price = page === null ? null : priceOf(section ?? (page || undefined));
     if (b.t === "ul") {
       prev = "";
       return { ...b, items: fixRun(b.items, price) };

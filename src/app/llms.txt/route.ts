@@ -1,7 +1,7 @@
 import { included } from "@/components/icons";
 import { faqs } from "@/lib/content";
 import { properties, rentAt } from "@/lib/properties";
-import { rent, site } from "@/lib/site";
+import { inr, rent, site } from "@/lib/site";
 
 // /llms.txt: a plain summary of FF21 for AI assistants (llmstxt.org), built
 // from the same data as the pages, so it never says something they don't.
@@ -23,7 +23,7 @@ export function GET() {
     "",
     "## Homes",
     "",
-    ...properties.map((p) => `- [FF21 ${p.code}, ${p.area}](${site.url}/properties/${p.slug}): ${p.tagline}. Rooms: ${p.rooms.map((r) => r.name).join(", ")}. From ${rentAt(p)} a month.`),
+    ...properties.map((p) => `- [FF21 ${p.code}, ${p.area}](${site.url}/properties/${p.slug}): ${p.tagline}. Rooms: ${p.rooms.map((r) => `${r.name} from ${inr(r.from)}`).join(", ")}. From ${rentAt(p)} a month.`),
     "",
     "## Questions",
     "",
