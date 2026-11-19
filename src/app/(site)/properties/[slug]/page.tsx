@@ -18,7 +18,7 @@ import { TrackView } from "@/components/track-view";
 import { button, container, listingTitle } from "@/components/ui";
 import { ogImage } from "@/lib/photos";
 import { pins } from "@/lib/schema";
-import { getProperty, mealsAt, properties, rentAt, roomKindLabels, roomKindOf, roomKinds, tourCover, zones, type Property } from "@/lib/properties";
+import { getProperty, mealsAt, properties, rentAt, roomKindLabels, roomKindOf, roomKinds, roomRent, tourCover, zones, type Property } from "@/lib/properties";
 import { site, terms } from "@/lib/site";
 import { areaPagesFor, landingName } from "@/lib/wix-content";
 
@@ -219,8 +219,8 @@ export default async function PropertyPage({ params }: PageProps<"/properties/[s
                         )}
                         <h3 className="mt-4 text-[20px] font-bold tracking-[-0.015em] text-ink">{r.name}</h3>
                         <p className="mt-1 text-[15px] leading-6 text-ink-2">{r.description}</p>
-                        <p className="mt-5 text-[15px] text-ink-2">
-                          From <span className="tabular font-display text-[24px] font-bold text-ink">{rentAt(p)}</span> a month
+                        <p className="mt-auto pt-5 text-[15px] text-ink-2">
+                          From <span className="tabular font-display text-[24px] font-bold text-ink">{roomRent(r)}</span> a month
                         </p>
                       </li>
                     );
@@ -323,7 +323,7 @@ export default async function PropertyPage({ params }: PageProps<"/properties/[s
 
           <aside className="hidden lg:block">
             <div className="sticky top-[calc(var(--header-space)+72px)]">
-              <BookingCard slug={p.slug} code={p.code} area={p.area} rent={rentAt(p)} rooms={p.rooms.map((r) => ({ name: r.name, kind: roomKindOf(r.name) }))} />
+              <BookingCard slug={p.slug} code={p.code} area={p.area} rent={rentAt(p)} rooms={p.rooms.map((r) => ({ name: r.name, kind: roomKindOf(r.name), rent: roomRent(r) }))} />
             </div>
           </aside>
         </div>

@@ -4,6 +4,9 @@ import { inr } from "./site";
 export type Room = {
   name: string;
   description: string;
+  // The room's starting rent a month per person, all-inclusive, from FF21's
+  // price chart (Madhvik, 19 Nov 2026).
+  from: number;
 };
 
 export type Zone = "whitefield" | "marathahalli" | "mahadevapura" | "hbr" | "koramangala" | "sarjapur";
@@ -11,8 +14,8 @@ export type RoomKind = "twin" | "private" | "pod" | "studio";
 
 export type Property = {
   code: string;
-  // The home's starting rent a month per person, all-inclusive, from FF21's
-  // price sheet (17 Oct 2026; Madhvik asked for it per home on 15 Nov 2026).
+  // The home's starting rent a month per person, all-inclusive: its cheapest
+  // room on FF21's price chart (19 Nov 2026). A test keeps the two in step.
   from: number;
   slug: string;
   area: string;
@@ -39,15 +42,20 @@ export type Property = {
   oldPath: string;
 };
 
-const twin: Room = { name: "Twin room", description: "One room, two beds. Bring a friend or meet a new one." };
-const privateRoom: Room = { name: "Private room", description: "A room to yourself for calls, focus and quiet." };
-const studio: Room = { name: "Studio", description: "Twin beds or a double bed, with a dry kitchenette." };
-const pod: Room = { name: "Pod", description: "A compact private pod of your own." };
+// The room types on FF21's price chart. Each home lists the ones it has,
+// cheapest first, with that home's price.
+type RoomType = Omit<Room, "from">;
+const twin: RoomType = { name: "Twin room", description: "One room, two beds. Bring a friend or meet a new one." };
+const twinStudio: RoomType = { name: "Twin studio", description: "A bigger room for two, with more space and storage." };
+const pod: RoomType = { name: "Pod", description: "A compact private pod of your own." };
+const single: RoomType = { name: "Single room", description: "A room to yourself for calls, focus and quiet." };
+const singleStudio: RoomType = { name: "Single studio", description: "A bigger room to yourself, with more space and storage." };
+const bhk: RoomType = { name: "1 BHK", description: "A bedroom, hall and kitchen of your own." };
 
 export const properties: Property[] = [
   {
     code: "WFD",
-    from: 14000,
+    from: 17000,
     weekendMeals: true,
     slug: "wfd-whitefield",
     area: "Whitefield",
@@ -55,7 +63,10 @@ export const properties: Property[] = [
     highlight: "50 m from ITPB Tech Park",
     tagline: "Near ITPB, EPIP Zone and Hope Farm",
     nearby: ["ITPB", "ITPL", "EPIP Zone", "Hope Farm", "Brookefield"],
-    rooms: [twin, privateRoom],
+    rooms: [
+      { ...twin, from: 17000 },
+      { ...single, from: 31500 },
+    ],
     hero: own("wfd-pool-turf", "Game room with a pool table on green turf"),
     gallery: [
       own("wfd-room-twin", "Twin room with two beds and a chevron wall"),
@@ -80,8 +91,10 @@ export const properties: Property[] = [
     tagline: "Near Marathahalli, Brookefield and EPIP Zone",
     nearby: ["Marathahalli", "Brookefield", "EPIP Zone", "Graphite India", "Bellandur", "Kadubeesanahalli"],
     rooms: [
-      { name: "Twin and pod rooms", description: "Shared rooms and compact private pods." },
-      { name: "Studio and single rooms", description: "More space, or a room to yourself." },
+      { ...twin, from: 15750 },
+      { ...twinStudio, from: 19800 },
+      { ...single, from: 28900 },
+      { ...singleStudio, from: 36600 },
     ],
     hero: own("kdh-rooftop-dusk", "Rooftop garden at dusk with benches and city lights"),
     gallery: [
@@ -110,9 +123,8 @@ export const properties: Property[] = [
     tagline: "Near Bellandur, Ecospace and Embassy Tech Village",
     nearby: ["Ecospace", "Embassy Tech Village", "Cessna Business Park", "Bellandur", "Brigade Tech Gardens", "Kundanahalli", "Brookefield"],
     rooms: [
-      twin,
-      { name: "King size room", description: "A larger private room with a king size bed." },
-      { name: "Single pod", description: "A private pod of your own, food included." },
+      { ...pod, description: "A private pod of your own, food included.", from: 14000 },
+      { ...single, description: "A larger room to yourself, with a king size bed.", from: 34700 },
     ],
     hero: own("pods-room-teal-wall", "Bright room with a teal accent wall"),
     gallery: [
@@ -140,9 +152,11 @@ export const properties: Property[] = [
     tagline: "Near Kadubeesanahalli, Thubarahalli and Marathahalli",
     nearby: ["Kadubeesanahalli", "Thubarahalli"],
     rooms: [
-      twin,
-      studio,
-      privateRoom,
+      { ...twin, from: 17000 },
+      { ...twinStudio, from: 20350 },
+      { ...single, from: 31000 },
+      { ...singleStudio, from: 37150 },
+      { ...bhk, from: 45200 },
     ],
     hero: own("lit-atrium", "Indoor atrium with a lawn, bean bags and skylights"),
     gallery: [
@@ -165,8 +179,10 @@ export const properties: Property[] = [
     tagline: "Near Bagmane Tech Park, Marathahalli and Mahadevapura",
     nearby: ["Bagmane Tech Park", "Bagmane Constellation", "Marathahalli", "Karthik Nagar", "Yemalur", "Mahadevapura"],
     rooms: [
-      { name: "Twin and studio rooms", description: "Shared rooms, or a studio with more space." },
-      { name: "Single rooms", description: "A room to yourself." },
+      { ...twin, from: 15750 },
+      { ...twinStudio, description: "More space for two, with a fridge and wardrobe organisers.", from: 19800 },
+      { ...single, from: 28900 },
+      { ...singleStudio, from: 36600 },
     ],
     hero: own("pods-lounge-view", "Sunlit lounge with long built-in seating and a city view"),
     gallery: [
@@ -196,10 +212,11 @@ export const properties: Property[] = [
     tagline: "Near Phoenix Marketcity, Bagmane Tech Park and Whitefield Road",
     nearby: ["Phoenix Marketcity", "Bagmane Tech Park", "Mahadevapura", "Whitefield Road"],
     rooms: [
-      twin,
-      privateRoom,
-      pod,
-      studio,
+      { ...twin, from: 16450 },
+      { ...pod, from: 17350 },
+      { ...twinStudio, from: 19800 },
+      { ...single, from: 29900 },
+      { ...singleStudio, from: 36600 },
     ],
     hero: own("pmc-rooftop-deck", "Deck chairs on a rooftop lawn at sunset"),
     gallery: [
@@ -227,8 +244,8 @@ export const properties: Property[] = [
     tagline: "Near Manyata Tech Park, Kalyan Nagar and Hebbal",
     nearby: ["Manyata Tech Park", "Kalyan Nagar", "Nagawara", "Hebbal", "Banaswadi", "Kammanahalli", "RMZ Infinity"],
     rooms: [
-      { name: "Twin room", description: "Bunk beds or two beds side by side." },
-      privateRoom,
+      { ...twin, description: "Bunk beds or two beds side by side.", from: 15750 },
+      { ...single, from: 28900 },
     ],
     hero: own("hbr-dining", "Dining hall with long tables and benches"),
     gallery: [
@@ -258,10 +275,10 @@ export const properties: Property[] = [
     tagline: "Near Koramangala, HSR Layout and Indiranagar",
     nearby: ["Koramangala", "Ejipura", "HSR Layout", "BTM Layout", "Madiwala", "Domlur", "Indiranagar"],
     rooms: [
-      twin,
-      { name: "Studio deluxe", description: "Twin beds, a work desk and a teal feature wall." },
-      { name: "Premium studio", description: "A larger studio with more storage." },
-      privateRoom,
+      { ...twin, from: 17300 },
+      { ...twinStudio, description: "Twin beds, a work desk and a teal feature wall.", from: 20500 },
+      { ...single, from: 27300 },
+      { ...singleStudio, from: 38100 },
     ],
     hero: own("kora-studio-deluxe", "Studio deluxe with twin beds and a teal wall"),
     gallery: [
@@ -282,7 +299,11 @@ export const properties: Property[] = [
     highlight: "1 km from Sarjapur Main Road",
     tagline: "Near Sarjapur Road, Kodathi and Chikkakannelli",
     nearby: ["Sarjapur Road", "Kodathi", "Chikkakannelli"],
-    rooms: [twin, privateRoom, studio],
+    rooms: [
+      { ...twinStudio, from: 17800 },
+      { ...single, from: 34600 },
+      { ...singleStudio, from: 34600 },
+    ],
     // The current SJR page reuses the KORA photo set. Replace with SJR photos.
     hero: own("kora-studio-premium", "Studio with twin beds and a wardrobe"),
     gallery: [own("kora-indoor-lawn", "Indoor lawn with teal lounge chairs")],
@@ -297,6 +318,9 @@ export const tourCover = (p: Property) => p.tourCover ?? p.hero;
 
 // A home's starting rent, "₹15,750". Copy always puts "from" before it.
 export const rentAt = (p: Pick<Property, "from">) => inr(p.from);
+
+// A room's own starting rent, "₹19,800". Copy always puts "from" before it.
+export const roomRent = (r: Pick<Room, "from">) => inr(r.from);
 
 export function getProperty(slug: string) {
   return properties.find((p) => p.slug === slug);
@@ -325,7 +349,7 @@ export function roomKindOf(name: string): RoomKind | undefined {
   if (/studio/.test(n)) return "studio";
   if (/twin|double|bunk/.test(n)) return "twin";
   if (/pod/.test(n)) return "pod";
-  if (/private|single|king/.test(n)) return "private";
+  if (/private|single|king|bhk/.test(n)) return "private";
   return undefined;
 }
 
@@ -334,7 +358,7 @@ export function roomKinds(p: Property): RoomKind[] {
   const names = p.rooms.map((r) => r.name.toLowerCase()).join(" ");
   const kinds: RoomKind[] = [];
   if (/twin|double|bunk/.test(names)) kinds.push("twin");
-  if (/private|single room|single studio|king/.test(names)) kinds.push("private");
+  if (/private|single room|single studio|king|bhk/.test(names)) kinds.push("private");
   if (/pod/.test(names)) kinds.push("pod");
   if (/studio/.test(names)) kinds.push("studio");
   return kinds;

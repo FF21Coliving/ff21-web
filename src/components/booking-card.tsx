@@ -14,7 +14,8 @@ type Props = {
   area: string;
   // This home's starting rent, "₹15,750".
   rent: string;
-  rooms: { name: string; kind?: string }[];
+  // Each room's own starting rent, where FF21 has given one.
+  rooms: { name: string; kind?: string; rent?: string }[];
 };
 
 const moveIns = ["As soon as possible", "Next month", "In two months", "I'm flexible"];
@@ -26,14 +27,14 @@ export function BookingCard({ slug, code, area, rent, rooms }: Props) {
   const [room, setRoom] = useState("");
 
   const params = new URLSearchParams({ property: slug, movein: moveIn });
-  const kind = rooms.find((r) => r.name === room)?.kind;
-  if (kind) params.set("room", kind);
+  const chosen = rooms.find((r) => r.name === room);
+  if (chosen?.kind) params.set("room", chosen.kind);
 
   return (
     <div className="rounded-2xl border border-line bg-surface p-6 shadow-[0_14px_40px_rgb(23_43_45/0.12)]">
       <p className="text-ink">
         <span className="text-[16px] text-ink-2">From</span>{" "}
-        <span className="tabular font-display text-[30px] font-extrabold tracking-[-0.02em]">{rent}</span>{" "}
+        <span className="tabular font-display text-[30px] font-extrabold tracking-[-0.02em]">{chosen?.rent ?? rent}</span>{" "}
         <span className="text-[16px] text-ink-2">a month</span>
       </p>
       <p className="mt-1 text-[14px] text-ink-3">Per person, all-inclusive</p>

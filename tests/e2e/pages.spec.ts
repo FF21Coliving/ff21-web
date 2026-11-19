@@ -99,8 +99,8 @@ test("every home shows a price and its meals @smoke", async ({ page }) => {
   await expect(page.locator("body")).not.toContainText("₹12,000");
 });
 
-// Each home's starting rent, from FF21's price sheet (17 Oct 2026).
-const sheet: Record<string, string> = { WFD: "₹14,000", PODS: "₹14,000", KDH: "₹15,750", HBR: "₹15,750", BGM: "₹15,750", PMC: "₹16,450", LIT: "₹17,000", KORA: "₹17,300", SJR: "₹17,800" };
+// Each home's starting rent: its cheapest room on FF21's price chart (19 Nov 2026).
+const sheet: Record<string, string> = { WFD: "₹17,000", PODS: "₹14,000", KDH: "₹15,750", HBR: "₹15,750", BGM: "₹15,750", PMC: "₹16,450", LIT: "₹17,000", KORA: "₹17,300", SJR: "₹17,800" };
 
 test("every home's page shows its own starting rent @smoke", async ({ page }) => {
   expect(Object.keys(sheet).sort()).toEqual(properties.map((p) => p.code).sort());
@@ -129,9 +129,52 @@ test("old Wix price cards read \"Starts from\" each home's own rent", async ({ p
   }
   await page.goto("/pg-near-hoodi");
   const hoodi = (await page.locator("main").textContent()) ?? "";
-  // FF21 PMC's three room cards, each from PMC's starting rent.
-  expect(hoodi.match(/Price: from ₹16,450/g)).toHaveLength(3);
-  expect(hoodi).not.toMatch(/Price: from ₹1[0-57-9]|INR ?\d/);
+  // FF21 PMC's three room cards, each with its own price.
+  for (const price of ["₹16,450", "₹19,800", "₹29,900"]) expect(hoodi, price).toContain(`Price: from ${price}`);
+  expect(hoodi).not.toMatch(/INR ?\d|from from/);
+  await page.goto("/pg-near-doddanekundi");
+  const bgm = ((await page.locator("main").textContent()) ?? "").replace(/\s+/g, " ");
+  expect(bgm).toContain("Studio Rooms start from ₹19,800 a month");
+  expect(bgm).toContain("Single Rooms at FF21 start from ₹28,900 a month");
+  expect(bgm).not.toContain("₹32,000");
+});
+
+// Each room's own starting rent, where FF21 has given one (19 Nov 2026).
+// FF21's price chart (Madhvik, 19 Nov 2026): each home's room types and
+// their starting rents, cheapest first.
+const roomSheet: Record<string, [string, string][]> = {
+  KDH: [["Twin room", "₹15,750"], ["Twin studio", "₹19,800"], ["Single room", "₹28,900"], ["Single studio", "₹36,600"]],
+  HBR: [["Twin room", "₹15,750"], ["Single room", "₹28,900"]],
+  BGM: [["Twin room", "₹15,750"], ["Twin studio", "₹19,800"], ["Single room", "₹28,900"], ["Single studio", "₹36,600"]],
+  PMC: [["Twin room", "₹16,450"], ["Pod", "₹17,350"], ["Twin studio", "₹19,800"], ["Single room", "₹29,900"], ["Single studio", "₹36,600"]],
+  LIT: [["Twin room", "₹17,000"], ["Twin studio", "₹20,350"], ["Single room", "₹31,000"], ["Single studio", "₹37,150"], ["1 BHK", "₹45,200"]],
+  PODS: [["Pod", "₹14,000"], ["Single room", "₹34,700"]],
+  KORA: [["Twin room", "₹17,300"], ["Twin studio", "₹20,500"], ["Single room", "₹27,300"], ["Single studio", "₹38,100"]],
+  WFD: [["Twin room", "₹17,000"], ["Single room", "₹31,500"]],
+  SJR: [["Twin studio", "₹17,800"], ["Single room", "₹34,600"], ["Single studio", "₹34,600"]],
+};
+
+test("every home lists the chart's room types, each with its own price @smoke", async ({ page }) => {
+  expect(Object.keys(roomSheet).sort()).toEqual(properties.map((p) => p.code).sort());
+  for (const p of properties) expect(p.from, `${p.code} starts at its cheapest room`).toBe(Math.min(...p.rooms.map((r) => r.from)));
+  for (const [code, rooms] of Object.entries(roomSheet)) {
+    const home = properties.find((p) => p.code === code)!;
+    await page.goto(`/properties/${home.slug}`);
+    const cards = page.locator("#rooms li");
+    await expect(cards, code).toHaveCount(rooms.length);
+    for (const [i, [name, price]] of rooms.entries()) {
+      await expect(cards.nth(i).locator("h3"), `${code} ${name}`).toHaveText(name);
+      await expect(cards.nth(i), `${code} ${name}`).toContainText(`From ${price} a month`);
+    }
+  }
+});
+
+test("the booking card shows the chosen room's price @desktop-only", async ({ page }) => {
+  await page.goto("/properties/pmc-mahadevapura");
+  const card = page.locator("aside");
+  await expect(card).toContainText("From ₹16,450 a month");
+  await card.getByRole("combobox").nth(1).selectOption("Twin studio");
+  await expect(card).toContainText("From ₹19,800 a month");
 });
 
 test("FF21 ITP is gone, and its pages go to its neighbours @smoke", async ({ page }) => {
