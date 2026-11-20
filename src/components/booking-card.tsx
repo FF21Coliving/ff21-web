@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, ChevronDown, MessageCircle } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/link";
 import { useState } from "react";
 import { site, whatsappLink } from "@/lib/site";
 import { included } from "./icons";

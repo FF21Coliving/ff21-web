@@ -1,6 +1,6 @@
 import { ArrowRight, MessageCircle } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/link";
 import { properties } from "@/lib/properties";
 import { site, whatsappLink } from "@/lib/site";
 import { included } from "./icons";

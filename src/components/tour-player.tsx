@@ -2,7 +2,7 @@
 
 import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, LoaderCircle, Play, X } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/link";
 import { useEffect, useRef, useState } from "react";
 import { rentAt, tourCover, type Property } from "@/lib/properties";
 import { track } from "@/lib/track";

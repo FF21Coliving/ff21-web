@@ -2,7 +2,7 @@
 
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/link";
 import { useRef, useState, ViewTransition } from "react";
 import { rentAt, roomKindLabels, roomKinds, type Property } from "@/lib/properties";
 import { highlightIcons, roomIcons } from "./icons";

@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowRight, Menu, MessageCircle, X } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { site, whatsappLink } from "@/lib/site";

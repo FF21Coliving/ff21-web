@@ -1,6 +1,6 @@
 import { ArrowRight, MessageCircle } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/link";
 import { notFound } from "next/navigation";
 import { HomeCard } from "@/components/home-card";
 import { Eyebrow, FindHomeBand, IncludedTags } from "@/components/sections";

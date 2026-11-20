@@ -31,7 +31,13 @@ export const metadata: Metadata = {
     images: [{ url: ogImage(photos.rooftopSunset), width: 1200, height: 630, alt: photos.rooftopSunset.alt }],
   },
   twitter: { card: "summary_large_image" },
-  icons: { icon: "/brand/ff21-logo-192.png", apple: "/brand/ff21-logo-192.png" },
+  // The favicon lives in /brand so browsers keep it for 30 days; from
+  // src/app it was re-checked on every page (about 3% of the site's Vercel
+  // requests, 20 Nov 2026). A new icon needs a new file name.
+  icons: {
+    icon: [{ url: "/brand/ff21-favicon-48.ico", sizes: "48x48", type: "image/x-icon" }, { url: "/brand/ff21-logo-192.png" }],
+    apple: "/brand/ff21-logo-192.png",
+  },
   // The same verification tags the Wix site had (20 Oct 2026), so Search
   // Console and Meta keep trusting the domain after launch.
   verification: {

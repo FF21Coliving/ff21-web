@@ -1,5 +1,5 @@
 import { CalendarDays, MapPin, Search, Wallet } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/link";
 
 // The search bar opens Find my home at the matching question.
 const segments = [

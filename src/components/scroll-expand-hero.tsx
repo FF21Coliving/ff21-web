@@ -2,7 +2,7 @@
 
 import { ArrowDown, ArrowRight, Play } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/link";
 import { useEffect, useRef, useState } from "react";
 import type { Photo } from "@/lib/photos";
 import { button } from "./ui";

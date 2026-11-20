@@ -19,7 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/link";
 import { amenities, faqs, steps, testimonials, type AmenityIcon } from "@/lib/content";
 import { photos, type Photo as PhotoType } from "@/lib/photos";
 import { properties, roomKindLabels, type RoomKind } from "@/lib/properties";
