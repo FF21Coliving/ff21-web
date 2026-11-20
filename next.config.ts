@@ -33,8 +33,11 @@ const nextConfig: NextConfig = {
     ];
   },
   async redirects() {
-    // The old register page now opens Find my home (query string kept).
     return [
+      // Browsers that ask for /favicon.ico without reading the page's icon
+      // tags get the cached one in /brand.
+      { source: "/favicon.ico", destination: "/brand/ff21-favicon-48.ico", permanent: true },
+      // The old register page now opens Find my home (query string kept).
       { source: "/register", destination: "/find-my-home", permanent: false },
       // Redirects the Wix site already had, and its thin duplicate pages
       // (checked against www.ff21.in on 17 Oct 2026).

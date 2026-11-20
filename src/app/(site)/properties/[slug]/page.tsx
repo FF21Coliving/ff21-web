@@ -1,7 +1,7 @@
 import { CalendarClock, Check, MapPin, Play, ShieldCheck, Wallet } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/link";
 import { notFound } from "next/navigation";
 import { AreaMap } from "@/components/area-map";
 import { BookingCard } from "@/components/booking-card";

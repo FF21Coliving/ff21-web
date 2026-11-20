@@ -9,7 +9,8 @@ import { track } from "@/lib/track";
 // Residents on video, filmed upright on a phone. Only the cover picture loads
 // (about 25 KB each, and only as it scrolls near: a video's poster attribute
 // would load with the page); a clip (2–5 MB, 720p) loads when tapped and
-// plays with sound and captions. Files: public/videos/story-<id>.mp4|webp|vtt.
+// plays with sound and captions. The captions file is added only when the
+// clip is tapped, so a page with videos doesn't fetch every one up front. Files: public/videos/story-<id>.mp4|webp|vtt.
 // On a home's page, `home` puts that home's residents first.
 export function StoryVideos({ home, limit }: { home?: string; limit?: number }) {
   const stories = storiesFor(home, limit);
@@ -43,7 +44,19 @@ export function StoryVideos({ home, limit }: { home?: string; limit?: number }) 
             }}
           >
             <source src={`/videos/story-${s.id}.mp4`} type="video/mp4" />
-            <track kind="captions" src={`/videos/story-${s.id}.vtt`} srcLang="en" label="English" default={!s.onScreen} />
+            {playing === s.id && (
+              <track
+                ref={(el) => {
+                  // Added after playback starts, so turn it on here rather than trust `default`.
+                  if (el && !s.onScreen) el.track.mode = "showing";
+                }}
+                kind="captions"
+                src={`/videos/story-${s.id}.vtt`}
+                srcLang="en"
+                label="English"
+                default={!s.onScreen}
+              />
+            )}
           </video>
           {/* The cover stays until the clip actually plays, so a tap never shows black. */}
           {started !== s.id && (

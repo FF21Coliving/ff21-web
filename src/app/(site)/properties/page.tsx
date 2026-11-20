@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/link";
 import { HomesExplorer } from "@/components/homes-explorer";
 import { Accent, Eyebrow, FindHomeBand, IncludedTags, WhoLivesHere } from "@/components/sections";
 import { container, lead, listingTitle, pageTitle } from "@/components/ui";

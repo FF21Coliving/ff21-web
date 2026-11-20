@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Building, Building2, Check, CircleAlert, Footprints, MapPin, Plus, Search, Smartphone, Users, Video, X, type LucideIcon } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { readAttribution } from "@/lib/attribution";

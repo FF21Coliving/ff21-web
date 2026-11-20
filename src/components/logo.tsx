@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/link";
 
 // The FF21 logo exactly as supplied (blue pebble, charcoal letters, yellow door).
 export function Logo({ onClick }: { onClick?: () => void }) {
