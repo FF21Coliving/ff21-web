@@ -321,11 +321,14 @@ export const tourCover = (p: Property) => p.tourCover ?? p.hero;
 export const rentAt = (p: Pick<Property, "from">) => inr(p.from);
 
 // Rents above this aren't shown anywhere on the site for now: FF21 asked on
-// 26 Nov 2026 to take them down urgently, to be added back later. Those rooms
-// still show, with "Ask for the price". To show every rent again, set this to
-// Infinity (the room prices themselves stay in the list above).
+// 26 Nov 2026 to take them down urgently, to be added back later, and the same
+// day to take those rooms' boxes off the home pages too (shownRooms). To show
+// every room and rent again, set this to Infinity (the rooms and their prices
+// stay in the list above).
 export const highestShownRent = 19900;
 export const rentShown = (n: number) => n <= highestShownRent;
+// The rooms a home's page lists: those whose rent the site shows.
+export const shownRooms = (p: Pick<Property, "rooms">) => p.rooms.filter((r) => rentShown(r.from));
 
 // A room's own starting rent, "₹19,800", or undefined while it's above
 // highestShownRent. Copy always puts "from" before it.

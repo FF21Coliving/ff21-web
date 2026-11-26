@@ -187,16 +187,14 @@ test("every home lists the chart's room types, each with its own price @smoke", 
     const home = properties.find((p) => p.code === code)!;
     await page.goto(`/properties/${home.slug}`);
     const cards = page.locator("#rooms li");
-    await expect(cards, code).toHaveCount(rooms.length);
-    for (const [i, [name, price]] of rooms.entries()) {
+    // Rooms above ₹19,900 are off the page for now, box and all (26 Nov 2026).
+    const shown = rooms.filter(([, price]) => rentShown(Number(price.replace(/\D/g, ""))));
+    await expect(cards, code).toHaveCount(shown.length);
+    for (const [i, [name, price]] of shown.entries()) {
       await expect(cards.nth(i).locator("h3"), `${code} ${name}`).toHaveText(name);
-      if (rentShown(Number(price.replace(/\D/g, "")))) await expect(cards.nth(i), `${code} ${name}`).toContainText(`From ${price} a month`);
-      else {
-        // Above ₹19,900: hidden for now (26 Nov 2026).
-        await expect(cards.nth(i), `${code} ${name}`).toContainText("Ask for the price");
-        await expect(cards.nth(i), `${code} ${name}`).not.toContainText(price);
-      }
+      await expect(cards.nth(i), `${code} ${name}`).toContainText(`From ${price} a month`);
     }
+    await expect(page.locator("#rooms"), code).not.toContainText("Ask for the price");
   }
 });
 
@@ -216,10 +214,8 @@ test("the booking card shows the chosen room's price @desktop-only", async ({ pa
   await expect(card).toContainText("From ₹16,450 a month");
   await card.getByRole("combobox").nth(1).selectOption("Twin studio");
   await expect(card).toContainText("From ₹19,800 a month");
-  // A room whose rent is hidden for now (above ₹19,900, 26 Nov 2026).
-  await card.getByRole("combobox").nth(1).selectOption("Single room");
-  await expect(card).toContainText("Ask us for this room's rent");
-  await expect(card).not.toContainText("₹29,900");
+  // Rooms above ₹19,900 aren't offered for now (26 Nov 2026).
+  await expect(card.getByRole("combobox").nth(1).locator("option")).toHaveText(["Not sure yet", "Twin room", "Pod", "Twin studio"]);
 });
 
 test("FF21 ITP is gone, and its pages go to its neighbours @smoke", async ({ page }) => {
