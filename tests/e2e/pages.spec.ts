@@ -225,8 +225,14 @@ test("the booking card shows the chosen room's price @desktop-only", async ({ pa
 test("FF21 ITP is gone, and its pages go to its neighbours @smoke", async ({ page }) => {
   await page.goto("/properties/itp-whitefield");
   await expect(page).toHaveURL(/\/properties\/wfd-whitefield$/);
-  await page.goto("/coliving-pgs-near-itpl");
-  await expect(page).toHaveURL(/\/pg-near-itpl-bangalore$/);
+  // Both Wix ITPL pages were ITP's own, and its old Google Maps listing links
+  // to one: they go to FF21 WFD too (26 Nov 2026).
+  for (const path of ["/coliving-pgs-near-itpl", "/pg-near-itpl-bangalore", "/coliving-pg-near-itpl"]) {
+    await page.goto(path);
+    await expect(page, path).toHaveURL(/\/properties\/wfd-whitefield$/);
+  }
+  const sitemap = await (await page.request.get("/sitemap.xml")).text();
+  for (const path of ["/coliving-pgs-near-itpl<", "/pg-near-itpl-bangalore<"]) expect(sitemap, path).not.toContain(path);
   for (const path of ["/properties", "/luxury-pg-in-bangalore", "/whitefield-zhub"]) {
     await page.goto(path);
     expect((await page.locator("body").textContent()) ?? "", path).not.toMatch(/FF21[- ]ITP\b/);

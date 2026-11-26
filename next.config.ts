@@ -76,7 +76,7 @@ const nextConfig: NextConfig = {
         ["/pg-in-indiranager-layout", "/pg-in-indiranagar"],
         ["/pg-in-madiwala-layout", "/pg-in-madiwala"],
         ["/coliving-pg-near-mahadevpura", "/coliving-pg-near-mahadevapura"],
-        ["/coliving-pg-near-itpl", "/pg-near-itpl-bangalore"],
+        ["/coliving-pg-near-itpl", "/properties/wfd-whitefield"],
         ["/pg-near-hoodi-bangalore", "/pg-near-hoodi"],
         ["/near-marathahalli", "/pg-near-marathahalli"],
         ["/monthly-stay", "/monthly-stay-in-bangalore"],
@@ -95,10 +95,12 @@ const nextConfig: NextConfig = {
         ["/blog/pg-near-manyata-tech-park-under-12000-bangalore", "/coliving-pg-near-manyata-tech-park"],
         ["/blog/top-10-affordable-pgs-near-brookefield-bangalore", "/pg-near-brookefield"],
         // FF21 ITP closed (Madhvik, 5 Nov 2026): its home page goes to FF21 WFD,
-        // the other Whitefield home, 50 m from ITPB; its Wix area page goes to
-        // the other page about living near ITPL.
+        // the other Whitefield home, 50 m from ITPB. So do both Wix ITPL pages
+        // (26 Nov 2026): they were ITP's own pages, with its rooms and prices,
+        // and ITP's old Google Maps listing links to one of them.
         ["/properties/itp-whitefield", "/properties/wfd-whitefield"],
-        ["/coliving-pgs-near-itpl", "/pg-near-itpl-bangalore"],
+        ["/coliving-pgs-near-itpl", "/properties/wfd-whitefield"],
+        ["/pg-near-itpl-bangalore", "/properties/wfd-whitefield"],
         // Wix's sitemaps, still listed in Search Console, point to ours.
         ["/dynamic-blog-sitemap.xml", "/sitemap.xml"],
         ["/blog-posts-sitemap.xml", "/sitemap.xml"],
