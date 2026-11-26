@@ -46,11 +46,12 @@ const firstPhoto = (blocks: Block[]) => blocks.flatMap((b) => (b.t === "img" ? [
 // description loses the phrase.
 const notStudent = (l: Landing): Landing =>
   l.path === "/bangalore-student-pg" ? { ...l, description: l.description?.replace(/Bangalore student PG,\s*/i, "") ?? null } : l;
-// FF21 ITP closed (Madhvik, 5 Nov 2026). Its own page, /coliving-pgs-near-itpl,
-// redirects to the other ITPL page (next.config.ts). Elsewhere its listing
+// FF21 ITP closed (Madhvik, 5 Nov 2026). Its own pages, /coliving-pgs-near-itpl
+// and /pg-near-itpl-bangalore, redirect to FF21 WFD (next.config.ts). Elsewhere its listing
 // (an "FF21 ITP" heading and what follows, up to the next heading) and the
 // "(Areas accessible from FF21-ITP …)" line come out.
 const itpPage = "/coliving-pgs-near-itpl";
+const itpPages = new Set([itpPage, "/pg-near-itpl-bangalore"]);
 const withoutItp = (blocks: Block[]): Block[] => {
   let inItp = false;
   return blocks.filter((b) => {
@@ -131,7 +132,8 @@ const fixCopy = (h: string, price: Price | null, bare = false) => {
   return withoutHidden(priced)
     .replace(/\u0000(\d+)\u0000/g, (_, n: string) => inr(Number(n)))
     .replaceAll(mark, price?.rent ?? rent)
-    .replaceAll(`href="${itpPage}"`, 'href="/pg-near-itpl-bangalore"');
+    .replaceAll(`href="${itpPage}"`, 'href="/properties/wfd-whitefield"')
+    .replaceAll('href="/pg-near-itpl-bangalore"', 'href="/properties/wfd-whitefield"');
 };
 // Fixes a run of texts (blocks, or a list's items), each knowing the one before.
 const fixRun = (texts: string[], price: Price | null) => texts.map((t, i) => fixCopy(t, price, i > 0 && isStartsAt(texts[i - 1])));
@@ -158,7 +160,7 @@ const withFixes = (blocks: Block[], page: string | null): Block[] => {
 };
 
 export const landingPages = (landingData as unknown as Landing[])
-  .filter((l) => l.path !== itpPage)
+  .filter((l) => !itpPages.has(l.path))
   .map((l) => ({ ...l, blocks: withFixes(withoutItp(l.blocks), pageHome[l.path] ?? "") }))
   .map(tidy)
   .map(notStudent);
@@ -259,7 +261,6 @@ const homesByPage: Record<string, string[] | "all" | "studio"> = {
   "/pg-near-hbr-layout": ["HBR"],
   "/pg-near-hoodi": ["PMC", "WFD"],
   "/pg-near-hopefarm": ["WFD"],
-  "/pg-near-itpl-bangalore": ["WFD"],
   "/pg-near-kaggadasapura": ["BGM", "PMC", "PODS"],
   "/pg-near-kalyan-nagar": ["HBR"],
   "/pg-near-karthik-nagar": ["BGM", "PODS", "KDH"],
