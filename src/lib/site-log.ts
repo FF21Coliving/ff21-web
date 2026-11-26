@@ -95,10 +95,15 @@ function push(e: Omit<LogEvent, "at">) {
     document.addEventListener("visibilitychange", () => document.visibilityState === "hidden" && flush());
     window.addEventListener("pagehide", flush);
   }
-  // Every 15 seconds at most, plus whatever is waiting when the tab is hidden
-  // or closed: one call to /api/t per page or two, not one every few taps
-  // (each call counts against the site's Vercel requests; 20 Nov 2026).
-  if (!timer) timer = setTimeout(flush, 15_000);
+  // A page view goes at once, so a visit is counted even if the visitor leaves
+  // within seconds: phones' in-app browsers (Instagram, Facebook) often close
+  // without the tab ever reporting "hidden", and from 20 to 27 Nov 2026 such
+  // visits were lost (26 Nov: 3,212 page loads, 2,214 visits logged). Taps and
+  // other events wait up to 15 seconds and go together, plus whatever is
+  // waiting when the tab is hidden or closed (each call to /api/t counts
+  // against the site's Vercel requests).
+  if (e.kind === "view") flush();
+  else if (!timer) timer = setTimeout(flush, 15_000);
 }
 
 export function logView(path: string) {

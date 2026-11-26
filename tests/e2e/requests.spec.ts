@@ -60,3 +60,18 @@ test("the favicon is one browsers keep for 30 days @smoke", async ({ page, reque
   expect(old.status()).toBe(308);
   expect(old.headers()["location"]).toBe("/brand/ff21-favicon-48.ico");
 });
+
+// From 20 to 27 Nov 2026 page views waited up to 15 s, and visitors who left
+// sooner (often from Meta ads) were never counted. A page view goes at once.
+test("a page view reaches the visit log at once", async ({ page }) => {
+  // The log is off for automated browsers; switch it on, and answer its calls
+  // here so nothing is written to the real log.
+  await page.addInitScript(() => Object.defineProperty(Navigator.prototype, "webdriver", { get: () => false }));
+  const sent: string[] = [];
+  await page.route("**/api/t", async (route) => {
+    sent.push(route.request().postData() ?? "");
+    await route.fulfill({ status: 204, body: "" });
+  });
+  await page.goto("/properties/kdh-kundanahalli");
+  await expect.poll(() => sent.some((b) => b.includes('"kind":"view"')), { timeout: 5_000 }).toBe(true);
+});
