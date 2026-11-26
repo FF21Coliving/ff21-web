@@ -150,12 +150,16 @@ test("old Wix price cards read \"Starts from\" each home's own rent", async ({ p
 // now (highestShownRent in src/lib/properties.ts). Blog posts are left out:
 // they quote other PGs' rents, never FF21's.
 const rentsOn = (text: string) => [...text.matchAll(/(?:₹|INR|Rs\.?)\s?(\d{1,3}(?:,\d{2,3})+)/g)].map((m) => Number(m[1].replace(/,/g, "")));
-test("no rent above the highest shown one appears anywhere @smoke", async ({ page, request }) => {
+// Reads each page's HTML (its words, without scripts) rather than opening ~70
+// pages in a browser, which ran past the test time limit in CI.
+const wordsOf = (html: string) => html.replace(/<(script|style)\b[\s\S]*?<\/\1>/g, " ").replace(/<[^>]+>/g, " ");
+test("no rent above the highest shown one appears anywhere @smoke", async ({ request }) => {
+  test.setTimeout(120_000);
   const paths = ["/", "/properties", "/find-my-home", ...properties.map((p) => `/properties/${p.slug}`), ...(landing as { path: string }[]).map((l) => l.path)];
   for (const path of paths) {
-    await page.goto(path);
-    const text = (await page.locator("body").textContent()) ?? "";
-    expect(rentsOn(text).filter((n) => n > highestShownRent), path).toEqual([]);
+    const res = await request.get(path);
+    expect(res.ok(), path).toBe(true);
+    expect(rentsOn(wordsOf(await res.text())).filter((n) => n > highestShownRent), path).toEqual([]);
   }
   const llms = await (await request.get("/llms.txt")).text();
   expect(rentsOn(llms).filter((n) => n > highestShownRent), "/llms.txt").toEqual([]);
@@ -194,6 +198,16 @@ test("every home lists the chart's room types, each with its own price @smoke", 
       }
     }
   }
+});
+
+// FF21 asked on 26 Nov 2026 for "(Room Maintenance Cost)" next to it everywhere.
+test("the move-out charge reads as the room maintenance cost @smoke", async ({ page }) => {
+  for (const path of ["/", "/properties/kdh-kundanahalli"]) {
+    await page.goto(path);
+    await expect(page.getByText("Move-out charge (Room Maintenance Cost)").first(), path).toBeVisible();
+  }
+  await page.goto("/");
+  expect(await page.locator("body").textContent()).toContain("move-out charge (room maintenance cost) of ₹2,999 + GST");
 });
 
 test("the booking card shows the chosen room's price @desktop-only", async ({ page }) => {

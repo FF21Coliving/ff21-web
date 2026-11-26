@@ -38,7 +38,8 @@ export const terms = [
   { label: "Deposit", value: "Zero deposit against a rental guarantee, or 2 months' rent" },
   { label: "Minimum stay", value: "3 months from check-in" },
   { label: "Notice to vacate", value: "30 days" },
-  { label: "Move-out charge", value: "₹2,999 + GST" },
+  // "(Room Maintenance Cost)" added at FF21's request, 26 Nov 2026.
+  { label: "Move-out charge (Room Maintenance Cost)", value: "₹2,999 + GST" },
   { label: "Refunds", value: "Within 90 working days" },
 ];
 
