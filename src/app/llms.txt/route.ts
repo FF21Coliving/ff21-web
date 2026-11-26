@@ -1,6 +1,6 @@
 import { included } from "@/components/icons";
 import { faqs } from "@/lib/content";
-import { properties, rentAt, roomRent } from "@/lib/properties";
+import { properties, rentAt, roomRent, shownRooms } from "@/lib/properties";
 import { rent, site } from "@/lib/site";
 
 // /llms.txt: a plain summary of FF21 for AI assistants (llmstxt.org), built
@@ -23,7 +23,7 @@ export function GET() {
     "",
     "## Homes",
     "",
-    ...properties.map((p) => `- [FF21 ${p.code}, ${p.area}](${site.url}/properties/${p.slug}): ${p.tagline}. Rooms: ${p.rooms.map((r) => (roomRent(r) ? `${r.name} from ${roomRent(r)}` : r.name)).join(", ")}. From ${rentAt(p)} a month.`),
+    ...properties.map((p) => `- [FF21 ${p.code}, ${p.area}](${site.url}/properties/${p.slug}): ${p.tagline}. Rooms: ${shownRooms(p).map((r) => `${r.name} from ${roomRent(r)}`).join(", ")}. From ${rentAt(p)} a month.`),
     "",
     "## Questions",
     "",

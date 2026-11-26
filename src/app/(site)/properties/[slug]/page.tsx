@@ -19,7 +19,7 @@ import { TrackedLink } from "@/components/tracked-link";
 import { button, container, listingTitle } from "@/components/ui";
 import { ogImage } from "@/lib/photos";
 import { pins } from "@/lib/schema";
-import { getProperty, mealsAt, properties, rentAt, roomKindLabels, roomKindOf, roomKinds, roomRent, tourCover, zones, type Property } from "@/lib/properties";
+import { getProperty, mealsAt, properties, rentAt, roomKindLabels, roomKindOf, roomKinds, roomRent, shownRooms, tourCover, zones, type Property } from "@/lib/properties";
 import { site, terms, whatsappLink } from "@/lib/site";
 import { areaPagesFor, landingName } from "@/lib/wix-content";
 
@@ -207,9 +207,9 @@ export default async function PropertyPage({ params }: PageProps<"/properties/[s
             <section id="rooms" aria-labelledby="rooms-title" className="scroll-mt-40 py-12">
               <h2 id="rooms-title" className={listingTitle}>Rooms at FF21 {p.code}</h2>
               <p className="mt-1 text-[15px] text-ink-2">Per person, per month. Meals, taxes and charges included.</p>
-              {p.rooms.length ? (
+              {shownRooms(p).length ? (
                 <ul className="mt-6 grid gap-4 sm:grid-cols-2">
-                  {p.rooms.map((r) => {
+                  {shownRooms(p).map((r) => {
                     const kind = roomKindOf(r.name);
                     return (
                       <li key={r.name} className="flex flex-col rounded-2xl border border-line p-6 transition-colors hover:border-line-soft">
@@ -335,7 +335,7 @@ export default async function PropertyPage({ params }: PageProps<"/properties/[s
 
           <aside className="hidden lg:block">
             <div className="sticky top-[calc(var(--header-space)+72px)]">
-              <BookingCard slug={p.slug} code={p.code} area={p.area} rent={rentAt(p)} rooms={p.rooms.map((r) => ({ name: r.name, kind: roomKindOf(r.name), rent: roomRent(r) }))} />
+              <BookingCard slug={p.slug} code={p.code} area={p.area} rent={rentAt(p)} rooms={shownRooms(p).map((r) => ({ name: r.name, kind: roomKindOf(r.name), rent: roomRent(r) }))} />
             </div>
           </aside>
         </div>
