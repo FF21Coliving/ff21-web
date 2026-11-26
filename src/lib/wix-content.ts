@@ -3,7 +3,7 @@ import altData from "@/content/wix/alt-text.json";
 import blogData from "@/content/wix/blog.json";
 import landingData from "@/content/wix/landing.json";
 import metaData from "@/content/wix/meta.json";
-import { homesNear, places, properties, rentAt, roomKinds, type Property } from "./properties";
+import { homesNear, places, properties, rentAt, rentShown, roomKinds, type Property } from "./properties";
 import { inr, rent } from "./site";
 
 // Everything below was carried over from the Wix site (www.ff21.in, read 17
@@ -66,6 +66,12 @@ const withoutItp = (blocks: Block[]): Block[] => {
 // listed a top or premium price are rewritten whole. Posts keep their prices
 // of other PGs; only the three that named an FF21 price change.
 const mark = "\u0000rent\u0000";
+const hidden = "\u0000hidden\u0000";
+// Takes out each sentence that holds a hidden price; a heading or list item
+// that's only that sentence becomes empty, and withFixes drops it.
+const withoutHidden = (h: string) =>
+  h.includes(hidden) ? h.replace(/[^.!?>]*\u0000hidden\u0000[^.!?<]*[.!?]?\s*/g, "").trim() : h;
+const isEmpty = (h: string) => h.replace(/<[^>]+>/g, "").trim() === "";
 const priceRewrites: [string, string][] = [
   // LIT's 1 BHK is ₹40,000 now (20 Nov 2026).
   ["Price: INR 45,200 (Per month)", "Price: INR 40,000 (Per month)"],
@@ -110,16 +116,19 @@ const ourPrice = /(?:₹|INR)\s?\d{1,2},\d{3}(?:\/-)?/g;
 // that reads "Starts from", and the price after it stays bare.
 const isStartsAt = (h: string) => h.replace(/<[^>]+>/g, "").trim() === "Starts at";
 // A room price is held as "\u0000<number>\u0000" until the end, like `mark`.
+// A price above highestShownRent is held as `hidden`, and the sentence (or
+// the "Price: …" heading) it's in comes out (26 Nov 2026).
 // Links to ITP's old page go straight to where it now redirects.
 const fixCopy = (h: string, price: Price | null, bare = false) => {
   if (price && isStartsAt(h)) return h.replace("Starts at", "Starts from");
   const fixed = priceRewrites.reduce((s, [from, to]) => s.replace(from, to), h);
   const held = (m: string) => {
     const n = Number(m.replace(/\/-$/, "").replace(/\D/g, ""));
+    if (!rentShown(n)) return hidden;
     return price?.rooms.has(n) ? `\u0000${n}\u0000` : mark;
   };
   const priced = price ? fixed.replace(ourPrice, (m) => (bare ? "" : "from ") + held(m)).replace(/\b(?:at|for|for just|from) from \u0000/g, "from \u0000") : fixed;
-  return priced
+  return withoutHidden(priced)
     .replace(/\u0000(\d+)\u0000/g, (_, n: string) => inr(Number(n)))
     .replaceAll(mark, price?.rent ?? rent)
     .replaceAll(`href="${itpPage}"`, 'href="/pg-near-itpl-bangalore"');
@@ -130,8 +139,8 @@ const fixRun = (texts: string[], price: Price | null) => texts.map((t, i) => fix
 const withFixes = (blocks: Block[], page: string | null): Block[] => {
   let section: string | undefined;
   let prev = "";
-  return blocks.map((b) => {
-    if (b.t === "img") return b;
+  return blocks.flatMap((b): Block[] => {
+    if (b.t === "img") return [b];
     if (b.t === "h2" || b.t === "h3") {
       const code = homeHeading(b.h);
       if (code || b.t === "h2") section = code;
@@ -139,11 +148,12 @@ const withFixes = (blocks: Block[], page: string | null): Block[] => {
     const price = page === null ? null : priceOf(section ?? (page || undefined));
     if (b.t === "ul") {
       prev = "";
-      return { ...b, items: fixRun(b.items, price) };
+      const items = fixRun(b.items, price).filter((i) => !isEmpty(i));
+      return items.length ? [{ ...b, items }] : [];
     }
     const h = fixCopy(b.h, price, isStartsAt(prev));
     prev = b.h;
-    return { ...b, h };
+    return isEmpty(h) ? [] : [{ ...b, h }];
   });
 };
 

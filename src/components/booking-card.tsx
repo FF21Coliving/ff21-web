@@ -14,7 +14,7 @@ type Props = {
   area: string;
   // This home's starting rent, "₹15,750".
   rent: string;
-  // Each room's own starting rent, where FF21 has given one.
+  // Each room's own starting rent, unless it's one the site doesn't show.
   rooms: { name: string; kind?: string; rent?: string }[];
 };
 
@@ -32,11 +32,15 @@ export function BookingCard({ slug, code, area, rent, rooms }: Props) {
 
   return (
     <div className="rounded-2xl border border-line bg-surface p-6 shadow-[0_14px_40px_rgb(23_43_45/0.12)]">
-      <p className="text-ink">
-        <span className="text-[16px] text-ink-2">From</span>{" "}
-        <span className="tabular font-display text-[30px] font-extrabold tracking-[-0.02em]">{chosen?.rent ?? rent}</span>{" "}
-        <span className="text-[16px] text-ink-2">a month</span>
-      </p>
+      {chosen && !chosen.rent ? (
+        <p className="font-display text-[24px] font-extrabold leading-[38px] tracking-[-0.02em] text-ink">Ask us for this room&apos;s rent</p>
+      ) : (
+        <p className="text-ink">
+          <span className="text-[16px] text-ink-2">From</span>{" "}
+          <span className="tabular font-display text-[30px] font-extrabold tracking-[-0.02em]">{chosen?.rent ?? rent}</span>{" "}
+          <span className="text-[16px] text-ink-2">a month</span>
+        </p>
+      )}
       <p className="mt-1 text-[14px] text-ink-3">Per person, all-inclusive</p>
 
       <ul className="mt-5 grid grid-cols-2 gap-x-3 gap-y-2.5 rounded-xl bg-blue-50 p-4" aria-label="Included in the rent">

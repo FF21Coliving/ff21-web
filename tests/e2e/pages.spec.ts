@@ -2,7 +2,8 @@ import { expect, test } from "./fixtures";
 import { homes, keyPages, openClean } from "./helpers";
 import { stories, storiesFor } from "../../src/lib/content";
 import { photos } from "../../src/lib/photos";
-import { properties } from "../../src/lib/properties";
+import { highestShownRent, properties, rentShown } from "../../src/lib/properties";
+import landing from "../../src/content/wix/landing.json";
 import { prices } from "../../src/lib/site";
 
 // @smoke tests are read-only and also run against the live site after every
@@ -129,21 +130,35 @@ test("old Wix price cards read \"Starts from\" each home's own rent", async ({ p
   }
   await page.goto("/pg-near-hoodi");
   const hoodi = (await page.locator("main").textContent()) ?? "";
-  // FF21 PMC's three room cards, each with its own price.
-  for (const price of ["₹16,450", "₹19,800", "₹29,900"]) expect(hoodi, price).toContain(`Price: from ${price}`);
+  // FF21 PMC's room cards, each with its own price (₹29,900 is hidden for now).
+  for (const price of ["₹16,450", "₹19,800"]) expect(hoodi, price).toContain(`Price: from ${price}`);
   expect(hoodi).not.toMatch(/INR ?\d|from from/);
   await page.goto("/pg-near-doddanekundi");
   const bgm = ((await page.locator("main").textContent()) ?? "").replace(/\s+/g, " ");
   expect(bgm).toContain("Studio Rooms start from ₹19,800 a month");
-  expect(bgm).toContain("Single Rooms at FF21 start from ₹28,900 a month");
   expect(bgm).not.toContain("₹32,000");
-  // LIT's 1 BHK is ₹40,000 now (20 Nov 2026).
+  // LIT's 1 BHK was ₹45,200 on Wix; it's ₹40,000 now (20 Nov 2026).
   for (const path of ["/coliving-near-kadubeesanahalli", "/pg-in-kadubeesanahalli", "/pgs-near-prestige-tech-park"]) {
     await page.goto(path);
     const lit = ((await page.locator("main").textContent()) ?? "").replace(/\s+/g, " ");
-    expect(lit, path).toContain("₹40,000");
     expect(lit, path).not.toContain("45,200");
+    expect(lit, path).toContain(rentShown(40000) ? "₹40,000" : "₹17,000");
   }
+});
+
+// FF21 asked on 26 Nov 2026 to take every rent above ₹19,900 off the site for
+// now (highestShownRent in src/lib/properties.ts). Blog posts are left out:
+// they quote other PGs' rents, never FF21's.
+const rentsOn = (text: string) => [...text.matchAll(/(?:₹|INR|Rs\.?)\s?(\d{1,3}(?:,\d{2,3})+)/g)].map((m) => Number(m[1].replace(/,/g, "")));
+test("no rent above the highest shown one appears anywhere @smoke", async ({ page, request }) => {
+  const paths = ["/", "/properties", "/find-my-home", ...properties.map((p) => `/properties/${p.slug}`), ...(landing as { path: string }[]).map((l) => l.path)];
+  for (const path of paths) {
+    await page.goto(path);
+    const text = (await page.locator("body").textContent()) ?? "";
+    expect(rentsOn(text).filter((n) => n > highestShownRent), path).toEqual([]);
+  }
+  const llms = await (await request.get("/llms.txt")).text();
+  expect(rentsOn(llms).filter((n) => n > highestShownRent), "/llms.txt").toEqual([]);
 });
 
 // Each room's own starting rent, where FF21 has given one (19 Nov 2026).
@@ -171,7 +186,12 @@ test("every home lists the chart's room types, each with its own price @smoke", 
     await expect(cards, code).toHaveCount(rooms.length);
     for (const [i, [name, price]] of rooms.entries()) {
       await expect(cards.nth(i).locator("h3"), `${code} ${name}`).toHaveText(name);
-      await expect(cards.nth(i), `${code} ${name}`).toContainText(`From ${price} a month`);
+      if (rentShown(Number(price.replace(/\D/g, "")))) await expect(cards.nth(i), `${code} ${name}`).toContainText(`From ${price} a month`);
+      else {
+        // Above ₹19,900: hidden for now (26 Nov 2026).
+        await expect(cards.nth(i), `${code} ${name}`).toContainText("Ask for the price");
+        await expect(cards.nth(i), `${code} ${name}`).not.toContainText(price);
+      }
     }
   }
 });
@@ -182,6 +202,10 @@ test("the booking card shows the chosen room's price @desktop-only", async ({ pa
   await expect(card).toContainText("From ₹16,450 a month");
   await card.getByRole("combobox").nth(1).selectOption("Twin studio");
   await expect(card).toContainText("From ₹19,800 a month");
+  // A room whose rent is hidden for now (above ₹19,900, 26 Nov 2026).
+  await card.getByRole("combobox").nth(1).selectOption("Single room");
+  await expect(card).toContainText("Ask us for this room's rent");
+  await expect(card).not.toContainText("₹29,900");
 });
 
 test("FF21 ITP is gone, and its pages go to its neighbours @smoke", async ({ page }) => {
