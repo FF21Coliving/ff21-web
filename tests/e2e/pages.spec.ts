@@ -196,6 +196,16 @@ test("every home lists the chart's room types, each with its own price @smoke", 
   }
 });
 
+// FF21 asked on 26 Nov 2026 for "(Room Maintenance Cost)" next to it everywhere.
+test("the move-out charge reads as the room maintenance cost @smoke", async ({ page }) => {
+  for (const path of ["/", "/properties/kdh-kundanahalli"]) {
+    await page.goto(path);
+    await expect(page.getByText("Move-out charge (Room Maintenance Cost)").first(), path).toBeVisible();
+  }
+  await page.goto("/");
+  expect(await page.locator("body").textContent()).toContain("move-out charge (room maintenance cost) of ₹2,999 + GST");
+});
+
 test("the booking card shows the chosen room's price @desktop-only", async ({ page }) => {
   await page.goto("/properties/pmc-mahadevapura");
   const card = page.locator("aside");

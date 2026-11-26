@@ -86,7 +86,7 @@ export const termIcons: Record<string, LucideIcon> = {
   Deposit: ShieldCheck,
   "Minimum stay": CalendarClock,
   "Notice to vacate": Clock,
-  "Move-out charge": ReceiptIndianRupee,
+  "Move-out charge (Room Maintenance Cost)": ReceiptIndianRupee,
   Refunds: RotateCcw,
 };
 

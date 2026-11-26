@@ -109,7 +109,7 @@ export const faqs = [
   },
   {
     q: "What is the notice period?",
-    a: "30 days. Final billing runs 30 days from your notice. There is a move-out charge of ₹2,999 + GST, and refunds are made within 90 working days.",
+    a: "30 days. Final billing runs 30 days from your notice. There is a move-out charge (room maintenance cost) of ₹2,999 + GST, and refunds are made within 90 working days.",
   },
   {
     q: "When can I visit?",
